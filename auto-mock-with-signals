@@ -1,64 +1,32 @@
-// test-utils/auto-mock-with-signals.ts
-import { signal, WritableSignal } from '@angular/core';
+type MockedClass<T> = {
+  [K in keyof T]: T[K] extends (...args: any[]) => any
+    ? jest.MockedFunction<T[K]>
+    : T[K];
+};
 
-type AnyObj = Record<PropertyKey, any>;
+class AutoMock {
+  static make<T>(ClassConstructor: new (...args: any[]) => T): MockedClass<T> {
+    const instance = new ClassConstructor();
+    const mock: any = {};
+    const prototype = Object.getPrototypeOf(instance);
 
-type Overrides<T> = Partial<jest.Mocked<T>>;
-
-/**
- * autoMockWithSignals:
- * - jeśli overrides NIE podane -> "pełny automock" (leniwe tworzenie jest.fn(), a przy .set/.update -> signal())
- * - jeśli overrides podane -> "strict" (tylko pola z overrides; każde inne rzuca błąd)
- */
-export function autoMockWithSignals<T extends object>(): jest.Mocked<T>;
-export function autoMockWithSignals<T extends object>(overrides: Overrides<T>): jest.Mocked<T>;
-export function autoMockWithSignals<T extends object>(overrides?: Overrides<T>): jest.Mocked<T> {
-  const strict = arguments.length > 0; // ważne: rozróżnia "nie podane" vs "podane (nawet {})"
-  const base: AnyObj = overrides ?? {};
-  const cache = new Map<PropertyKey, any>();
-
-  return new Proxy(base, {
-    get(target, prop) {
-      // zawsze pozwól na rzeczy systemowe
-      if (prop === Symbol.toStringTag) return 'autoMockWithSignals';
-      if (prop === 'then') return undefined; // zabezpieczenie przed "thenable"
-
-      // jeśli jest przekazane w overrides -> zwróć to
-      if (prop in target) return (target as AnyObj)[prop];
-
-      // STRICT: nic więcej nie wolno
-      if (strict) {
-        throw new Error(
-          `[autoMockWithSignals][STRICT] Access to "${String(prop)}" but it was not provided in overrides.\n` +
-            `Provide it explicitly: autoMockWithSignals<YourType>({ ${String(prop)}: ... })`,
-        );
-      }
-
-      // FULL: leniwe tworzenie
-      if (cache.has(prop)) return cache.get(prop);
-
-      const fn = jest.fn();
-
-      // Sztuczka: jeśli ktoś spróbuje użyć `.set()` lub `.update()` na tym polu,
-      // traktujemy to jako sygnał i zamieniamy na signal()
-      const maybeSignalOrFn = new Proxy(fn as AnyObj, {
-        get(_fnTarget, subProp) {
-          if (subProp === 'set' || subProp === 'update' || subProp === 'mutate') {
-            const s = signal<any>(undefined) as WritableSignal<any>;
-            cache.set(prop, s);
-            return (s as AnyObj)[subProp].bind(s);
+    let currentProto = prototype;
+    
+    // Przechodzimy przez cały łańcuch prototypów
+    while (currentProto && currentProto !== Object.prototype) {
+      Object.getOwnPropertyNames(currentProto).forEach((key) => {
+        if (key !== 'constructor' && !mock[key]) {
+          const descriptor = Object.getOwnPropertyDescriptor(currentProto, key);
+          
+          if (descriptor && typeof descriptor.value === 'function') {
+            mock[key] = jest.fn();
           }
-
-          // normalne właściwości jest.fn() (mock, mockImplementation, itp.)
-          return (fn as AnyObj)[subProp];
-        },
-        apply(_fnTarget, thisArg, argArray) {
-          return (fn as any).apply(thisArg, argArray);
-        },
+        }
       });
+      
+      currentProto = Object.getPrototypeOf(currentProto);
+    }
 
-      cache.set(prop, maybeSignalOrFn);
-      return maybeSignalOrFn;
-    },
-  }) as jest.Mocked<T>;
+    return mock as MockedClass<T>;
+  }
 }
