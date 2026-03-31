@@ -1,0 +1,25 @@
+import { inject, Injectable } from '@angular/core';
+import { Store } from '@ngxs/store';
+import { StateReset } from 'ngxs-reset-plugin';
+import { <%= classify(name) %>Actions } from './<%= dasherize(name) %>-actions';
+import { <%= classify(name) %>State } from './<%= dasherize(name) %>-state';
+import { <%= classify(name) %>EffectsService } from './<%= dasherize(name) %>-effects.service';
+
+@Injectable()
+export class <%= classify(name) %>StateService {
+  private readonly store: Store = inject(Store);
+  private readonly effects: <%= classify(name) %>EffectsService = inject(<%= classify(name) %>EffectsService);
+
+  public initEffects(): void {
+    this.effects.init();
+  }
+
+  public destroyEffects(): void {
+    this.effects.destroy();
+  }
+
+  public resetState(): void {
+    this.store.dispatch(new StateReset(<%= classify(name) %>State));
+  }
+}
+

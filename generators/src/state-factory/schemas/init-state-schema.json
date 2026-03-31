@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "InitStateSchematic",
+  "title": "Create a new part of state",
+  "type": "object",
+  "description": "Initialise a new part of state",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of new state",
+      "x-prompt": "Name:",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      }
+    },
+    "path": {
+      "type": "string",
+      "format": "path",
+      "description": "The path at which to create the component file, relative to the current workspace. Default is a folder with the same name as the component in the project root.",
+      "$default": {
+        "$source": "workingDirectory"
+      },
+      "visible": false
+    }
+  }
+}

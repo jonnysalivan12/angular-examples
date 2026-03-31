@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "EndpointGeneratorSchematic",
+  "title": "Creates a endpoint by schematic.",
+  "type": "object",
+  "properties": {
+    "projectName": {
+      "type": "string",
+      "description": "Choose project where will endpoint generate (empty is defaultProject)",
+      "x-prompt": "Project name project:",
+      "$default": {
+        "$source": "projectName"
+      }
+    },
+    "path": {
+      "type": "string",
+      "format": "path",
+      "description": "The path at which to create the component file, relative to the current workspace. Default is a folder with the same name as the component in the project root.",
+      "$default": {
+        "$source": "workingDirectory"
+      },
+      "visible": false
+    },
+    "url": {
+      "type": "string",
+      "format": "path",
+      "description": "Endpoint url",
+      "x-prompt": "Endpoint url (without `/`):"
+    },
+    "method": {
+      "type": "string",
+      "description": "Choose a http method",
+      "default": "GET",
+      "enum": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "x-prompt": {
+        "message": "Endpoint method:",
+        "type": "list",
+        "items": [
+          { "value": "GET",  "label": "GET" },
+          { "value": "POST", "label": "POST" },
+          { "value": "PUT", "label": "PUT" },
+          { "value": "DELETE", "label": "DELETE" }
+        ]
+      }
+    },
+    "hasQueryParam": {
+      "type": "boolean",
+      "description": "Query params",
+      "default": false,
+      "x-prompt": "Would you like to add query params?"
+    },
+    "hasResponseBody": {
+      "type": "boolean",
+      "description": "Response body",
+      "default": false,
+      "x-prompt": "Would you like to add response body?"
+    }
+  }
+}

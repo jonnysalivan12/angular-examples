@@ -1,0 +1,3 @@
+import { ActionBuilder } from '@app/core/state/action-builder';
+
+export namespace <%= classify(name) %>Actions {}

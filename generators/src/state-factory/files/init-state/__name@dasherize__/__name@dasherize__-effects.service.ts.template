@@ -1,0 +1,16 @@
+import { Injectable } from '@angular/core';
+
+import { inject } from '@angular/core';
+
+import { Store } from '@ngxs/store';
+
+import { NgxsEffectsService } from '@app/core/effects/effects.service';
+
+import { <%= classify(name) %>Actions } from './<%= dasherize(name) %>-actions';
+import { <%= classify(name) %>ApiService } from './api/<%= dasherize(name) %>-api.service';
+
+@Injectable()
+export class <%= classify(name) %>EffectsService extends NgxsEffectsService {
+  protected readonly store: Store = inject(Store);
+  protected readonly api: <%= classify(name) %>ApiService = inject(<%= classify(name) %>ApiService);
+}

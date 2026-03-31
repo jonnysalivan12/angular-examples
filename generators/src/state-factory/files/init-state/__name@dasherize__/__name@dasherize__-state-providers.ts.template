@@ -1,0 +1,15 @@
+import { EnvironmentProviders, Provider } from '@angular/core';
+import { provideStates } from '@ngxs/store';
+import { <%= classify(name) %>EffectsService } from './<%= dasherize(name) %>-effects.service';
+import { <%= classify(name) %>StateService } from './<%= dasherize(name) %>-state.service';
+import { <%= classify(name) %>ApiService } from './api/<%= dasherize(name) %>-api.service';
+import { <%= classify(name) %>State } from './<%= dasherize(name) %>-state';
+
+export function <%= camelize(name) %>StateProviders(): Array<Provider | EnvironmentProviders> {
+  return [
+    <%= classify(name) %>EffectsService,
+    <%= classify(name) %>ApiService,
+    <%= classify(name) %>StateService,
+    provideStates([<%= classify(name) %>State]),
+  ];
+}

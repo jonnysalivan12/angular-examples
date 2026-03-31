@@ -1,0 +1,1 @@
+export const <%= name %> = ActionBuilder.define<% if (withPayload) { %><<%= payloadActonName %>><% } %>('[<%= rootActionNestingNodeName %><% if (topLevelActionNestingNodeName && classify(topLevelActionNestingNodeName) !== name) { %>/<%= classify(topLevelActionNestingNodeName) %><% } %>] <%= typeDescription %>');
