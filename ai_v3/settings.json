@@ -1,0 +1,16 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "/^bash \\.\\/\\.github\\/agents\\/scripts\\/clarifier\\/create-feature\\.sh\\b/": true,
+    "/^powershell -NoProfile -ExecutionPolicy Bypass -File \\.\\/\\.github\\/agents\\/scripts\\/clarifier\\/create-feature\\.ps1\\b/": true,
+    "/^pwsh -NoProfile -ExecutionPolicy Bypass -File \\.\\/\\.github\\/agents\\/scripts\\/clarifier\\/create-feature\\.ps1\\b/": true,
+
+    // defensywny denylist — zostaje wymagana zgoda nawet jeśli LLM spróbuje
+    "rm": false,
+    "rmdir": false,
+    "del": false,
+    "Remove-Item": false,
+    "/^git\\s+(push|reset|clean|revert)\\b/": false,
+    "chmod": false,
+    "chown": false
+  }
+}
