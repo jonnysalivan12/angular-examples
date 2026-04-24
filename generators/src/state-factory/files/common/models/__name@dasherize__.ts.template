@@ -1,4 +1,0 @@
-<% if (imports) { %><%= imports %><% } %>
-export interface <%= classify(name) %> {
-<% if (content) { %><%= content %><% } %>
-}

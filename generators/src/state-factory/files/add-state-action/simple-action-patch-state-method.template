@@ -1,5 +1,0 @@
-@Action(<%= actionName %>)
-public <%= camelize(methodName) %>(ctx: StateContext<<%= stateModeName %>> <% if (withPayload) { %>,{ payload }:InstanceType<typeof <%= actionName %>><% } %>): void {
-  <% if (actionContent) { %><%= actionContent %><% } %>
-  <% if (!actionContent) { %>ctx.patchState({});<% } %>
-}

@@ -1,7 +1,0 @@
-import { createSelector } from '@ngxs/store';
-import {
-<%= classify(name) %>State,
-<%= classify(name) %>StateModel
-} from './<%= dasherize(name) %>-state';
-
-export class <%= classify(name) %>Selectors {}
