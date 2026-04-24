@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architektura Fraktalna Agentów</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --surface: #0d1424;
+    --border: #1e2d45;
+    --c1: #7c6cfa;
+    --c2: #22d3ee;
+    --c3: #4ade80;
+    --c4: #fb923c;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --dim: #334155;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #f8fafc;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 40px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Flow container */
+  .flow {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr 40px 1fr 40px 1fr;
+    align-items: start;
+    gap: 0;
+    max-width: 1100px;
+    margin: 0 auto 40px;
+  }
+  .arrow-col {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 52px;
+    font-size: 1.4rem;
+    color: var(--dim);
+  }
+
+  /* Agent card */
+  .agent {
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    position: relative;
+  }
+  .agent-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .agent-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+    opacity: 0.85;
+  }
+  .agent-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  .agent-role {
+    font-size: 0.74rem;
+    color: var(--muted);
+    font-weight: 500;
+    margin-top: 3px;
+  }
+  .accent-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+  .agent-body { padding: 12px; }
+  .input-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.67rem;
+    color: var(--muted);
+    padding: 7px 12px;
+    border-top: 1px solid var(--border);
+    background: #0a101c;
+  }
+  .input-tag span { color: #94a3b8; }
+
+  /* Sub-agent pill */
+  .sub {
+    border-radius: 8px;
+    padding: 9px 11px;
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+  }
+  .sub:last-child { margin-bottom: 0; }
+  .sub-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .sub-desc {
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  /* Colors per agent */
+  .c1 { color: var(--c1); }
+  .c2 { color: var(--c2); }
+  .c3 { color: var(--c3); }
+  .c4 { color: var(--c4); }
+
+  .sub-c1 { background: #1a153a; border-color: #3d2fa0; }
+  .sub-c2 { background: #052030; border-color: #0e5270; }
+  .sub-c3 { background: #051a10; border-color: #145229; }
+  .sub-c4 { background: #1c0f04; border-color: #6b3a10; }
+
+  .bar-c1 { background: linear-gradient(90deg, #7c6cfa, #a78bfa); }
+  .bar-c2 { background: linear-gradient(90deg, #22d3ee, #38bdf8); }
+  .bar-c3 { background: linear-gradient(90deg, #4ade80, #86efac); }
+  .bar-c4 { background: linear-gradient(90deg, #fb923c, #fbbf24); }
+
+  /* Principles section */
+  .principles {
+    max-width: 1100px;
+    margin: 0 auto 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .principle {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .principle-icon { font-size: 1.3rem; margin-bottom: 6px; }
+  .principle-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: #e2e8f0;
+  }
+  .principle-desc {
+    font-size: 0.73rem;
+    color: var(--muted);
+    line-height: 1.55;
+    font-weight: 400;
+  }
+
+  /* Feedback loop section */
+  .feedback-row {
+    max-width: 1100px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+  .feedback-loop {
+    border: 1.5px dashed #ef4444;
+    border-radius: 10px;
+    padding: 12px 20px;
+    color: #fca5a5;
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-align: center;
+    max-width: 1100px;
+    margin: 0 auto 40px;
+    line-height: 1.5;
+  }
+  .feedback-loop strong { color: #ef4444; }
+
+  footer {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--dim);
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Architektura Fraktalna Agentów</h1>
+<p class="subtitle">// MIXTURE OF EXPERTS · KOORDYNACJA PRZEZ GŁÓWNY AGENT //</p>
+
+<div class="flow">
+
+  <!-- ① CLARIFY -->
+  <div class="agent">
+    <div class="accent-bar bar-c1"></div>
+    <div class="agent-header">
+      <div class="agent-num c1">① AGENT</div>
+      <div class="agent-title c1">CLARIFY</div>
+      <div class="agent-role">Analityk Wymagań / Product Owner</div>
+    </div>
+    <div class="agent-body">
+      <div class="sub sub-c1">
+        <div class="sub-name c1">🔍 Ambiguity Detector</div>
+        <div class="sub-desc">Wykrywa niejasności w promptach użytkownika. "Szybka baza" → pyta o progi ms.</div>
+      </div>
+      <div class="sub sub-c1">
+        <div class="sub-name c1">📝 Spec Writer</div>
+        <div class="sub-desc">Formatuje wymagania do JSON/Markdown. Odrzuca szum z konwersacji.</div>
+      </div>
+    </div>
+    <div class="input-tag">INPUT: <span>zero-shot prompt użytkownika</span></div>
+  </div>
+
+  <div class="arrow-col c1">→</div>
+
+  <!-- ② PLANNER -->
+  <div class="agent">
+    <div class="accent-bar bar-c2"></div>
+    <div class="agent-header">
+      <div class="agent-num c2">② AGENT</div>
+      <div class="agent-title c2">PLANNER</div>
+      <div class="agent-role">Architekt Systemu / Tech Lead</div>
+    </div>
+    <div class="agent-body">
+      <div class="sub sub-c2">
+        <div class="sub-name c2">📦 Context Manager</div>
+        <div class="sub-desc">Kluczowy dla optymalizacji. Wskazuje Coderowi tylko niezbędne pliki repozytorium.</div>
+      </div>
+      <div class="sub sub-c2">
+        <div class="sub-name c2">🔗 Sequence Router</div>
+        <div class="sub-desc">Układa zadania w graf DAG. Pilnuje kolejności: DB model → API → UI.</div>
+      </div>
+    </div>
+    <div class="input-tag">INPUT: <span>spec JSON/MD od CLARIFY</span></div>
+  </div>
+
+  <div class="arrow-col c2">→</div>
+
+  <!-- ③ CODER -->
+  <div class="agent">
+    <div class="accent-bar bar-c3"></div>
+    <div class="agent-header">
+      <div class="agent-num c3">③ AGENT</div>
+      <div class="agent-title c3">CODER</div>
+      <div class="agent-role">Programista · niska temperatura</div>
+    </div>
+    <div class="agent-body">
+      <div class="sub sub-c3">
+        <div class="sub-name c3">🏗️ Scaffolder</div>
+        <div class="sub-desc">Tworzy puste struktury plików i sygnatury funkcji wg kontraktów Plannera.</div>
+      </div>
+      <div class="sub sub-c3">
+        <div class="sub-name c3">⚙️ Logic Implementer</div>
+        <div class="sub-desc">Wypełnia sygnatury logiką biznesową. Skupia się wyłącznie na jednym zadaniu.</div>
+      </div>
+      <div class="sub sub-c3">
+        <div class="sub-name c3">🔎 Self-Corrector</div>
+        <div class="sub-desc">Mikro-agent: analiza statyczna składni przed wysłaniem do Testera.</div>
+      </div>
+    </div>
+    <div class="input-tag">INPUT: <span>atomowe zadanie + kontekst plików</span></div>
+  </div>
+
+  <div class="arrow-col c3">→</div>
+
+  <!-- ④ TESTER -->
+  <div class="agent">
+    <div class="accent-bar bar-c4"></div>
+    <div class="agent-header">
+      <div class="agent-num c4">④ AGENT</div>
+      <div class="agent-title c4">TESTER</div>
+      <div class="agent-role">Inżynier QA · wyższa temperatura</div>
+    </div>
+    <div class="agent-body">
+      <div class="sub sub-c4">
+        <div class="sub-name c4">🧪 Test Generator</div>
+        <div class="sub-desc">Pisze testy happy path i negatywne. Wyższa temperatura → kreatywne edge cases.</div>
+      </div>
+      <div class="sub sub-c4">
+        <div class="sub-name c4">🔴 Error Translator</div>
+        <div class="sub-desc">Kondensuje stack trace → krótki komunikat. Ogromna oszczędność tokenów w pętli.</div>
+      </div>
+    </div>
+    <div class="input-tag">INPUT: <span>kod od CODER + AC od CLARIFY</span></div>
+  </div>
+
+</div>
+
+<!-- Feedback loop -->
+<div class="feedback-loop">
+  <strong>⟲ PĘTLA POPRAWEK:</strong>&nbsp; TESTER (Error Translator) → kondensuje błąd → CODER (Self-Corrector) → poprawka → TESTER … aż do zaliczenia wszystkich testów
+</div>
+
+<!-- Principles -->
+<div class="principles">
+  <div class="principle">
+    <div class="principle-icon">📉</div>
+    <div class="principle-title">Zarządzanie kontekstem</div>
+    <div class="principle-desc">Context Manager → Coder dostaje tylko niezbędne pliki, nie całe repozytorium. Minimalizacja zużycia tokenów.</div>
+  </div>
+  <div class="principle">
+    <div class="principle-icon">🧩</div>
+    <div class="principle-title">Separation of Concerns</div>
+    <div class="principle-desc">Coder nie zna wymagań biznesowych — dostaje gotowy abstrakt techniczny. Każdy agent widzi tylko swój wycinek.</div>
+  </div>
+  <div class="principle">
+    <div class="principle-icon">🌡️</div>
+    <div class="principle-title">Temperatura modelu</div>
+    <div class="principle-desc">Coder: niska (przewidywalny, deterministyczny kod). Tester: wyższa (kreatywne, nieprzewidywalne edge cases).</div>
+  </div>
+  <div class="principle">
+    <div class="principle-icon">🔀</div>
+    <div class="principle-title">DAG zależności</div>
+    <div class="principle-desc">Sequence Router tworzy graf skierowany acykliczny — gwarantuje poprawną kolejność generowania kodu.</div>
+  </div>
+  <div class="principle">
+    <div class="principle-icon">⚡</div>
+    <div class="principle-title">Oszczędność tokenów</div>
+    <div class="principle-desc">Spec Writer + Error Translator eliminują szum informacyjny na wejściu i wyjściu najbardziej kosztownych agentów.</div>
+  </div>
+  <div class="principle">
+    <div class="principle-icon">🔮</div>
+    <div class="principle-title">Architektura fraktalna</div>
+    <div class="principle-desc">Każdy agent ma własne sub-agenty. Mixture of Experts skaluje się rekursywnie w głąb.</div>
+  </div>
+</div>
+
+<footer>ARCHITEKTURA FRAKTALNA · MIXTURE OF EXPERTS · © 2025</footer>
+
+</body>
+</html>
