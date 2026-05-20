@@ -1,0 +1,81 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                     AGENTIC WORKFLOW — END-TO-END FLOW                         ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+   USER STORY (od analityka)
+        │
+        ▼
+┌───────────────────────┐     ┌─ Agent: Clarifier (orchestrator) ─────────────┐
+│  1. DOPRECYZOWANIE    │ ◄── │ • domain validator (kanoniczne pojęcia)        │
+│      (Clarify)        │     │ • 6 fal pytań × max 8 + 2 fale konfliktów     │
+└──────────┬────────────┘     │ • AC Writer Translator → Writer Redaktor       │
+           │                  │ • Requirements Writer                          │
+           │                  └────────────────────────────────────────────────┘
+           │   out: input-story.md • qa.md • coverage-metrics.md
+           │        requirements.json                                  ✋ gate: Analityk
+           ▼
+┌───────────────────────┐     ┌─ Agent: Story Classifier (Sonnet) ────────────┐
+│  2. KLASYFIKACJA      │ ◄── │ • typ: story / epic / spike / bug              │
+│                       │     │ • epic → dekompozycja na sub-stories           │
+└──────────┬────────────┘     │ • routing do właściwej ścieżki workflow       │
+           │                  └────────────────────────────────────────────────┘
+           │   out: classification.yaml
+           ▼
+┌───────────────────────┐     ┌─ Agent: Architect ────────────────────────────┐
+│  3. ARCHITEKTURA      │ ◄── │ • mapa zmian (które pliki, dlaczego)           │
+│                       │     │ • API contracts • wpływ na NGXS store          │
+└──────────┬────────────┘     │ • ryzyka, blokery, pytania otwarte             │
+           │                  └────────────────────────────────────────────────┘
+           │   out: architecture.md + change-map.json                ✋ gate: Tech Lead
+           ▼
+┌───────────────────────┐     ┌─ Agent: Planner ──────────────────────────────┐
+│  4. PLANOWANIE        │ ◄── │ • atomowe taski (≤ 2h) z mapy zmian            │
+│                       │     │ • graf zależności (Models → Actions → State…) │
+└──────────┬────────────┘     │ • wzorzec referencyjny dla każdego pliku       │
+           │                  └────────────────────────────────────────────────┘
+           │   out: tasks.json (ordered)                                ✋ gate: Dev
+           ▼
+┌───────────────────────┐     ┌─ Agent: Coder (per task, równolegle) ─────────┐
+│  5. IMPLEMENTACJA     │ ◄── │ • czyta skille (NGXS, NestJS, Nx)              │
+│                       │     │ • generuje kod wg wzorca z plannera            │
+└──────────┬────────────┘     │ • commit per task                              │
+           │                  └────────────────────────────────────────────────┘
+           │   out: diff / branch feature/*
+           ▼
+┌───────────────────────┐     ┌─ Agent: Tester + CI Guard ────────────────────┐
+│  6. QA                │ ◄── │ • unit (Jest/Jasmine) • e2e (Cypress)          │
+│                       │     │ • tsc --noEmit • ESLint • build prod           │
+└──────────┬────────────┘     │ • max 3 auto-iteracje → eskalacja              │
+           │                  └────────────────────────────────────────────────┘
+           │   pass? ─── NIE ──► back to (5) z kontekstem błędu
+           │   TAK
+           ▼
+┌───────────────────────┐     ┌─ Agent: Reviewer + Security Scan ─────────────┐
+│  7. REVIEW            │ ◄── │ • naming, lint, design system                  │
+│                       │     │ • XSS, hardcoded secrets, role guards          │
+└──────────┬────────────┘     │ • OWASP Top10, CSP/SRI, dane w localStorage    │
+           │                  └────────────────────────────────────────────────┘
+           │   reject? ─── TAK ──► back to (5) z komentarzem        ✋ gate: Dev + Sec
+           │   accept
+           ▼
+┌───────────────────────┐     ┌─ Agent: Doc Writer ───────────────────────────┐
+│  8. DOKUMENTACJA      │ ◄── │ • PR description (co/dlaczego/jak testować)    │
+│                       │     │ • changelog • ADR (jeśli zmiana arch.)         │
+└──────────┬────────────┘     │ • Storybook stories                            │
+           │                  └────────────────────────────────────────────────┘
+           │   out: PR ready                                         ✋ gate: Dev
+           ▼
+  ╔═════════════════════════════════════════════╗
+  ║  PR: Kod ✓ Testy ✓ Security ✓ Docs ✓ CI ✓   ║  →  merge to develop
+  ╚═════════════════════════════════════════════╝
+
+────────────────────────────────────────────────────────────────────────────────
+LEGENDA:
+  ◄──   wejście agenta             ✋ gate   human-in-the-loop (explicit approve)
+  │     przepływ artefaktu         ──►      pętla zwrotna przy błędzie
+────────────────────────────────────────────────────────────────────────────────
+ZASADY NIEZMIENNE:
+  • każdy agent ma kontekst: requirements.json + skille projektu
+  • gate = explicit approve, nie timeout
+  • max 3 auto-iteracje na błąd → eskalacja
+  • audit trail każdej decyzji agenta
