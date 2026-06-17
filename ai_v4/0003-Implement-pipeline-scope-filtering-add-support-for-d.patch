@@ -1,0 +1,892 @@
+From d177b42fe3afc8f53546b1f00ac75429864d6588 Mon Sep 17 00:00:00 2001
+From: Igor Stadnik <stadnikigorua@gmail.com>
+Date: Wed, 17 Jun 2026 11:02:43 +0200
+Subject: [PATCH 3/3] Implement pipeline scope filtering: add support for
+ disabling layers, sections, and standards in the pipeline configuration
+
+---
+ .../agents/story-flow/config/global-config.js |  54 ++++++++++
+ .../story-flow/planner/aggregator/index.js    |  14 ++-
+ .../story-flow/planner/config/config.js       |   8 ++
+ .../story-flow/planner/plan-agent/index.js    |   3 +
+ .github/agents/story-flow/runner.js           |  32 ++++++
+ .../story-clarifier/config/config.js          |  10 +-
+ .../story-clarifier/sections-loader.js        |  79 +++++++++++----
+ .../story-clarifier/sections-loader.test.js   |  55 ++++++++++
+ .../story-decomposer/config/config.js         |   7 ++
+ .../story-decomposer/decomposer/index.js      |  53 +++++++++-
+ .../story-flow/story-decomposer/graph.js      | Bin 10379 -> 12299 bytes
+ .../story-flow/story-decomposer/graph.test.js |  57 +++++++++++
+ .../story-decomposer/reviewer/index.js        |  19 ++++
+ .../templates/story-decomposition.template.md |   1 +
+ .../templates/story-review.template.md        |   1 +
+ .../story-rework-differential.template.md     |   1 +
+ .github/scripts/pipeline-scope.js             |  95 ++++++++++++++++++
+ .github/scripts/pipeline-scope.test.js        |  67 ++++++++++++
+ 18 files changed, 527 insertions(+), 29 deletions(-)
+ create mode 100644 .github/agents/story-flow/story-clarifier/sections-loader.test.js
+ create mode 100644 .github/agents/story-flow/story-decomposer/graph.test.js
+ create mode 100644 .github/scripts/pipeline-scope.js
+ create mode 100644 .github/scripts/pipeline-scope.test.js
+
+diff --git a/.github/agents/story-flow/config/global-config.js b/.github/agents/story-flow/config/global-config.js
+index 766f448..ea7de73 100644
+--- a/.github/agents/story-flow/config/global-config.js
++++ b/.github/agents/story-flow/config/global-config.js
+@@ -2,6 +2,7 @@
+  * CONFIG — wspólne stałe i helpery dla wszystkich agentów (architect, planner, coder).
+  */
+ import crypto from 'crypto';
++import { resolvePipelineScope } from '../../../scripts/pipeline-scope.js';
+ 
+ export const SPECS_DIR = 'specs';
+ 
+@@ -123,8 +124,61 @@ export const PROJECT = {
+   story: {
+     clarifierInput: 'specs/story/story-login.md',
+   },
++
++  /**
++   * PIPELINE SCOPE — globalne wyłączanie WARSTW / SEKCJI / STANDARDÓW. Pozwala
++   * policzyć tylko część pipeline'u (np. „tylko warstwa biznesowa, bez UI" albo
++   * „bez a11y") tak, by wyłączone byty były CAŁKOWICIE ignorowane w dół.
++   *
++   * TRZY NIEZALEŻNE osie (świadomie bez auto-mapowania warstwa↔sekcja — pełne
++   * wyłączenie „UI" wymaga ustawienia obu list albo presetu):
++   *   - disabledLayers    — całe warstwy architektury (∈ klucze layerToBucket).
++   *                         Wchodzi w DEKOMPOZYTORZE: filtr grafu story-layers.yaml
++   *                         (graph.filterDisabledLayers). Zachowana warstwa twardo
++   *                         zależna od wyłączonej = TWARDY BŁĄD (nie generuj mocka).
++   *                         Architekt/planner/coder czytają przefiltrowany artefakt
++   *                         → zero zmian w nich.
++   *   - disabledSections  — sekcje DoR clarifiera (id z story-readiness.yaml).
++   *                         Wchodzi w CLARIFIERZE (sections-loader). NIE wolno
++   *                         wyłączyć sekcji `critical:true` (guard w loaderze).
++   *   - disabledStandards — pliki standardów (.md) usuwane z task.standards[] planera.
++   *                         Wchodzi w PLANNERZE (aggregator + plan-agent). Coder dziedziczy.
++   *
++   * PRESETY: `apply: ['no-ui']` rozwija presety i robi UNIĘ z jawnymi listami.
++   *
++   * NIEZMIENNIK: przełącznik aktywuje się na SWOIM etapie → po zmianie RE-RUN OD
++   * TEGO ETAPU w górę (kaskadowy purge orchestratora zapewnia spójny downstream).
++   */
++  pipelineScope: {
++    apply:             [],   // aktywne presety — unia z listami poniżej
++    disabledLayers:    [],   // np. ['type_ui'] — tylko warstwa biznesowa
++    disabledSections:  [],   // np. ['a11y','i18n'] — id z story-readiness.yaml; NIE critical
++    disabledStandards: [],   // np. ['a11y.md'] — out z task.standards[]
++    presets: {
++      'no-ui': {
++        disabledLayers:    ['type_ui'],
++        disabledSections:  ['design', 'ui-interactions'],
++        disabledStandards: ['a11y.md', 'ui.md', 'design-system.md'],
++      },
++      'no-a11y': {
++        disabledSections:  ['a11y'],
++        disabledStandards: ['a11y.md'],
++      },
++    },
++  },
+ };
+ 
++/**
++ * Rozwiązany (presety ∪ jawne listy) i zwalidowany zakres pipeline'u — JEDYNE
++ * źródło dla wszystkich etapów. Warstwy walidowane względem słownika layerToBucket
++ * (fail-fast przy starcie). Sekcje/standardy walidowane bliżej miejsca użycia
++ * (sections-loader zna `critical`). Każdy etap re-eksportuje to ze swojego configu.
++ */
++export const PIPELINE_SCOPE = resolvePipelineScope(
++  PROJECT.pipelineScope,
++  Object.keys(PROJECT.layerToBucket),
++);
++
+ /**
+  * Katalog standardów projektowych (SSOT reguł) — JEDYNE źródło prawdy dla ścieżki.
+  * Wszyscy agenci (architect/planner/decomposer/clarifier) re-eksportują te stałe
+diff --git a/.github/agents/story-flow/planner/aggregator/index.js b/.github/agents/story-flow/planner/aggregator/index.js
+index 927a1d3..62f078b 100644
+--- a/.github/agents/story-flow/planner/aggregator/index.js
++++ b/.github/agents/story-flow/planner/aggregator/index.js
+@@ -407,11 +407,15 @@ function computeStandardsForTask(task, layerId) {
+     ...byLayer,
+     ...byKind,
+   ]);
+-  return [...set].map(file => ({
+-    path:    `${config.STANDARDS_DIR}/${file}`,
+-    summary: config.TASK_STANDARDS.SUMMARIES[file] || '(brak summary w config)',
+-    reason:  reasonForStandard(file, layerId, task.kind),
+-  }));
++  // Odsiej standardy przekrojowe wyłączone globalnie (PIPELINE_SCOPE) — np. a11y.md.
++  // Coder dziedziczy task.standards[], więc filtr tutaj = całkowite ignorowanie w dół.
++  return [...set]
++    .filter(file => !config.PIPELINE_SCOPE.isStandardDisabled(file))
++    .map(file => ({
++      path:    `${config.STANDARDS_DIR}/${file}`,
++      summary: config.TASK_STANDARDS.SUMMARIES[file] || '(brak summary w config)',
++      reason:  reasonForStandard(file, layerId, task.kind),
++    }));
+ }
+ 
+ function reasonForStandard(file, layerId, kind) {
+diff --git a/.github/agents/story-flow/planner/config/config.js b/.github/agents/story-flow/planner/config/config.js
+index 8b7c541..a9158a1 100644
+--- a/.github/agents/story-flow/planner/config/config.js
++++ b/.github/agents/story-flow/planner/config/config.js
+@@ -51,6 +51,14 @@ export const STANDARDS_BASE = globalConfig.STANDARDS_BASE;
+ /** Forma referencyjna katalogu standardów (bez `./`) — do osadzania w task YAML. */
+ export const STANDARDS_DIR = globalConfig.STANDARDS_DIR;
+ 
++/**
++ * Rozwiązany zakres pipeline'u (SSOT: global-config). Planner używa
++ * `isStandardDisabled(file)` do odsiania wyłączonych standardów przekrojowych
++ * (np. a11y.md) z task.standards[] — coder dziedziczy listę, więc filtr tutaj
++ * wystarcza, by wyłączony standard był całkowicie ignorowany w dół.
++ */
++export const PIPELINE_SCOPE = globalConfig.PIPELINE_SCOPE;
++
+ /** Ścieżka bazowa do katalogu skills (lazy-loaded do plan-agent). */
+ export const SKILLS_BASE = globalConfig.SKILLS_BASE;
+ 
+diff --git a/.github/agents/story-flow/planner/plan-agent/index.js b/.github/agents/story-flow/planner/plan-agent/index.js
+index f6863ac..ba0591f 100644
+--- a/.github/agents/story-flow/planner/plan-agent/index.js
++++ b/.github/agents/story-flow/planner/plan-agent/index.js
+@@ -232,6 +232,9 @@ function loadStandardsForLayer(layerId, cache) {
+   ]);
+   const parts = [];
+   for (const file of files) {
++    // Standard wyłączony globalnie (PIPELINE_SCOPE) — pomiń, żeby prompt plan-agenta
++    // był spójny z task.standards[] (aggregator stosuje ten sam filtr).
++    if (config.PIPELINE_SCOPE.isStandardDisabled(file)) continue;
+     if (!(file in cache)) cache[file] = loaders.loadStandard(file);
+     parts.push(`### ${file}\n\n${cache[file]}`);
+   }
+diff --git a/.github/agents/story-flow/runner.js b/.github/agents/story-flow/runner.js
+index 02b7676..29cc5a9 100644
+--- a/.github/agents/story-flow/runner.js
++++ b/.github/agents/story-flow/runner.js
+@@ -214,6 +214,33 @@ function stageMarker(stage, idx, nextIndex) {
+   return '○';
+ }
+ 
++/**
++ * Ostrzeżenie o punkcie wejścia PIPELINE_SCOPE. Każda oś scope'u (warstwy/sekcje/
++ * standardy) aktywuje się na SWOIM etapie; uruchomienie kroku PONIŻEJ tego etapu
++ * bez świeżego upstream sprawia, że wyłączenie nie jest odzwierciedlone (np. stary
++ * story-layers.yaml wciąż ma warstwę „wyłączoną" w configu). Czysto informacyjne.
++ */
++function warnScopeEntryPoints(chosenIndex) {
++  const scope = globalConfig.PIPELINE_SCOPE;
++  if (scope.isEmpty) return;
++  const axes = [
++    { active: scope.layers.length > 0,    stageKey: 'story-decomposer', label: `disabledLayers (${scope.layers.join(', ')})` },
++    { active: scope.sections.length > 0,  stageKey: 'story-clarifier',  label: `disabledSections (${scope.sections.join(', ')})` },
++    { active: scope.standards.length > 0, stageKey: 'planner',          label: `disabledStandards (${scope.standards.join(', ')})` },
++  ];
++  const lines = [];
++  for (const a of axes) {
++    if (!a.active) continue;
++    const entryIndex = STAGES.findIndex((s) => s.key === a.stageKey);
++    if (chosenIndex > entryIndex) {
++      lines.push(`• ${a.label} wchodzi w „${STAGES[entryIndex].label}" — uruchom od tego kroku, by zmiana zeszła w dół.`);
++    }
++  }
++  if (lines.length > 0) {
++    note(lines.join('\n'), 'Aktywny PIPELINE_SCOPE — uwaga na punkt wejścia');
++  }
++}
++
+ // ═══════════════════════════════════════════════════════════════════════════
+ // FLOW
+ // ═══════════════════════════════════════════════════════════════════════════
+@@ -338,6 +365,11 @@ async function handleExistingFeature(featureId) {
+   const chosenIndex = STAGES.findIndex((s) => s.key === stageChoice);
+   const chosenStage = STAGES[chosenIndex];
+ 
++  // Aktywny PIPELINE_SCOPE: ostrzeż, gdy wybrany krok jest poniżej punktu wejścia
++  // którejś osi (warstwy/sekcje/standardy) — wyłączenie zejdzie w dół tylko z re-runu
++  // od etapu wejścia (kaskadowy purge niżej i tak wymusi przeliczenie downstream).
++  warnScopeEntryPoints(chosenIndex);
++
+   // ── Czyszczenie przed (re-)runem ────────────────────────────────────────────
+   // (A) WŁASNY katalog wybranego kroku — re-run liczymy „od początku": usuwamy cały
+   //     katalog (resztki + cache hash-skip, np. architekt layer-input-hashes.yaml,
+diff --git a/.github/agents/story-flow/story-clarifier/config/config.js b/.github/agents/story-flow/story-clarifier/config/config.js
+index d5b0c11..42b5ce8 100644
+--- a/.github/agents/story-flow/story-clarifier/config/config.js
++++ b/.github/agents/story-flow/story-clarifier/config/config.js
+@@ -13,8 +13,14 @@ export const CHECKLIST_PATH = './.github/agents/story-flow/story-clarifier/check
+ // Sekcje badania + grupy fan-outu GENEROWANE z checklisty — jedno źródło prawdy
+ // z Definition of Ready. Patrz sections-loader.js. NIE definiuj sekcji/grup ręcznie
+ // tutaj — edytuj YAML.
+-const CHECKLIST_SECTIONS = loadChecklistSections(CHECKLIST_PATH);
+-const CHECKLIST_GROUPS = loadChecklistGroups(CHECKLIST_PATH);
++//
++// PIPELINE_SCOPE.sections (global-config) USUWA wyłączone sekcje z oceny gotowości:
++// loader pomija je przed indeksowaniem (grupa opróżniona w całości też znika), a
++// pliki standardów wyłączonej sekcji wypadają z FILES (wyliczane z `source`).
++// Wyłączenie sekcji `critical` jest twardo blokowane w loaderze.
++const DISABLED_SECTIONS = globalConfig.PIPELINE_SCOPE.sections;
++const CHECKLIST_SECTIONS = loadChecklistSections(CHECKLIST_PATH, DISABLED_SECTIONS);
++const CHECKLIST_GROUPS = loadChecklistGroups(CHECKLIST_PATH, DISABLED_SECTIONS);
+ 
+ // ═══════════════════════════════════════════════════════════════════════════
+ // STORY-CLARIFIER — doprecyzowanie user story do stanu "Ready" (DoR for FE)
+diff --git a/.github/agents/story-flow/story-clarifier/sections-loader.js b/.github/agents/story-flow/story-clarifier/sections-loader.js
+index 9801c06..364da97 100644
+--- a/.github/agents/story-flow/story-clarifier/sections-loader.js
++++ b/.github/agents/story-flow/story-clarifier/sections-loader.js
+@@ -34,9 +34,16 @@ const NO_STANDARD_SOURCE = 'functional';
+ /**
+  * Wspólny parser — zwraca wzbogacone sekcje (z indeksem, grupą, źródłami) i
+  * deklaracje grup. Tu mieszka cała walidacja struktury.
++ *
++ * `disabledSections` (z PIPELINE_SCOPE) USUWA sekcje z oceny clarifiera: indeksy
++ * pozostałych sekcji i `sectionIndices` grup liczone są PO odsianiu, więc artefakt
++ * runtime'u jest wewnętrznie spójny. Pliki standardów wyłączonej sekcji znikają
++ * automatycznie (są wyliczane z jej `source`). Walidacja TWARDA: id musi istnieć
++ * w checkliście, a sekcja `critical:true` NIE może być wyłączona (to brama gotowości).
++ *
+  * @returns {{ sections: Array, groups: Array<{id,title}> }}
+  */
+-function parseChecklist(relPath) {
++function parseChecklist(relPath, disabledSections = []) {
+   if (!relPath) throw new Error('sections-loader: wymagana ścieżka do checklisty (relPath) — przekazywana z config.CHECKLIST_PATH');
+   const raw = globalUtils.load(relPath); // sync, cwd-relative, rzuca gdy brak
+   const doc = yaml.parse(raw);
+@@ -47,20 +54,41 @@ function parseChecklist(relPath) {
+   if (!sectionDecls) throw new Error(`sections-loader: brak bloku \`sections:\` w ${relPath}`);
+   if (!categories) throw new Error(`sections-loader: brak bloku \`categories:\` w ${relPath}`);
+ 
++  // Walidacja wyłączonych sekcji PRZED filtrowaniem: każde id musi istnieć (łapie
++  // literówkę w config) i NIE może być `critical` (krytyczna sekcja to brama DoR).
++  const disabledSet = new Set(disabledSections.map(String));
++  if (disabledSet.size > 0) {
++    const declById = new Map(sectionDecls.filter((s) => s?.id).map((s) => [s.id, s]));
++    for (const id of disabledSet) {
++      const decl = declById.get(id);
++      if (!decl) {
++        throw new Error(`sections-loader: pipelineScope.disabledSections wskazuje nieistniejącą sekcję "${id}" (dostępne: ${[...declById.keys()].join(', ')})`);
++      }
++      if (decl.critical === true) {
++        throw new Error(`sections-loader: sekcja "${id}" jest \`critical\` — nie można jej wyłączyć (to brama gotowości DoR)`);
++      }
++    }
++  }
++
+   const groupIds = new Set(groupDecls.map((g) => g?.id).filter(Boolean));
+ 
+   const order = [];
+   const byId = new Map();
+-  sectionDecls.forEach((s, index) => {
++  // Grupy, które MAJĄ ≥1 zadeklarowaną sekcję (także wyłączoną) — pozwala odróżnić
++  // grupę OPRÓŻNIONĄ przez disabledSections (wypuść) od pustej przez błąd (rzuć).
++  const declaredGroupIds = new Set();
++  sectionDecls.forEach((s) => {
+     if (!s?.id || !s?.title) {
+       throw new Error(`sections-loader: sekcja bez wymaganego \`id\`/\`title\`: ${JSON.stringify(s)}`);
+     }
++    if (s.group) declaredGroupIds.add(s.group);
++    if (disabledSet.has(s.id)) return; // sekcja wyłączona — pomiń (przed indeksowaniem)
+     if (byId.has(s.id)) throw new Error(`sections-loader: zduplikowane id sekcji "${s.id}"`);
+     if (groupDecls.length > 0 && s.group && !groupIds.has(s.group)) {
+       throw new Error(`sections-loader: sekcja "${s.id}" wskazuje nieistniejącą grupę "${s.group}"`);
+     }
+     const entry = {
+-      index,
++      index: order.length, // indeks PO odsianiu wyłączonych — spójny z runtime'em
+       id: s.id,
+       name: s.title,
+       critical: s.critical === true,
+@@ -79,6 +107,7 @@ function parseChecklist(relPath) {
+       if (!sectionId) {
+         throw new Error(`sections-loader: pozycja "${item?.id ?? '?'}" bez przypisania \`section\` (ani na pozycji, ani na kategorii "${cat?.id ?? '?'}")`);
+       }
++      if (disabledSet.has(sectionId)) continue; // pozycja wyłączonej sekcji — pomiń
+       const target = byId.get(sectionId);
+       if (!target) {
+         throw new Error(`sections-loader: pozycja "${item?.id ?? '?'}" wskazuje nieistniejącą sekcję "${sectionId}"`);
+@@ -94,27 +123,34 @@ function parseChecklist(relPath) {
+     }
+   }
+ 
+-  return { sections: order, groups: groupDecls };
++  return { sections: order, groups: groupDecls, declaredGroupIds };
+ }
+ 
+ /**
+- * Buduje listę sekcji clarifiera (kolejność = `sections:`).
++ * Buduje listę sekcji clarifiera (kolejność = `sections:`, bez wyłączonych).
+  * @param {string} relPath ścieżka do checklisty (z config.CHECKLIST_PATH).
++ * @param {string[]} [disabledSections] id sekcji do pominięcia (z PIPELINE_SCOPE).
+  * @returns {Array<{name:string, critical:boolean, checks:string}>}
+  */
+-export function loadChecklistSections(relPath) {
+-  const { sections } = parseChecklist(relPath);
++export function loadChecklistSections(relPath, disabledSections = []) {
++  const { sections } = parseChecklist(relPath, disabledSections);
+   return sections.map((e) => ({ name: e.name, critical: e.critical, checks: e.checks.join(' ') }));
+ }
+ 
+ /**
+  * Buduje grupy fan-outu z indeksami sekcji (0-based, spójne z loadChecklistSections)
+  * i wyliczonymi plikami standardów (z `source`, bez `functional`).
++ *
++ * Grupa, której WSZYSTKIE sekcje zostały wyłączone (disabledSections), jest
++ * WYPUSZCZANA (nie błąd) — fan-out nie odpala pustego agenta-oceny, a jej standardy
++ * znikają z `FILES` clarifiera. Pusta grupa BEZ wyłączeń (błąd checklisty) dalej rzuca.
++ *
+  * @param {string} relPath ścieżka do checklisty (z config.CHECKLIST_PATH).
++ * @param {string[]} [disabledSections] id sekcji do pominięcia (z PIPELINE_SCOPE).
+  * @returns {Array<{id:string, title:string, sectionIndices:number[], standardFiles:string[]}>}
+  */
+-export function loadChecklistGroups(relPath) {
+-  const { sections, groups } = parseChecklist(relPath);
++export function loadChecklistGroups(relPath, disabledSections = []) {
++  const { sections, groups, declaredGroupIds } = parseChecklist(relPath, disabledSections);
+   if (groups.length === 0) {
+     throw new Error(`sections-loader: brak bloku \`groups:\` w ${relPath} (wymagany dla fan-outu)`);
+   }
+@@ -129,16 +165,19 @@ export function loadChecklistGroups(relPath) {
+     for (const src of sec.sources) grp.standardFiles.add(src);
+   }
+ 
+-  for (const grp of result) {
+-    if (grp.sectionIndices.length === 0) {
++  // Grupa bez sekcji: gdy MIAŁA zadeklarowane sekcje (declaredGroupIds), ale wszystkie
++  // wpadły w disabledSections → wypuść po cichu (fan-out jej nie odpala); gdy nigdy nie
++  // miała sekcji (błąd checklisty) → rzuć (zachowanie sprzed zmiany).
++  return result
++    .filter((grp) => {
++      if (grp.sectionIndices.length > 0) return true;
++      if (declaredGroupIds.has(grp.id)) return false; // opróżniona przez wyłączenia → wypuść
+       throw new Error(`sections-loader: grupa "${grp.id}" nie ma żadnej sekcji`);
+-    }
+-  }
+-
+-  return result.map((g) => ({
+-    id: g.id,
+-    title: g.title,
+-    sectionIndices: g.sectionIndices,
+-    standardFiles: [...g.standardFiles].sort(),
+-  }));
++    })
++    .map((g) => ({
++      id: g.id,
++      title: g.title,
++      sectionIndices: g.sectionIndices,
++      standardFiles: [...g.standardFiles].sort(),
++    }));
+ }
+diff --git a/.github/agents/story-flow/story-clarifier/sections-loader.test.js b/.github/agents/story-flow/story-clarifier/sections-loader.test.js
+new file mode 100644
+index 0000000..d44c384
+--- /dev/null
++++ b/.github/agents/story-flow/story-clarifier/sections-loader.test.js
+@@ -0,0 +1,55 @@
++/* eslint-disable @nx/enforce-module-boundaries */
++import { test } from 'node:test';
++import assert from 'node:assert/strict';
++import { loadChecklistSections, loadChecklistGroups } from './sections-loader.js';
++
++/* ─────────────────────────────────────────────────────────────────────────── *
++ * Testy filtra wyłączonych sekcji (oś B1 scope'u) na REALNEJ checkliście DoR.
++ * Uruchamiać z roota repo (cwd-relative load).
++ * ─────────────────────────────────────────────────────────────────────────── */
++
++const CHECKLIST = '.github/agents/story-flow/story-clarifier/checklists/story-readiness.yaml';
++
++const idxUnion = (groups) => groups.flatMap(g => g.sectionIndices).sort((a, b) => a - b);
++
++test('baseline (bez wyłączeń): a11y obecne, a11y.md w grupie g-a11y', () => {
++  const sections = loadChecklistSections(CHECKLIST);
++  const groups = loadChecklistGroups(CHECKLIST);
++  assert.ok(sections.find(s => s.name.includes('a11y')), 'sekcja a11y obecna');
++  const a11yGroup = groups.find(g => g.id === 'g-a11y');
++  assert.ok(a11yGroup, 'grupa g-a11y obecna');
++  assert.ok(a11yGroup.standardFiles.includes('a11y.md'), 'a11y.md w standardach grupy');
++  // Indeksy sekcji są ciągłe 0..N-1 (suma po grupach pokrywa wszystkie).
++  assert.deepEqual(idxUnion(groups), sections.map((_, i) => i));
++});
++
++test('wyłączenie a11y: sekcja znika, a11y.md wypada, grupa g-a11y zostaje (ma i18n), reindeks ciągły', () => {
++  const disabled = ['a11y'];
++  const sections = loadChecklistSections(CHECKLIST, disabled);
++  const groups = loadChecklistGroups(CHECKLIST, disabled);
++  const baseline = loadChecklistSections(CHECKLIST);
++  assert.equal(sections.length, baseline.length - 1);
++  assert.equal(sections.find(s => s.name === 'Dostępność (a11y)'), undefined);
++  const a11yGroup = groups.find(g => g.id === 'g-a11y');
++  assert.ok(a11yGroup, 'g-a11y dalej istnieje (ma i18n)');
++  assert.equal(a11yGroup.standardFiles.includes('a11y.md'), false, 'a11y.md wypadł');
++  assert.ok(a11yGroup.standardFiles.includes('i18n.md'), 'i18n.md został');
++  // Reindeks: indeksy nadal ciągłe 0..N-1, bez dziur po usuniętej sekcji.
++  assert.deepEqual(idxUnion(groups), sections.map((_, i) => i));
++});
++
++test('wyłączenie a11y+i18n: grupa g-a11y opróżniona → wypuszczona', () => {
++  const disabled = ['a11y', 'i18n'];
++  const groups = loadChecklistGroups(CHECKLIST, disabled);
++  assert.equal(groups.find(g => g.id === 'g-a11y'), undefined, 'pusta grupa wypuszczona');
++  const baseGroups = loadChecklistGroups(CHECKLIST);
++  assert.equal(groups.length, baseGroups.length - 1);
++});
++
++test('wyłączenie sekcji critical → throw', () => {
++  assert.throws(() => loadChecklistSections(CHECKLIST, ['context']), /critical/i);
++});
++
++test('wyłączenie nieistniejącej sekcji → throw', () => {
++  assert.throws(() => loadChecklistSections(CHECKLIST, ['nope']), /nieistniejącą sekcję/);
++});
+diff --git a/.github/agents/story-flow/story-decomposer/config/config.js b/.github/agents/story-flow/story-decomposer/config/config.js
+index 4000524..6dc8070 100644
+--- a/.github/agents/story-flow/story-decomposer/config/config.js
++++ b/.github/agents/story-flow/story-decomposer/config/config.js
+@@ -33,6 +33,13 @@ export const storyPath = (featureDir) =>
+ /** Katalog standardów (SSOT reguł, współdzielony z resztą pipeline'u; źródło: global-config). */
+ export const STANDARDS_BASE = globalConfig.STANDARDS_BASE;
+ 
++/**
++ * Rozwiązany zakres pipeline'u (SSOT: global-config). Dekompozytor używa
++ * `layers` (wyłączone warstwy) do: (1) instrukcji w prompcie „nie generuj ich",
++ * (2) deterministycznego filtra grafu (graph.filterDisabledLayers) PRZED walidacją.
++ */
++export const PIPELINE_SCOPE = globalConfig.PIPELINE_SCOPE;
++
+ /** Ścieżka do standardu architektury — JEDYNE źródło prawdy dla mapowania. */
+ export const ARCHITECTURE_PATH = `${STANDARDS_BASE}/architecture.md`;
+ 
+diff --git a/.github/agents/story-flow/story-decomposer/decomposer/index.js b/.github/agents/story-flow/story-decomposer/decomposer/index.js
+index 9759a3c..b526839 100644
+--- a/.github/agents/story-flow/story-decomposer/decomposer/index.js
++++ b/.github/agents/story-flow/story-decomposer/decomposer/index.js
+@@ -6,7 +6,7 @@ import yaml from 'yaml';
+ import * as globalUtils from '../../../../scripts/utils.js';
+ import * as config from '../config/config.js';
+ import { loadTemplate, loadStandards } from './../loaders.js';
+-import { validateGraph, deriveSections } from '../graph.js';
++import { validateGraph, deriveSections, filterDisabledLayers } from '../graph.js';
+ import { tryParseWithRepair } from '../../../../scripts/yaml/yaml-repair.js';
+ 
+ /* ─────────────────────────────────────────────────────────────────────────── *
+@@ -72,7 +72,11 @@ export class Decomposer {
+     }
+     const prompt = globalUtils.interpolation(
+       loadTemplate(config.DECOMPOSER.TEMPLATES.storyDecomposition),
+-      { USER_STORY: this.story, ARCHITECTURE: this.architecture },
++      {
++        USER_STORY: this.story,
++        ARCHITECTURE: this.architecture,
++        DISABLED_LAYERS: formatDisabledLayers(config.PIPELINE_SCOPE.layers),
++      },
+     );
+     return this._ask(prompt, 'Dekompozycja user story...');
+   }
+@@ -89,6 +93,7 @@ export class Decomposer {
+     const recovery = this._recoveryPreamble();
+     const prompt = recovery + globalUtils.interpolation(loadTemplate(config.DECOMPOSER.TEMPLATES.storyReworkDelta), {
+       REVIEW_TASKS: formatReviewTasks(reviewTasks),
++      DISABLED_LAYERS: formatDisabledLayers(config.PIPELINE_SCOPE.layers),
+     });
+     return this._ask(prompt, 'Korekta warstw wg listy problemów...');
+   }
+@@ -185,6 +190,33 @@ export class Decomposer {
+         continue;
+       }
+ 
++      // ── Filtr wyłączonych warstw (PIPELINE_SCOPE.disabledLayers) — oś A scope'u ──
++      // Deterministyczny, PRZED validateGraph: graf walidowany/derywowany na zbiorze
++      // ZACHOWANYM, a downstream (architekt/planner/coder) czyta przefiltrowany artefakt.
++      // Konflikt (zachowana warstwa twardo zależna od wyłączonej) i pusty wynik to
++      // błędy KONFIGURACJI/STORY, nie LLM → throw BEZ retry (retry by nie pomógł).
++      const disabledLayers = config.PIPELINE_SCOPE.layers;
++      if (disabledLayers.length > 0) {
++        const { layers: scopedLayers, conflicts } = filterDisabledLayers({
++          layers: data.layers, disabled: disabledLayers,
++        });
++        if (conflicts.length > 0) {
++          spin.stop('Dekompozycja — konflikt z wyłączoną warstwą');
++          const lines = conflicts.map(c => `warstwa "${c.layer}" potrzebuje "${c.key}" z wyłączonej "${c.from}"`);
++          throw new Error(
++            `Nie można wyłączyć warstwy — twarda zależność: ${lines.join('; ')}. ` +
++            `Usuń ją z pipelineScope.disabledLayers albo zawęź zakres story.`,
++          );
++        }
++        if (Object.keys(scopedLayers).length === 0) {
++          spin.stop('Dekompozycja — wszystkie warstwy wyłączone');
++          throw new Error(
++            'Wszystkie wygenerowane warstwy są w pipelineScope.disabledLayers — nie ma czego zaplanować.',
++          );
++        }
++        data.layers = scopedLayers;
++      }
++
+       const graph = validateGraph({ layers: data.layers, story: this.story });
+       if (!graph.valid) {
+         if (attempt === config.DECOMPOSER.MAX_PARSE_RETRIES) {
+@@ -212,6 +244,23 @@ export class Decomposer {
+   }
+ }
+ 
++/**
++ * Blok instrukcji o WYŁĄCZONYCH warstwach do promptu (PIPELINE_SCOPE.disabledLayers).
++ * Pusty string gdy nic nie wyłączono (placeholder znika bez śladu). Zapobiega
++ * marnotrawnej generacji wyłączonych warstw i utrzymuje graf spójny; deterministyczny
++ * filtr w `_ask` jest i tak siatką bezpieczeństwa.
++ */
++function formatDisabledLayers(disabled) {
++  if (!Array.isArray(disabled) || disabled.length === 0) return '';
++  return [
++    `WYŁĄCZONE WARSTWY (NIE generuj ich w ogóle): ${disabled.join(', ')}.`,
++    'Jeśli wymaganie należałoby do wyłączonej warstwy — pomiń je. NIE twórz `needs`',
++    'od warstwy zachowanej do wyłączonej (taka twarda zależność = błąd: tej warstwy',
++    'nie wolno wtedy wyłączyć dla tej story).',
++    '',
++  ].join('\n');
++}
++
+ /** Otwarte findings reviewera → goła lista problemów dla dekompozytora.
+  *  Tylko lokalizacja + opis problemu; bez id, severity, kryterium, score. */
+ export function formatReviewTasks(tasks) {
+diff --git a/.github/agents/story-flow/story-decomposer/graph.js b/.github/agents/story-flow/story-decomposer/graph.js
+index 2b0448e4ff4eb6d3f278ff19786cdbf9b6521dcd..b03ba4d2ee0dc1e19c190c2493c306d93d13a520 100644
+GIT binary patch
+delta 1723
+zcmZ8h%WfMt6h(J|kgb6LMS%-+5lx_uvX*1JimkS;4cWC*7_nhgG>4Kn4{|_qGMQ0@
+zX@jI)WK-1L1o?>q*?L!L-*3nt<PUmDX=K&2nwd+Udw9;deEY-O!Qbp&^`p*m0%y<X
+zzs_Foo*(slkQ1d%UO@AB|G0O!-|zi&x_flo^8>EQRm_4zQZS`GC?O$fv0M%xfB6gK
+z{5^CV@CY=ODSIe$A~=DRr!3}zJ<NRAV}_}O3$9H;OHn{I<grnpjnsBI!a=|ynWVBT
+zj8r9q<0Ffhlb8pDh8!YY8Zv)nvKAblocH$Ng)15Mts?2T9WcdTuv112mqNE7=d*Vd
+zDDEgAkh#!CF_KuwCQ)=;al<0hPGcejQ*A17KTzyV!r2>ISYoR9Dt1Tq3zEbhA_gUg
+zFq_{%iUi#O7TiaQ41I*Q=m$srZw~hlo<TEUv?xQ=LCFw%;nEH~JL{h8J%^|B3T5B(
+zIuNq?`<TOdclW!avu?k;l$D^yFc6FddSFpyux{1&&@|{)K%gWso8JgDVD`J$f-+Zx
+zlB9r<L_r5sieb#D(F11_C2@?WRAoj<<wJkJXQ2az^n)y9xGj({U@y@sLE=F>ku)OM
+zN<tQ?B1b9ZRRLFuM4k@^isZ9*s0g#W@?!o9bt|PP=os|ujYTd47A9692BwH338@4l
+zTYw;WWi>2P5=0q1?VUs9s75A(<|rs&enSFbk4MKAfYh=qwGbS;2yDGLf8l|(07|KC
+zL_nwid<Zd9Hk-L&h_^09$h3itG}DFwM-=LiMi@?Z{m1>m^}nAzs65-~>y#*xzyzbi
+z#pvSl=Tl~$EIziUa6!~auZH8&HRC}&7HgU?90mucn8}pTFqyz2SRFWFRH|SJ+LBix
+z=6AaV)ylaJbd@5-lZo5WS#)o~P|0NV5wT+VKHY}t6nnKB>}4vIfng@xK!8mvQ+xj#
+z<z~&J1@(->7F=AywDMrm06-QfRb9i=W4ZnUjx{1ElS8nTo!d$W1k3HuX1&<kL^M9c
+znOG9QqOUnl`PSAJJoaEA4b+5Cf;9y!qs_*OPsCD7WP<-{imSzr|K|0lFSe???Z!km
+z1xc9aS!}~a#x|kdu9LMEVdA_@Wy0sL-3?;njL$+2+rDoHbJ5FHhEhRuQMNM+s7b5o
+z9P`}_!_E%sik+>h_PImuI^6iYLN4cb^A2v#Wu0?-58RF#3*qB$f38Lc8Qcyy_wYhm
+zJ}Y&64E?xv9bG~-mQg~-9<ac-v1)<M6aK(&e1qxrr;RVG)u|U4w(3j;z`WsO>lYUA
+r(pm$)@4Mr-9FFd|df%z$Y_ps0c)nP(X1q0h+Gw;N;l28S-fO~t;3sV)
+
+delta 12
+TcmeB9=nmYF%CY$=znTI7BNhbG
+
+diff --git a/.github/agents/story-flow/story-decomposer/graph.test.js b/.github/agents/story-flow/story-decomposer/graph.test.js
+new file mode 100644
+index 0000000..efbf637
+--- /dev/null
++++ b/.github/agents/story-flow/story-decomposer/graph.test.js
+@@ -0,0 +1,57 @@
++/* eslint-disable @nx/enforce-module-boundaries */
++import { test } from 'node:test';
++import assert from 'node:assert/strict';
++import { filterDisabledLayers, validateGraph, deriveSections } from './graph.js';
++
++/* ─────────────────────────────────────────────────────────────────────────── *
++ * Testy filtra wyłączonych warstw (oś A scope'u). Graf bazowy:
++ *   type_state  (źródło) provides DATA
++ *   type_feature needs DATA  (konsument)
++ *   type_ui      needs DATA  (konsument-liść)
++ * ─────────────────────────────────────────────────────────────────────────── */
++
++const baseLayers = () => ({
++  type_state:   { requirement: 'r', acceptance_criteria: ['a'], provides: ['DATA'], needs: [] },
++  type_feature: { requirement: 'r', acceptance_criteria: ['a'], provides: ['VIEW'], needs: [{ from: 'type_state', key: 'DATA', why: 'w' }] },
++  type_ui:      { requirement: 'r', acceptance_criteria: ['a'], provides: ['WIDGET'], needs: [{ from: 'type_state', key: 'DATA', why: 'w' }] },
++});
++
++test('brak wyłączeń → identyczny obiekt, zero konfliktów', () => {
++  const layers = baseLayers();
++  const out = filterDisabledLayers({ layers, disabled: [] });
++  assert.equal(out.layers, layers);
++  assert.deepEqual(out.conflicts, []);
++});
++
++test('wyłączenie warstwy-liścia (type_ui) → usunięta, zero konfliktów, reszta spójna', () => {
++  const { layers, conflicts } = filterDisabledLayers({ layers: baseLayers(), disabled: ['type_ui'] });
++  assert.deepEqual(Object.keys(layers).sort(), ['type_feature', 'type_state']);
++  assert.deepEqual(conflicts, []);
++  // Po filtrze graf przechodzi walidację i derywuje sekcje bez UI.
++  const v = validateGraph({ layers, story: '' });
++  assert.equal(v.valid, true, JSON.stringify(v.errors));
++  const { fulfillment_order, placeholders } = deriveSections({ layers });
++  assert.ok(fulfillment_order.length >= 1);
++  assert.ok(placeholders.find(p => p.key === 'DATA' && p.provided_by === 'type_state'));
++  // WIDGET (provides type_ui) zniknął z rejestru kluczy.
++  assert.equal(placeholders.find(p => p.key === 'WIDGET'), undefined);
++});
++
++test('wyłączenie warstwy-źródła (type_state) → twardy konflikt dla konsumentów', () => {
++  const { conflicts } = filterDisabledLayers({ layers: baseLayers(), disabled: ['type_state'] });
++  const fromLayers = conflicts.map(c => c.layer).sort();
++  assert.deepEqual(fromLayers, ['type_feature', 'type_ui']);
++  assert.ok(conflicts.every(c => c.from === 'type_state' && c.key === 'DATA'));
++});
++
++test('needs: from external nie jest konfliktem przy wyłączaniu warstwy', () => {
++  const layers = {
++    type_state:   { requirement: 'r', acceptance_criteria: ['a'], provides: ['DATA'], needs: [{ from: 'external', key: 'API', why: 'w' }] },
++    type_ui:      { requirement: 'r', acceptance_criteria: ['a'], provides: ['W'], needs: [{ from: 'type_state', key: 'DATA', why: 'w' }] },
++  };
++  const { layers: kept, conflicts } = filterDisabledLayers({ layers, disabled: ['type_ui'] });
++  assert.deepEqual(Object.keys(kept), ['type_state']);
++  assert.deepEqual(conflicts, []);
++  // external need zachowany.
++  assert.deepEqual(kept.type_state.needs, [{ from: 'external', key: 'API', why: 'w' }]);
++});
+diff --git a/.github/agents/story-flow/story-decomposer/reviewer/index.js b/.github/agents/story-flow/story-decomposer/reviewer/index.js
+index 03b4ee0..149babd 100644
+--- a/.github/agents/story-flow/story-decomposer/reviewer/index.js
++++ b/.github/agents/story-flow/story-decomposer/reviewer/index.js
+@@ -69,6 +69,7 @@ export class Reviewer {
+         STORY_LAYERS:           storyLayers,
+         RESOLVED_CRITERIA: formatResolved([...this._resolved]),
+         PREVIOUS_FINDINGS: formatPreviousFindings(this._prevFindings),
++        DISABLED_LAYERS:   formatDisabledLayers(config.PIPELINE_SCOPE.layers),
+       });
+ 
+       const result = await this._audit(session, prompt);
+@@ -272,6 +273,24 @@ function normalizeSeverity(sev) {
+   return ['critical', 'major', 'minor'].includes(s) ? s : 'major';
+ }
+ 
++/**
++ * Blok o WYŁĄCZONYCH warstwach (PIPELINE_SCOPE.disabledLayers) dla reviewera:
++ * ich nieobecność jest ZAMIERZONA, więc NIE wolno jej zgłaszać jako luki pod
++ * kryt. 2 (kompletność) / 9 (pokrycie). Pusty string gdy nic nie wyłączono.
++ */
++function formatDisabledLayers(disabled) {
++  if (!Array.isArray(disabled) || disabled.length === 0) return '';
++  return [
++    '<zakres_pominiety>',
++    `Następujące warstwy są ŚWIADOMIE WYŁĄCZONE z zakresu (konfiguracja pipelineScope): ${disabled.join(', ')}.`,
++    'Ich nieobecność jest ZAMIERZONA. NIE zgłaszaj findingu pod kryt. 2 (KOMPLETNOŚĆ',
++    'WARSTW) ani kryt. 9 (ŹRÓDŁO/pokrycie) za brak tych warstw ani za fragmenty story,',
++    'które realizowałyby WYŁĄCZNIE one. Oceniaj tylko warstwy OBECNE w podziale.',
++    '</zakres_pominiety>',
++    '',
++  ].join('\n');
++}
++
+ function formatResolved(resolvedCriteria) {
+   if (!Array.isArray(resolvedCriteria) || resolvedCriteria.length === 0) {
+     return `(brak — pierwsza runda; oceń wszystkie ${config.REVIEWER.CRITERIA_COUNT} kryteriów od zera)`;
+diff --git a/.github/agents/story-flow/story-decomposer/templates/story-decomposition.template.md b/.github/agents/story-flow/story-decomposer/templates/story-decomposition.template.md
+index 3c2ccbd..b9c86c1 100644
+--- a/.github/agents/story-flow/story-decomposer/templates/story-decomposition.template.md
++++ b/.github/agents/story-flow/story-decomposer/templates/story-decomposition.template.md
+@@ -110,6 +110,7 @@ warstwa zależy, jaką daną/zdolność z niej pobiera i PO CO.
+     </twarde_zasady>
+ 
+ <zadanie>
++{{DISABLED_LAYERS}}
+ Na podstawie <user_story> i <architecture_standards> wykonaj kroki:
+ 
+ 1. Wyznacz warstwy wymagane przez tę story. Definicje warstw, deterministyczną
+diff --git a/.github/agents/story-flow/story-decomposer/templates/story-review.template.md b/.github/agents/story-flow/story-decomposer/templates/story-review.template.md
+index 36e2570..428b49f 100644
+--- a/.github/agents/story-flow/story-decomposer/templates/story-review.template.md
++++ b/.github/agents/story-flow/story-decomposer/templates/story-review.template.md
+@@ -57,6 +57,7 @@ Twoja praca zaczyna się tam, gdzie kończy walidator: SEMANTYKA (czy podział m
+ prawdę o story i architekturze), nie spójność referencyjna.
+ </gwarancje_deterministyczne>
+ 
++{{DISABLED_LAYERS}}
+ <kryteria_oceny>
+ Przejdź PO KOLEI przez każde z 12 kryteriów. Każde MUSI pojawić się w
+ `checklist` dokładnie raz z werdyktem agree=true/false.
+diff --git a/.github/agents/story-flow/story-decomposer/templates/story-rework-differential.template.md b/.github/agents/story-flow/story-decomposer/templates/story-rework-differential.template.md
+index 0b85549..9b80026 100644
+--- a/.github/agents/story-flow/story-decomposer/templates/story-rework-differential.template.md
++++ b/.github/agents/story-flow/story-decomposer/templates/story-rework-differential.template.md
+@@ -9,6 +9,7 @@ Lista problemów do usunięcia (każdy MUSI zostać zaadresowany):
+ </review>
+ 
+ <zadanie>
++{{DISABLED_LAYERS}}
+ 1. Zaadresuj KAŻDY zarzut — usuń wskazane naruszenie, zachowując poprawne części
+    poprzedniego podziału.
+ 2. Nie wprowadzaj NOWYCH naruszeń twardych zasad ani nie psuj warstw, których
+diff --git a/.github/scripts/pipeline-scope.js b/.github/scripts/pipeline-scope.js
+new file mode 100644
+index 0000000..bb28a36
+--- /dev/null
++++ b/.github/scripts/pipeline-scope.js
+@@ -0,0 +1,95 @@
++/**
++ * PIPELINE SCOPE — globalne wyłączanie WARSTW / SEKCJI / STANDARDÓW z pipeline'u.
++ *
++ * SSOT konfiguracji: PROJECT.pipelineScope (global-config). Ten moduł NIE czyta
++ * configu (żeby nie tworzyć cyklu z global-config) — dostaje surowy obiekt scope
++ * + słownik warstw JAWNIE i zwraca ROZWIĄZANY, zwalidowany zakres z predykatami.
++ *
++ * Trzy NIEZALEŻNE osie (decyzja projektowa — bez auto-mapowania warstwa↔sekcja):
++ *   - disabledLayers    → oś A, wchodzi w DEKOMPOZYTORZE (filtr grafu story-layers.yaml);
++ *                         architekt/planner/coder czytają przefiltrowany artefakt → 0 zmian.
++ *   - disabledSections  → oś B1, wchodzi w CLARIFIERZE (sekcje DoR z story-readiness.yaml);
++ *                         walidacja "nie wolno critical" żyje w sections-loader (tam jest flaga).
++ *   - disabledStandards → oś B2, wchodzi w PLANNERZE (pliki .md out z task.standards[]).
++ *
++ * PRESETY: `apply: [...]` rozwija nazwane presety i robi UNIĘ z jawnymi listami
++ * (dedup). Jeden punkt rozwiązania → reszta pipeline'u czyta wyłącznie wynik.
++ *
++ * NIEZMIENNIK: każdy przełącznik aktywuje się na SWOIM etapie, więc po zmianie
++ * trzeba RE-RUN OD TEGO ETAPU w górę (cache spójny dzięki kaskadowemu purge
++ * orchestratora).
++ */
++
++const asArray = (v) => (Array.isArray(v) ? v.map(String) : []);
++const uniqSorted = (arr) => [...new Set(arr)].sort();
++
++/**
++ * Rozwiązuje i waliduje zakres pipeline'u.
++ *
++ * @param {object} scope                  — PROJECT.pipelineScope (lub {})
++ * @param {string[]} [scope.apply]        — nazwy aktywnych presetów
++ * @param {string[]} [scope.disabledLayers]
++ * @param {string[]} [scope.disabledSections]
++ * @param {string[]} [scope.disabledStandards]
++ * @param {Object<string,object>} [scope.presets]
++ * @param {string[]} [layerVocabulary]    — dozwolone nazwy warstw (Object.keys(layerToBucket));
++ *                                          gdy podane, warstwa spoza słownika = throw (fail-fast).
++ * @returns {Readonly<{
++ *   layers: string[], sections: string[], standards: string[],
++ *   isLayerDisabled: (id:string)=>boolean,
++ *   isSectionDisabled: (id:string)=>boolean,
++ *   isStandardDisabled: (file:string)=>boolean,
++ *   isEmpty: boolean,
++ * }>}
++ */
++export function resolvePipelineScope(scope = {}, layerVocabulary = []) {
++  const presets = scope?.presets ?? {};
++  const apply = asArray(scope?.apply);
++
++  // Nieznany preset = błąd konfiguracji (literówka cicho gubiłaby intencję).
++  for (const name of apply) {
++    if (!Object.prototype.hasOwnProperty.call(presets, name)) {
++      throw new Error(
++        `pipeline-scope: nieznany preset "${name}" w \`apply\` ` +
++        `(dostępne: ${Object.keys(presets).join(', ') || 'brak'})`,
++      );
++    }
++  }
++
++  // Unia jawnej listy z polami `field` wszystkich aktywnych presetów.
++  const merge = (field) => uniqSorted([
++    ...asArray(scope?.[field]),
++    ...apply.flatMap((name) => asArray(presets[name]?.[field])),
++  ]);
++
++  const layers = merge('disabledLayers');
++  const sections = merge('disabledSections');
++  const standards = merge('disabledStandards');
++
++  // Walidacja warstw względem słownika (sekcje walidowane w sections-loader — tam
++  // jest `critical`; standardy nie walidujemy twardo, bo lista plików bywa luźna).
++  if (layerVocabulary.length > 0) {
++    const vocab = new Set(layerVocabulary);
++    const unknown = layers.filter((l) => !vocab.has(l));
++    if (unknown.length > 0) {
++      throw new Error(
++        `pipeline-scope: warstwa(y) spoza słownika w disabledLayers: ${unknown.join(', ')} ` +
++        `(dozwolone: ${layerVocabulary.join(', ')})`,
++      );
++    }
++  }
++
++  const layerSet = new Set(layers);
++  const sectionSet = new Set(sections);
++  const standardSet = new Set(standards);
++
++  return Object.freeze({
++    layers,
++    sections,
++    standards,
++    isLayerDisabled: (id) => layerSet.has(id),
++    isSectionDisabled: (id) => sectionSet.has(id),
++    isStandardDisabled: (file) => standardSet.has(file),
++    isEmpty: layers.length === 0 && sections.length === 0 && standards.length === 0,
++  });
++}
+diff --git a/.github/scripts/pipeline-scope.test.js b/.github/scripts/pipeline-scope.test.js
+new file mode 100644
+index 0000000..89fc780
+--- /dev/null
++++ b/.github/scripts/pipeline-scope.test.js
+@@ -0,0 +1,67 @@
++/* eslint-disable @nx/enforce-module-boundaries */
++import { test } from 'node:test';
++import assert from 'node:assert/strict';
++import { resolvePipelineScope } from './pipeline-scope.js';
++
++/* ─────────────────────────────────────────────────────────────────────────── *
++ * Testy resolvera PIPELINE_SCOPE: unia presetów z jawnymi listami (dedup+sort),
++ * walidacja warstw względem słownika, nieznany preset = throw, predykaty, isEmpty.
++ * ─────────────────────────────────────────────────────────────────────────── */
++
++const VOCAB = ['type_state', 'type_ui', 'type_core', 'type_feature', 'app_shell'];
++
++test('pusty scope → isEmpty, wszystkie listy puste', () => {
++  const r = resolvePipelineScope({}, VOCAB);
++  assert.equal(r.isEmpty, true);
++  assert.deepEqual(r.layers, []);
++  assert.deepEqual(r.sections, []);
++  assert.deepEqual(r.standards, []);
++});
++
++test('jawne listy: dedup + sort + predykaty', () => {
++  const r = resolvePipelineScope(
++    { disabledLayers: ['type_ui', 'type_ui'], disabledStandards: ['b.md', 'a.md'] },
++    VOCAB,
++  );
++  assert.deepEqual(r.layers, ['type_ui']);
++  assert.deepEqual(r.standards, ['a.md', 'b.md']);
++  assert.equal(r.isLayerDisabled('type_ui'), true);
++  assert.equal(r.isLayerDisabled('type_state'), false);
++  assert.equal(r.isStandardDisabled('a.md'), true);
++  assert.equal(r.isEmpty, false);
++});
++
++test('preset rozwijany i unijny z jawnymi listami', () => {
++  const r = resolvePipelineScope(
++    {
++      apply: ['no-ui'],
++      disabledStandards: ['i18n.md'],
++      presets: {
++        'no-ui': { disabledLayers: ['type_ui'], disabledSections: ['design'], disabledStandards: ['a11y.md'] },
++      },
++    },
++    VOCAB,
++  );
++  assert.deepEqual(r.layers, ['type_ui']);
++  assert.deepEqual(r.sections, ['design']);
++  assert.deepEqual(r.standards, ['a11y.md', 'i18n.md']); // unia preset ∪ jawna, posortowana
++});
++
++test('warstwa spoza słownika → throw', () => {
++  assert.throws(
++    () => resolvePipelineScope({ disabledLayers: ['type_bogus'] }, VOCAB),
++    /spoza słownika/,
++  );
++});
++
++test('nieznany preset w apply → throw', () => {
++  assert.throws(
++    () => resolvePipelineScope({ apply: ['ghost'], presets: {} }, VOCAB),
++    /nieznany preset/,
++  );
++});
++
++test('brak słownika → walidacja warstw pominięta (nie rzuca)', () => {
++  const r = resolvePipelineScope({ disabledLayers: ['cokolwiek'] }, []);
++  assert.deepEqual(r.layers, ['cokolwiek']);
++});
+-- 
+2.54.0.windows.1
+
