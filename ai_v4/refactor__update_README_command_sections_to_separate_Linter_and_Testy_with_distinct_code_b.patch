@@ -1,0 +1,492 @@
+Subject: [PATCH] refactor: update README command sections to separate Linter and Testy with distinct code blocks
+---
+Index: scripts/validators/readme-validator.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/validators/readme-validator.js b/scripts/validators/readme-validator.js
+--- a/scripts/validators/readme-validator.js	(revision 9940e7172c0953147c31cfa2c25e9f43adac614b)
++++ b/scripts/validators/readme-validator.js	(date 1784629040244)
+@@ -5,7 +5,7 @@
+ import { basename, join, relative, resolve, sep } from 'path';
+ import { pathToFileURL } from 'url';
+ 
+-import { README_COMMAND_TARGETS, README_REQUIRED_FIELDS, README_STATUSES } from '../config/readme.js';
++import { README_COMMAND_SECTIONS, README_REQUIRED_FIELDS, README_STATUSES } from '../config/readme.js';
+ import { WORKSPACE_FILES } from '../config/workspace.js';
+ 
+ /* ─────────────────────────────────────────────────────────────────────────── *
+@@ -29,19 +29,30 @@
+  *
+  *   ## Polecenia
+  *
++ *   ### Linter
++ *
+  *   ```bash
+  *   nx lint <nazwa projektu nx>
++ *   ```
++ *
++ *   ### Testy
++ *
++ *   ```bash
+  *   nx test <nazwa projektu nx>
+  *   ```
+  *
++ * Każde polecenie stoi w osobnej sekcji z własnym blokiem kodu — tak, by dało
++ * się skopiować i uruchomić jedno bez drugiego.
++ *
+  * Wykrywane naruszenia:
+- *   1. readme-missing      — brak README.md w katalogu biblioteki
+- *   2. metadata-missing    — README bez bloku ```yaml z metadanymi
+- *   3. field-missing       — brak pola name/description/status
+- *   4. description-empty   — pole description puste albo samo wypełnienie wzorca
+- *   5. status-invalid      — status spoza dozwolonych wartości
+- *   6. name-mismatch       — name w metadanych ≠ name w project.json
+- *   7. commands-missing    — brak polecenia lintu albo testów z nazwą tego projektu
++ *   1. readme-missing            — brak README.md w katalogu biblioteki
++ *   2. metadata-missing          — README bez bloku ```yaml z metadanymi
++ *   3. field-missing             — brak pola name/description/status
++ *   4. description-empty         — pole description puste albo samo wypełnienie wzorca
++ *   5. status-invalid            — status spoza dozwolonych wartości
++ *   6. name-mismatch             — name w metadanych ≠ name w project.json
++ *   7. command-section-missing   — brak sekcji z poleceniem (Linter albo Testy)
++ *   8. commands-missing          — sekcja jest, ale bez polecenia z nazwą tego projektu
+  *
+  * Exit code: 0 gdy zero naruszeń, 1 gdy są (do CI).
+  * Zero zależności spoza repozytorium — jedyne importy to fs, path i scripts/config/.
+@@ -58,7 +69,54 @@
+  * @returns {string} gotowy fragment README
+  */
+ export function commandsSection(projectName) {
+-  return ['## Polecenia', '', '```bash', ...README_COMMAND_TARGETS.map((target) => `nx ${target} ${projectName}`), '```'].join('\n');
++  const sections = README_COMMAND_SECTIONS.flatMap(({ heading, target }) => [
++    `### ${heading}`,
++    '',
++    '```bash',
++    `nx ${target} ${projectName}`,
++    '```',
++    '',
++  ]);
++
++  return ['## Polecenia', '', ...sections].join('\n').trimEnd();
++}
++
++/**
++ * Rozbija treść README na sekcje: klucz to nagłówek zapisany małymi literami,
++ * wartość to wszystko aż do następnego nagłówka.
++ *
++ * Linie wewnątrz bloków kodu nie są nagłówkami, choćby zaczynały się od `#` —
++ * w bloku `bash` taka linia jest komentarzem powłoki.
++ *
++ * @param {string} readmeText
++ * @returns {Map<string, string>}
++ */
++function sectionsOf(readmeText) {
++  const sections = new Map();
++  let heading = null;
++  let body = [];
++  let insideCodeBlock = false;
++
++  const flush = () => {
++    if (heading !== null) sections.set(heading, body.join('\n'));
++  };
++
++  for (const line of String(readmeText ?? '').split(/\r?\n/)) {
++    if (/^\s*```/.test(line)) insideCodeBlock = !insideCodeBlock;
++
++    const match = insideCodeBlock ? null : /^#{1,6}\s+(.+?)\s*$/.exec(line);
++    if (match) {
++      flush();
++      heading = match[1].toLowerCase();
++      body = [];
++      continue;
++    }
++
++    body.push(line);
++  }
++
++  flush();
++  return sections;
+ }
+ 
+ /** Tekst, który został z szablonu zamiast prawdziwego opisu. */
+@@ -127,13 +185,20 @@
+ 
+   // Polecenia sprawdzane niezależnie od metadanych: README bez bloku metadanych
+   // też ma je mieć, a wcześniejsze wyjście ukryłoby ich brak.
+-  const missingCommands = README_COMMAND_TARGETS.map((target) => `nx ${target} ${projectName}`).filter(
+-    (command) => !readmeText.includes(command),
+-  );
+-  if (missingCommands.length > 0) {
+-    violations.push(
+-      violation('commands-missing', `Brak polecenia: ${missingCommands.join(', ')}. Wzór sekcji podaje README walidatorów.`),
+-    );
++  //
++  // Polecenie musi stać W SWOJEJ sekcji, a nie gdziekolwiek w pliku — inaczej
++  // oba zmieszczone w jednym bloku przechodziłyby, a chodzi o to, żeby dało się
++  // uruchomić jedno bez drugiego.
++  const sections = sectionsOf(readmeText);
++  for (const { heading, target } of README_COMMAND_SECTIONS) {
++    const command = `nx ${target} ${projectName}`;
++    const body = sections.get(heading.toLowerCase());
++
++    if (body === undefined) {
++      violations.push(violation('command-section-missing', `Brak sekcji "${heading}" z poleceniem "${command}".`));
++    } else if (!body.includes(command)) {
++      violations.push(violation('commands-missing', `Sekcja "${heading}" nie zawiera polecenia "${command}".`));
++    }
+   }
+ 
+   const fields = parseMetadataBlock(readmeText);
+Index: scripts/validators/readme-validator.test.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/validators/readme-validator.test.js b/scripts/validators/readme-validator.test.js
+--- a/scripts/validators/readme-validator.test.js	(revision 9940e7172c0953147c31cfa2c25e9f43adac614b)
++++ b/scripts/validators/readme-validator.test.js	(date 1784629083105)
+@@ -18,8 +18,15 @@
+ 
+ ## Polecenia
+ 
++### Linter
++
+ \`\`\`bash
+ nx lint shared-common-util
++\`\`\`
++
++### Testy
++
++\`\`\`bash
+ nx test shared-common-util
+ \`\`\`
+ `;
+@@ -59,12 +66,27 @@
+ 
+ /* ── commandsSection ───────────────────────────────────────────────────────── */
+ 
+-test('commandsSection: wzór zawiera oba polecenia z nazwą projektu', () => {
++test('commandsSection: każde polecenie w osobnej sekcji i w osobnym bloku', () => {
+   const sekcja = commandsSection('shared-common-util');
+ 
+-  assert.match(sekcja, /^## Polecenia$/m);
+-  assert.match(sekcja, /nx lint shared-common-util/);
+-  assert.match(sekcja, /nx test shared-common-util/);
++  assert.equal(
++    sekcja,
++    [
++      '## Polecenia',
++      '',
++      '### Linter',
++      '',
++      '```bash',
++      'nx lint shared-common-util',
++      '```',
++      '',
++      '### Testy',
++      '',
++      '```bash',
++      'nx test shared-common-util',
++      '```',
++    ].join('\n'),
++  );
+ });
+ 
+ test('commandsSection: to, co produkuje, przechodzi sprawdzenie', () => {
+@@ -74,7 +96,10 @@
+     readmeText: `# X\n\n${commandsSection('jakas-biblioteka')}\n`,
+   });
+ 
+-  assert.ok(!kinds(violations).includes('commands-missing'));
++  assert.deepEqual(
++    kinds(violations).filter((kind) => kind.startsWith('command')),
++    [],
++  );
+ });
+ 
+ /* ── checkReadme ───────────────────────────────────────────────────────────── */
+@@ -131,29 +156,57 @@
+ 
+ /* ── polecenia ─────────────────────────────────────────────────────────────── */
+ 
+-test('checkReadme: brak sekcji poleceń → commands-missing z listą brakujących', () => {
+-  const violations = sprawdz('```yaml\nname: shared-common-util\ndescription: Robi jedno.\nstatus: active\n```');
++const METADANE = '```yaml\nname: shared-common-util\ndescription: Robi jedno.\nstatus: active\n```';
++
++test('checkReadme: brak obu sekcji → dwa zgłoszenia, każde ze swoim poleceniem', () => {
++  const violations = sprawdz(METADANE);
+ 
+-  assert.deepEqual(kinds(violations), ['commands-missing']);
+-  assert.match(violations[0].note, /nx lint shared-common-util/);
++  assert.deepEqual(kinds(violations), ['command-section-missing', 'command-section-missing']);
++  assert.match(violations[0].note, /"Linter".*nx lint shared-common-util/);
++  assert.match(violations[1].note, /"Testy".*nx test shared-common-util/);
++});
++
++test('checkReadme: sekcje są, ale polecenia z cudzą nazwą projektu', () => {
++  const violations = sprawdz(
++    `${METADANE}\n\n## Polecenia\n\n### Linter\n\n\`\`\`bash\nnx lint utils\n\`\`\`\n\n### Testy\n\n\`\`\`bash\nnx test utils\n\`\`\`\n`,
++  );
++
++  assert.deepEqual(kinds(violations), ['commands-missing', 'commands-missing']);
++});
++
++test('checkReadme: brakuje samej sekcji testów → zgłoszona tylko ona', () => {
++  const violations = sprawdz(`${METADANE}\n\n## Polecenia\n\n### Linter\n\n\`\`\`bash\nnx lint shared-common-util\n\`\`\`\n`);
++
++  assert.deepEqual(kinds(violations), ['command-section-missing']);
+   assert.match(violations[0].note, /nx test shared-common-util/);
+ });
+ 
+-test('checkReadme: polecenie z cudzą nazwą projektu nie liczy się', () => {
+-  const violations = sprawdz('```yaml\nname: shared-common-util\ndescription: Robi jedno.\nstatus: active\n```\n\nnx lint utils\nnx test utils\n');
++test('checkReadme: oba polecenia w jednym bloku nie wystarczają — mają być osobne sekcje', () => {
++  const violations = sprawdz(
++    `${METADANE}\n\n## Polecenia\n\n\`\`\`bash\nnx lint shared-common-util\nnx test shared-common-util\n\`\`\`\n`,
++  );
++
++  assert.deepEqual(kinds(violations), ['command-section-missing', 'command-section-missing']);
++});
++
++test('checkReadme: polecenie należy do swojej sekcji, a nie do sąsiedniej', () => {
++  const violations = sprawdz(
++    `${METADANE}\n\n### Linter\n\n\`\`\`bash\nnx lint shared-common-util\nnx test shared-common-util\n\`\`\`\n\n### Testy\n\n\`\`\`bash\nnx lint shared-common-util\n\`\`\`\n`,
++  );
+ 
+   assert.deepEqual(kinds(violations), ['commands-missing']);
++  assert.match(violations[0].note, /"Testy"/);
+ });
+ 
+-test('checkReadme: brakuje samych testów → zgłoszone tylko one', () => {
+-  const violations = sprawdz('```yaml\nname: shared-common-util\ndescription: Robi jedno.\nstatus: active\n```\n\nnx lint shared-common-util\n');
++test('checkReadme: komentarz powłoki w bloku kodu nie jest nagłówkiem sekcji', () => {
++  const violations = sprawdz(
++    `${METADANE}\n\n### Linter\n\n\`\`\`bash\n# sprawdza reguły\nnx lint shared-common-util\n\`\`\`\n\n### Testy\n\n\`\`\`bash\nnx test shared-common-util\n\`\`\`\n`,
++  );
+ 
+-  assert.deepEqual(kinds(violations), ['commands-missing']);
+-  assert.match(violations[0].note, /nx test shared-common-util/);
+-  assert.doesNotMatch(violations[0].note, /nx lint/);
++  assert.deepEqual(violations, []);
+ });
+ 
+-test('checkReadme: README bez metadanych i bez poleceń zgłasza oba braki', () => {
++test('checkReadme: README bez metadanych i bez poleceń zgłasza wszystkie braki', () => {
+   const violations = sprawdz('# Zasoby statyczne\n\nProza.');
+-  assert.deepEqual(kinds(violations), ['commands-missing', 'metadata-missing']);
++  assert.deepEqual(kinds(violations), ['command-section-missing', 'command-section-missing', 'metadata-missing']);
+ });
+Index: scripts/config/index.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/config/index.js b/scripts/config/index.js
+--- a/scripts/config/index.js	(revision 9940e7172c0953147c31cfa2c25e9f43adac614b)
++++ b/scripts/config/index.js	(date 1784629004222)
+@@ -15,6 +15,6 @@
+   LIBRARY_NAMING,
+ } from './library.js';
+ 
+-export { README_REQUIRED_FIELDS, README_STATUSES, README_COMMAND_TARGETS } from './readme.js';
++export { README_REQUIRED_FIELDS, README_STATUSES, README_COMMAND_SECTIONS } from './readme.js';
+ 
+ export { WORKSPACE_FILES } from './workspace.js';
+Index: scripts/config/README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/config/README.md b/scripts/config/README.md
+--- a/scripts/config/README.md	(revision 9940e7172c0953147c31cfa2c25e9f43adac614b)
++++ b/scripts/config/README.md	(date 1784629286893)
+@@ -47,7 +47,7 @@
+ | `LIBRARY_TYPES`, `BARREL_ONLY_TYPES` | `.github/skills/nx-library-generator/SKILL.md` | umiejętność zaproponuje typ, który CLI odrzuci |
+ | `LIBRARY_TYPES`, `LIBRARY_NAMING` | `docs/standards/nx.md` | dokument będzie opisywał nieistniejącą konwencję |
+ | `JS_LIBRARY_TYPES` | `nx.json` (`generators`) | biblioteka powstanie kolekcją bez domyślnych wartości i może wyjść buildable |
+-| `README_STATUSES`, `README_REQUIRED_FIELDS`, `README_COMMAND_TARGETS` | `.github/skills/nx-library-descriptor/SKILL.md` | umiejętność napisze README, które walidator odrzuci |
++| `README_STATUSES`, `README_REQUIRED_FIELDS`, `README_COMMAND_SECTIONS` | `.github/skills/nx-library-descriptor/SKILL.md` | umiejętność napisze README, które walidator odrzuci |
+ | `TAG_AXES` | `eslint.dep-constraints.mjs` (`sourceTag`) | tag trafi na projekt, ale reguła granic go nie zobaczy |
+ | `LIBRARY_NAMING.sharedPrefix` | `tools/eslint-rules/library-naming/__fixtures__/tsconfig.base.json` | trzy testy reguły nazewnictwa padną: reguła derywuje alias z konfiguracji, a fikstura ma go zapisanego wprost |
+ 
+Index: .github/skills/nx-library-descriptor/SKILL.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.github/skills/nx-library-descriptor/SKILL.md b/.github/skills/nx-library-descriptor/SKILL.md
+--- a/.github/skills/nx-library-descriptor/SKILL.md	(revision 9940e7172c0953147c31cfa2c25e9f43adac614b)
++++ b/.github/skills/nx-library-descriptor/SKILL.md	(date 1784629179220)
+@@ -33,8 +33,8 @@
+ 
+ ---
+ 
+-> ⚠ **Lustro:** dozwolone statusy, wymagane pola metadanych i cele w sekcji `## Polecenia`
+-> odpowiadają `README_STATUSES`, `README_REQUIRED_FIELDS` i `README_COMMAND_TARGETS`
++> ⚠ **Lustro:** dozwolone statusy, wymagane pola metadanych oraz nagłówki i cele sekcji
++> poleceń odpowiadają `README_STATUSES`, `README_REQUIRED_FIELDS` i `README_COMMAND_SECTIONS`
+ > w `scripts/config/readme.js`. Zmiana wymaga edycji tam i tutaj w jednym pull requeście —
+ > inaczej walidator odrzuci README, które ta umiejętność napisze.
+ 
+@@ -71,8 +71,15 @@
+ 
+ ## Polecenia
+ 
++### Linter
++
+ ```bash
+ nx lint [nazwa biblioteki — dokładna wartość z project.json]
++```
++
++### Testy
++
++```bash
+ nx test [nazwa biblioteki — dokładna wartość z project.json]
+ ```
+ 
+@@ -81,13 +88,19 @@
+ ````
+ 
+ Reguły dla sekcji **Polecenia**:
+-- Sekcja jest OBOWIĄZKOWA. Sprawdź, czy README ją ma; jeśli nie — dopisz według wzoru wyżej.
+-- Wstaw dokładnie te dwa polecenia, nic więcej. Obie linie muszą kończyć się nazwą projektu
+-  wziętą z `project.json` — ta sama, która stoi w polu `name` metadanych.
++- Sekcja jest OBOWIĄZKOWA, razem z obiema podsekcjami. Sprawdź, czy README je ma;
++  jeśli nie — dopisz według wzoru wyżej.
++- `Linter` i `Testy` to dwie osobne podsekcje, każda z własnym blokiem kodu i jedną
++  linią polecenia. Nie skracaj tego do jednego bloku z dwiema liniami — chodzi o to,
++  by dało się skopiować i uruchomić jedno polecenie bez drugiego.
++- Każde polecenie kończy się nazwą projektu wziętą z `project.json` — tą samą, która
++  stoi w polu `name` metadanych.
+ - Nie zastępuj nazwy projektu nazwą katalogu, aliasem importu ani skrótem.
+-- Jeśli README ma starą sekcję z poleceniami (np. `## Tooling`), zastąp ją tą.
++- Jeśli README ma starą sekcję z poleceniami (np. `## Tooling` albo jeden wspólny blok),
++  zastąp ją tą.
+ - Tego sprawdzenia pilnuje też lint: reguła `@nx/workspace-library-readme` zgłasza
+-  `commands-missing`, gdy któregoś polecenia brakuje.
++  `command-section-missing`, gdy brakuje podsekcji, i `commands-missing`, gdy podsekcja
++  jest, ale nie ma w niej polecenia z nazwą tego projektu.
+ 
+ ---
+ 
+@@ -162,5 +175,6 @@
+ 9. Jeśli `deprecated` → czy aktualizacja pliku i output zostały zablokowane?
+ 10. Jeśli `experimental` → czy baner ryzyka jest pierwszą linią wpisu?
+ 11. Czy docelowy plik został zaktualizowany bezpośrednio, lub jedno pytanie doprecyzowujące zostało zadane, jeśli cel był niejednoznaczny?
+-12. Czy README ma sekcję `## Polecenia` z linijkami `nx lint <nazwa>` i `nx test <nazwa>`? Jeśli nie — dopisz ją.
+-13. Czy nazwa w obu poleceniach jest identyczna z polem `name` metadanych? Jeśli nie — popraw.
++12. Czy README ma sekcję `## Polecenia`, a w niej osobne podsekcje `### Linter` z `nx lint <nazwa>` i `### Testy` z `nx test <nazwa>`? Jeśli nie — dopisz je.
++13. Czy każde polecenie stoi w osobnym bloku kodu, w swojej podsekcji? Jeśli oba są w jednym bloku — rozdziel.
++14. Czy nazwa w obu poleceniach jest identyczna z polem `name` metadanych? Jeśli nie — popraw.
+Index: scripts/config/readme.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/config/readme.js b/scripts/config/readme.js
+--- a/scripts/config/readme.js	(revision 9940e7172c0953147c31cfa2c25e9f43adac614b)
++++ b/scripts/config/readme.js	(date 1784628999221)
+@@ -14,6 +14,12 @@
+ 
+ /**
+  * Cele nx, których wywołanie README musi podawać wprost, gotowe do skopiowania.
+- * Kolejność wyznacza kolejność linii w sekcji `## Polecenia`.
++ *
++ * Każdy stoi w osobnej sekcji z własnym blokiem kodu, żeby dało się skopiować
++ * i uruchomić jedno polecenie bez drugiego. `heading` to nagłówek tej sekcji,
++ * `target` to nazwa celu nx. Kolejność wyznacza kolejność sekcji w README.
+  */
+-export const README_COMMAND_TARGETS = Object.freeze(['lint', 'test']);
++export const README_COMMAND_SECTIONS = Object.freeze([
++  Object.freeze({ heading: 'Linter', target: 'lint' }),
++  Object.freeze({ heading: 'Testy', target: 'test' }),
++]);
+Index: tools/eslint-rules/library-readme/__fixtures__/ok-library/README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/tools/eslint-rules/library-readme/__fixtures__/ok-library/README.md b/tools/eslint-rules/library-readme/__fixtures__/ok-library/README.md
+--- a/tools/eslint-rules/library-readme/__fixtures__/ok-library/README.md	(revision 9940e7172c0953147c31cfa2c25e9f43adac614b)
++++ b/tools/eslint-rules/library-readme/__fixtures__/ok-library/README.md	(date 1784629102758)
+@@ -11,7 +11,14 @@
+ 
+ ## Polecenia
+ 
++### Linter
++
+ ```bash
+ nx lint ok-library
++```
++
++### Testy
++
++```bash
+ nx test ok-library
+ ```
+Index: scripts/validators/README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/validators/README.md b/scripts/validators/README.md
+--- a/scripts/validators/README.md	(revision 9940e7172c0953147c31cfa2c25e9f43adac614b)
++++ b/scripts/validators/README.md	(date 1784629282698)
+@@ -129,19 +129,30 @@
+ | `description-empty` | opis pusty albo zostawiony z szablonu |
+ | `status-invalid` | status spoza: `active`, `maintenance`, `deprecated`, `experimental` |
+ | `name-mismatch` | nazwa w metadanych ≠ nazwa w `project.json` |
+-| `commands-missing` | brak polecenia lintu albo testów z nazwą tego projektu |
++| `command-section-missing` | brak sekcji `Linter` albo `Testy` |
++| `commands-missing` | sekcja jest, ale bez polecenia z nazwą tego projektu |
+ 
+ Wzór sekcji poleceń — jedyny obowiązujący, do skopiowania albo wywołania wprost:
+ 
+ ````markdown
+ ## Polecenia
+ 
++### Linter
++
+ ```bash
+ nx lint <nazwa projektu z project.json>
++```
++
++### Testy
++
++```bash
+ nx test <nazwa projektu z project.json>
+ ```
+ ````
+ 
++Każde polecenie stoi w osobnej sekcji z własnym blokiem kodu, żeby dało się skopiować
++i uruchomić jedno bez drugiego. Dwa polecenia wciśnięte w jeden blok nie przechodzą.
++
+ Nazwa musi być dokładnie ta z `project.json`; katalog, alias ani skrót się nie liczą —
+ polecenie ma dać się wkleić do powłoki i zadziałać. Ten sam wzór produkuje funkcja
+ `commandsSection(projectName)` z walidatora, więc sprawdzenie i uzupełnianie nie mogą
+Index: tools/eslint-rules/library-readme/library-readme.spec.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/tools/eslint-rules/library-readme/library-readme.spec.ts b/tools/eslint-rules/library-readme/library-readme.spec.ts
+--- a/tools/eslint-rules/library-readme/library-readme.spec.ts	(revision 9940e7172c0953147c31cfa2c25e9f43adac614b)
++++ b/tools/eslint-rules/library-readme/library-readme.spec.ts	(date 1784629109569)
+@@ -46,12 +46,12 @@
+       errors: [{ messageId: 'readmeIncomplete' }],
+     },
+     {
+-      // Zmiana nazwy projektu rozjeżdża README w dwóch miejscach naraz: metadanych
+-      // i poleceń — oba wskazują starą nazwę, więc oba muszą się odezwać.
++      // Zmiana nazwy projektu rozjeżdża README w trzech miejscach naraz: w metadanych
++      // oraz w obu sekcjach poleceń — każde wskazuje starą nazwę, więc każde się odzywa.
+       name: 'nazwa w metadanych i w poleceniach rozjechana z project.json',
+       code: '{ "name": "inna-nazwa", "projectType": "library" }',
+       filename: projectJson('ok-library'),
+-      errors: [{ messageId: 'readmeIncomplete' }, { messageId: 'readmeIncomplete' }],
++      errors: [{ messageId: 'readmeIncomplete' }, { messageId: 'readmeIncomplete' }, { messageId: 'readmeIncomplete' }],
+     },
+   ],
+ });
