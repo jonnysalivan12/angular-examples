@@ -1,0 +1,1335 @@
+Subject: [PATCH] feat: refactor import paths in generated templates and update README for clarity
+---
+Index: scripts/generators/ngxs/templates/init-state/__name@dasherize__/api/__name@dasherize__-api.service.ts.template
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/api/__name@dasherize__-api.service.ts.template b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/api/__name@dasherize__-api.service.ts.template
+--- a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/api/__name@dasherize__-api.service.ts.template	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/api/__name@dasherize__-api.service.ts.template	(date 1784632911261)
+@@ -1,5 +1,5 @@
+ import { inject, Injectable } from '@angular/core';
+-import { ApiService } from '@<%= sharedPrefix %>/shared/core/api';
++import { ApiService } from '<%= apiImport %>';
+ import { Observable } from 'rxjs';
+ 
+ @Injectable()
+Index: .ai-agentic-workspace/scripts/code-index/index.test.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/scripts/code-index/index.test.js b/.ai-agentic-workspace/scripts/code-index/index.test.js
+--- a/.ai-agentic-workspace/scripts/code-index/index.test.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/.ai-agentic-workspace/scripts/code-index/index.test.js	(date 1784637893106)
+@@ -4,7 +4,7 @@
+ import os from 'node:os';
+ import path from 'node:path';
+ 
+-import { getIndex, librariesAll, libraryApi } from './index.js';
++import { DB_PATH, getIndex, librariesAll, libraryApi } from './index.js';
+ 
+ /** Nazwy reeksportowane przez barrel biblioteki — powierzchnia publiczna. */
+ function barrelExports(db, libraryName) {
+@@ -49,7 +49,15 @@
+   assert.deepEqual(libraries.map((library) => library.name), ['alpha']);
+   assert.equal(libraries[0].path, 'libs/alpha', 'ścieżka względna wobec SWOJEGO korzenia');
+   assert.equal(libraryApi(db, 'alpha').importPath, '@fixture/alpha', 'alias czytany z tsconfig.base.json tego korzenia');
+-  assert.ok(fs.existsSync(path.join(root, 'node_modules', '.cache', 'code-index.db')), 'baza leży w swoim korzeniu');
++  assert.ok(fs.existsSync(path.join(root, DB_PATH)), 'baza leży w swoim korzeniu');
++});
++
++test('baza leży w node_modules zestawu agentowego, nie indeksowanego repozytorium', () => {
++  assert.equal(
++    DB_PATH,
++    path.join('.ai-agentic-workspace', 'node_modules', '.cache', 'code-index.db'),
++    'wytwór zestawu nie zaśmieca node_modules indeksowanego repozytorium',
++  );
+ });
+ 
+ test('dwa korzenie w jednym procesie nie mieszają się', () => {
+Index: scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-actions.ts.template
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-actions.ts.template b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-actions.ts.template
+--- a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-actions.ts.template	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-actions.ts.template	(date 1784632911297)
+@@ -1,3 +1,3 @@
+-import { ActionBuilder } from '@<%= sharedPrefix %>/shared/core/state';
++import { ActionBuilder } from '<%= stateImport %>';
+ 
+ export namespace <%= classify(name) %>Actions {}
+Index: scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-effects.service.ts.template
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-effects.service.ts.template b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-effects.service.ts.template
+--- a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-effects.service.ts.template	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-effects.service.ts.template	(date 1784632911301)
+@@ -4,7 +4,7 @@
+ 
+ import { Store } from '@ngxs/store';
+ 
+-import { NgxsEffectsService } from '@<%= sharedPrefix %>/shared/core/state';
++import { NgxsEffectsService } from '<%= stateImport %>';
+ 
+ import { <%= classify(name) %>Actions } from './<%= dasherize(name) %>-actions';
+ import { <%= classify(name) %>ApiService } from './api/<%= dasherize(name) %>-api.service';
+Index: .ai-agentic-workspace/workflows/forge-kit/orchestrator/worktrees.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/orchestrator/worktrees.js b/.ai-agentic-workspace/workflows/forge-kit/orchestrator/worktrees.js
+--- a/.ai-agentic-workspace/workflows/forge-kit/orchestrator/worktrees.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/.ai-agentic-workspace/workflows/forge-kit/orchestrator/worktrees.js	(date 1784637922278)
+@@ -11,10 +11,11 @@
+  *   1. Drzewo robocze leży POZA repozytorium — w środku `nx` zobaczyłby drugi
+  *      komplet plików projektów i przewrócił się na niejednoznacznych nazwach.
+  *   2. `node_modules` drzewa to REALNY katalog ze złączeniami per pozycja, nie
+- *      jedno złączenie całości: `node_modules/.vite` i `node_modules/.cache`
+- *      (indeks kodu) muszą być lokalne, bo cache vite jest kluczowany WZGLĘDNĄ
+- *      ścieżką projektu — dwa drzewa liczące tego samego zależnego (`nx affected`)
+- *      pisałyby po tym samym katalogu.
++ *      jedno złączenie całości: pozycje z cache'em narzędzi muszą być lokalne, bo
++ *      cache vite jest kluczowany WZGLĘDNĄ ścieżką projektu — dwa drzewa liczące
++ *      tego samego zależnego (`nx affected`) pisałyby po tym samym katalogu.
++ *      Indeks kodu jest osobną sprawą: leży w `node_modules` zestawu agentowego
++ *      wewnątrz drzewa, więc rozdziela się sam.
+  *   3. Złączenia znikają PRZED `git worktree remove`, osobnym wywołaniem, które
+  *      usuwa sam punkt dowiązania — usuwanie rekurencyjne po drzewie ze
+  *      złączeniami sięga wspólnych pakietów.
+Index: .ai-agentic-workspace/workflows/forge-kit/README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/README.md b/.ai-agentic-workspace/workflows/forge-kit/README.md
+--- a/.ai-agentic-workspace/workflows/forge-kit/README.md	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/.ai-agentic-workspace/workflows/forge-kit/README.md	(date 1784637525607)
+@@ -1,233 +1,174 @@
+ # forge-kit
+ 
+-Nowy przepływ implementacji story: **człowiek w pętli, agenci robią mechanikę, standardy egzekwują narzędzia**.
+-Następca podejścia `story-flow` (sztywny potok dekompozytor → architekt → planer → koder z bramkami na artefaktach pośrednich).
++Prowadzi jedną story od treści zadania do gotowej zmiany na gałęzi.
+ 
+-Ten dokument jest **dziennikiem podjętych decyzji** — zawiera także odrzucone warianty z uzasadnieniami,
+-żeby nie wracać do rozstrzygniętych dyskusji. Interaktywny diagram (HTML):
+-https://claude.ai/code/artifact/d4be5f34-0672-4a3f-84b8-c25e389b0561
++Podział pracy: **człowiek decyduje** w trzech punktach kontrolnych, **agenci robią mechanikę**
++(zwiad, plan, implementacja, recenzja), **kod egzekwuje reguły** — bramki deterministyczne
++biegną przed każdym pokazaniem czegokolwiek człowiekowi.
+ 
+-Cel systemu (deklaracja właściciela): **nie budujemy w pełni autonomicznego strumienia implementacyjnego** —
+-usprawniamy proces implementacji i redukujemy monotonną, mechaniczną robotę, zachowując standardy.
++Nic nie trafia na Twoją gałąź automatycznie. Wynikiem pracy są gałęzie `forge/*`;
++scalenie to Twoja decyzja po przeczytaniu raportu PK3.
+ 
+ ---
+ 
+-## 0. Uruchomienie
++## Uruchomienie
+ 
+-```
+-node .github/agents/forge-kit/runner.js
++```bash
++node .ai-agentic-workspace/workflows/forge-kit/runner.js
+ ```
+ 
+ Runner pyta o funkcjonalność (albo o źródło nowej story: adres http/https lub ścieżka pliku),
+-pokazuje wykryty etap i pozwala wybrać krok. Cztery kroki, każdy z artefaktem-wynikiem:
++pokazuje wykryty etap i pozwala wybrać krok.
++
++Postęp jest wykrywany po **istnieniu artefaktów na dysku**, nie po zapisanym stanie. Po każdym
++kroku można przerwać i wrócić kiedykolwiek — runner wykryje etap i zaproponuje kontynuację.
++Ctrl-C przerywa pracę agentów tak, żeby krok zdążył zapisać wynik i sprzątnąć drzewa robocze;
++drugie Ctrl-C kończy proces natychmiast.
++
++Ponowne uruchomienie kroku czyści jego wynik, wyniki kroków w dół oraz ślady poprzedniego biegu
++w repozytorium (gałęzie, drzewa robocze) — zawsze po pokazaniu listy i za zgodą.
++
++---
+ 
+-| krok | co robi | artefakt-wynik |
++## Cztery kroki
++
++| Krok | Co się dzieje | Artefakt-wynik |
+ |---|---|---|
+-| **Story** | utrwala treść zadania | `story.md` |
++| **Story** | utrwala treść zadania ze źródła | `story.md` |
+ | **Plan** | PK1 intencja → zwiad → planer → bramki G1–G6 → PK2 zatwierdzenie | `plan/plan.md` |
+ | **Wykonanie** | fale koderów w drzewach roboczych → bramki G7–G9 → scalenie zielonych | `build/result.json` |
+ | **Recenzja** | sędzia adwersaryjny nad zapisaną zmianą | `review/PK3.md` |
+ 
+-Artefakty leżą w `specs/<funkcjonalność>/forge-kit/`. Postęp jest wykrywany po ich ISTNIENIU,
+-więc po każdym kroku można przerwać i wrócić kiedykolwiek — runner wykryje etap i zaproponuje
+-kontynuację. Ponowne uruchomienie kroku czyści jego wynik i wyniki kroków w dół (powstały na
+-wejściu, które się właśnie zmienia) — zawsze po pokazaniu listy i za zgodą.
++Artefakty leżą w `specs/<funkcjonalność>/forge-kit/`:
+ 
+-Trwałym wynikiem wykonania są **gałęzie**, nie drzewa robocze: `forge/<funkcjonalność>/task-<id>`
+-(praca każdego zadania, także niezielonego) i `forge/<funkcjonalność>/integration` (scalone
+-zielone). Drzewa robocze są jednorazowym warsztatem poza repozytorium i znikają na końcu kroku.
+-Nic nie trafia na Twoją gałąź — scalenie to Twoja decyzja po przeczytaniu PK3.
++```
++specs/<funkcjonalność>/forge-kit/
++├── story.md
++├── plan/
++│   ├── intent.md                     notatka rozstrzygnięć z PK1
++│   ├── plan.md                       zatwierdzony plan — czyta człowiek i koderzy
++│   ├── state.json                    ten sam plan strukturalnie — czytają następne kroki
++│   ├── blocked.md                    gdy plan nie doszedł do zatwierdzenia
++│   └── audit/
++│       ├── scout.yaml                pakiet dowodowy zwiadu
++│       ├── intent.yaml               rozstrzygnięcia, delegacje, zastosowane reguły
++│       └── planner-round-N.yaml      emisja planera per runda
++├── build/
++│   ├── result.json                   zadania, wyniki weryfikacji, gałąź i baseSha
++│   └── blocked.md                    gdy wykonanie nie ruszyło
++└── review/
++    ├── PK3.md                        raport dla człowieka
++    └── reviews.json                  ustalenia recenzenta strukturalnie
++```
+ 
+ ---
+ 
+-## 1. Diagnoza: dlaczego nie story-flow
+-
+-Obecny potok egzekwuje reguły na **artefaktach pośrednich** (warstwy architekta, kontrakty, noty, paczki zadań). Skutki:
++## Gałęzie i drzewa robocze
+ 
+-1. Odstępstwo od formatu dokumentu wygląda jak błąd architektury, choć kod mógłby być poprawny.
+-   Bramka wymusza ponowny przebieg całej warstwy, bo naprawa punktowa nie istnieje (`MAX_FIX_RETRIES=0` w plan-agencie).
+-2. Dokumenty pośrednie same są źródłem dryfu: opisują kod, którego jeszcze nie ma, więc każda niedokładność
+-   opisu propaguje się w dół. Weryfikowana jest spójność opisów między sobą, nie zgodność z rzeczywistością.
+-3. Pomiar (przebieg 2026-07-12): **$2,67 / 12,7 min / 27 zadań — 49% kosztu to powtórki warstw**,
+-   pamięć podręczna promptów netto na minusie (dyrektywy doklejane na początku + brak constants-first).
++- `forge/<story>/task-<id>` — praca jednego zadania, także niezielonego,
++- `forge/<story>/integration` — scalone zadania zielone; to ją oglądasz na PK3.
+ 
+----
++Każde zadanie pracuje w osobnym drzewie roboczym git, poza repozytorium
++(`WORKTREE_ROOT` w katalogu tymczasowym systemu). Drzewa są jednorazowym warsztatem
++i znikają na końcu kroku — trwałym wynikiem są gałęzie.
+ 
+-## 2. Dziennik decyzji (co odrzucono, co przyjęto i dlaczego)
++Trzy ograniczenia środowiska, których kod sam nie pokazuje:
+ 
+-| # | Decyzja | Status | Uzasadnienie / skutek |
+-|---|---|---|---|
+-| D1 | Swobodny agent w stylu Claude Code bez potoku, rygor tylko w weryfikacji kodu | **ODRZUCONE** | za duży koszt tokenów (swobodna eksploracja) i słaba powtarzalność wyniku |
+-| D2 | Złagodzenie wszystkich bramek do ostrzeżeń | **ODRZUCONE** | ostrzeżeń nikt nie egzekwuje — dryf z głośnego staje się cichy |
+-| D3 | Wszystkie artefakty etapów tylko jako kontekst dla kodera (nic wiążącego) | **ODRZUCONE** | gubi kontrakty koordynacyjne pracy równoległej. Scenariusz awarii: zadania T3 i T4 potrzebują serwisu sesji; bez wiążącego kontraktu T3 tworzy `core/session.checkStatus()`, T4 tworzy `shared/session-utils.getSessionState()` — kompilacja i testy zielone, rozjazd niewidoczny aż do przeglądu człowieka. Dodatkowo: kontekst niezweryfikowany zatruwa (bramki ugruntowania powstały, bo architekt halucynował symbole); cofa naprawę „powiązanie klucz→symbol ustala tylko producent" |
+-| D4 | Artefakt dwudzielny: **wiążące minimum** (małe, maszynowe, egzekwowane) + **kontekst** (proza, zero bramek, koder może odstąpić) | **PRZYJĘTE** | kryterium podziału: *czy inne zadanie lub inny przebieg podejmuje decyzje na podstawie tego pola?* Tak → wiążące. Czyta tylko koder jednego zadania jako podpowiedź → kontekst. Konsekwencja: generować mniej prozy (audyt: ~70% prozy standardów w plan-agencie to balast) |
+-| D5 | Taksonomia bramek — 3 klasy: **blokująca** (odstępstwo = pewny defekt kodu), **normalizowalna** (format naprawia kod, nie LLM — zero tokenów), **doradcza** (zapis do rejestru odstępstw, nie blokuje) | **PRZYJĘTE, wchłonięte** | kryterium klasy: czy złamanie reguły ma odpowiednik w realnej awarii kodu (kompilacja, granica, test). W forge-kit: blokujące = G1–G9, normalizacja wewnątrz kodu bramek, doradcze = raport odstępstw kodera. Jeśli lista blokujących wychodzi długa — kryterium jest źle stosowane |
+-| D6 | Naprawa punktowa zamiast ponownego przebiegu warstwy: jednostka z tożsamością i skrótem wejść, promień rażenia z `depends_on`/`provides` (zmiana wnętrza nie propaguje, zmiana wyjść publicznych → przelicz konsumentów), detektor `stale` jako siatka poprawności promienia, bezpiecznik >1/3 warstwy → przebieg pełny, licznik napraw → przebieg konsolidujący | **PRZYJĘTE koncepcyjnie, w forge-kit zbędne** | w forge-kit kategoria „powtórka warstwy" nie istnieje: naprawa dzieje się w pętli kodera albo różnicą planu w rozmowie. Koncepty zachowane tu na wypadek powrotu potrzeby inkrementalności artefaktów. Zasada trwała: **regeneracja LLM inkrementalna, walidacja deterministyczna globalna** (walidacja przekrojowa to kod — koszt pomijalny) |
+-| D7 | Człowiek w pętli jako fundament architektury | **PRZYJĘTE** | cały aparat bramek na artefaktach był protezą nieobecnego człowieka; skoro człowiek jest, proteza jest zbędna. Uwaga człowieka = zasób deficytowy: ~20 min osądu na story w 3 punktach kontrolnych |
+-| D8 | Scalenie etapów dekompozycja + architektura + planowanie w jednego agenta; **koder zostaje osobno** | **PRZYJĘTE** | większość bramek i rozjazdów żyła w dwóch wewnętrznych przekazaniach (dekompozytor→architekt, architekt→planer) — scalenie usuwa je strukturalnie, nie przez łagodzenie. Koder osobno, bo: wąski kontekst per zadanie, równoległość w osobnych drzewach roboczych, inny zestaw narzędzi (zapis + pętla weryfikacji). Granica plan→koder to **jedyna** warta formalizmu — przechodzi przez nią praca równoległa |
+-| D9 | Zwiad jako osobna operacja (subagent) domyślnie; pomijany przy trywialnym zakresie | **PRZYJĘTE** | patrz §8 — rachunek ekonomiczny |
+-| D10 | Nazwa: **forge-kit** (robocza `story-loop` zastąpiona) | **PRZYJĘTE** | — |
+-| D11 | Jednolita struktura modułowa każdego agenta + zasady JSDoc | **PRZYJĘTE** | patrz §14 — konwencje kodu |
++1. drzewo musi leżeć **poza** repozytorium — w środku `nx` widzi drugi komplet projektów
++   o tych samych nazwach i przewraca się na rozwiązywaniu nazw;
++2. `node_modules` drzewa to realny katalog ze złączeniami per pozycja; `.vite` i `.cache`
++   muszą być lokalne, bo cache jest kluczowany względną ścieżką projektu;
++3. złączenia znikają **przed** `git worktree remove`, osobnym wywołaniem.
+ 
+ ---
+ 
+-## 3. Dlaczego Claude Code działa „bez formatu" — i co z tego wynika dla story
+-
+-Claude Code nie radzi sobie bez formatu — format jest przeniesiony w cztery miejsca:
+-
+-1. **Człowiek w pętli zastępuje specyfikację** — niejednoznaczność rozwiązywana w trakcie, tanio i punktowo.
+-   Format story w potoku wsadowym to zamrożony zapis tych samych rozstrzygnięć, zrobiony z wyprzedzeniem.
+-2. **Repozytorium jest specyfikacją** — kod zawęża przestrzeń rozwiązań; model wyszukuje i czyta, aż „jak" wynika z otoczenia.
+-3. **Pętla weryfikacji obniża cenę złego zrozumienia** — błędna interpretacja kosztuje jedną iterację,
+-   nie propagację przez pięć etapów.
+-4. **Format istnieje, tylko niewidoczny** — prompt systemowy rzędu tysięcy tokenów + trening na zadaniach agentowych.
+-
+-| Potrzeba | Claude Code | Potok wsadowy |
+-|---|---|---|
+-| ujednoznacznienie intencji | użytkownik w pętli, pytania w locie | clarifier + format story |
+-| wiedza „jak się to robi tutaj" | czytanie repozytorium na żywo | agregaty, indeks, standardy |
+-| korekta złej interpretacji | pętla kompilacja/testy w trakcie | bramki przed wykonaniem |
+-| powtarzalność wyniku | brak — świadomie poświęcona | etapy, kontrakty, determinizm |
+-
+-**Wniosek nośny:** format story ma jedną funkcję — zastępuje nieobecnego człowieka. Zapis rozstrzygnięć
+-(kryteria akceptacji, decyzje, zakres) jest niezbywalny; części opisujące „jak" zastępują tańsze mechanizmy:
+-ugruntowanie w repozytorium przez indeks + kontrakt weryfikacji per AC. Story mówi **co i po czym poznać, że działa**;
+-„jak" wynika z repozytorium i pętli weryfikacji.
+-
+----
+-
+-## 4. Zasady projektowe
+-
+-1. **Kontekst skaluje się z zadaniem, nie z projektem** — story dotyka 5–15 bibliotek z 500; sztuką jest znaleźć
+-   właściwe (indeksy), nie zmieścić wszystkie (kontekst). Budżet sesji planowania: 30–50 tys. tokenów niezależnie
+-   od rozmiaru monorepo.
+-2. **Bramka tylko tam, gdzie odstępstwo psuje kod** — każda bramka ma odpowiednik w realnej awarii
+-   (kompilacja, granice, testy). Zero bramek na prozie.
+-3. **Determinizm > LLM, indeks > wstrzykiwanie** — selekcja, symulacja granic, scaffold i weryfikacja to kod;
+-   LLM dostaje wyłącznie osąd.
+-4. **Rozdział generatora od sędziego** — recenzent z czystym kontekstem zamiast generatywnych etapów
+-   udających wzajemną kontrolę.
+-5. **Uwaga człowieka to zasób deficytowy** — ~20 min osądu na story w trzech punktach kontrolnych;
+-   zero pilnowania formatu w trakcie.
+-6. **Stałe prefiksy = działająca pamięć podręczna** — stałe na początku promptu, zmienne i dyrektywy na końcu;
+-   zwiad zabiera surowiznę eksploracji do grobu.
+-
+----
+-
+-## 5. Diagram orkiestracji
++## Przepływ
+ 
+ ```mermaid
+ flowchart TB
+     classDef human fill:#FBF3E4,stroke:#B4690E,color:#1C2431
+     classDef agent fill:#EEF0FC,stroke:#4653C8,color:#1C2431
+     classDef det fill:#E5F4F0,stroke:#0E7D6B,color:#1C2431
+-    classDef infra fill:#F1F2F0,stroke:#5A6474,color:#1C2431
+-    classDef stopc fill:#F9E9EB,stroke:#B03A48,color:#1C2431
+ 
+-    IN["WEJŚCIE<br/>story w dowolnej formie + design_ir z Figmy"]:::infra
+-    PK1["PK1 · INTENCJA — człowiek, 2–5 min<br/>pytania tylko o to, czego nie ma w kodzie ani standardach<br/>wynik: notatka rozstrzygnięć"]:::human
+-    SCOUT["ZWIADOWCA — subagent<br/>tagi → FTS5 → +1 skok po grafie, LLM tylko filtruje<br/>wynik: pakiet dowodowy 5–15 tys. tokenów, fakty z plik:linia"]:::agent
+-    CHK["check: wszystkie odnośniki rozwiązywalne"]:::det
+-    PLAN["PLANER — scalone: dekompozycja + architektura + plan<br/>prefiks: mapa bibliotek · katalog standardów · story · pakiet<br/>fazy: eksploruj → zdecyduj → emituj"]:::agent
+-    GP["BRAMKI NA PLANIE G1–G6<br/>nazwy · symulacja granic · ugruntowanie · zamknięty świat zadań<br/>poziom weryfikacji per AC · limit jednego ekranu"]:::det
+-    PK2["PK2 · PLAN — człowiek, 3–5 min<br/>WIĄŻĄCE / KROKI / WERYFIKACJA / ROZSTRZYGNĄŁEM SAM / PYTANIA / POZA ZAKRESEM<br/>korekty = różnice planu · jawne zatwierdzenie · plan do repo"]:::human
+-    CODE["KODERZY — równolegle per zadanie, osobne drzewa robocze<br/>scaffold generatorem Nx → implementacja → pętla weryfikacji do zieleni"]:::agent
+-    GD["BRAMKI NA DIFFIE G7–G9<br/>pliki ⊆ zakres · diff barrel = kontrakty planu · zakazy i pokrycie"]:::det
+-    REV["RECENZENT — adwersaryjny, czysty kontekst<br/>którego AC brakuje? który standard naruszony?"]:::agent
+-    PK3["PK3 · PRZEGLĄD DIFFU — człowiek, 10–15 min<br/>diff + zielone sprawdzenia + ustalenia recenzenta → scalenie"]:::human
+-    CI["CI — ta sama suita weryfikacji, ostatni bezpiecznik<br/>po scaleniu: przyrostowa aktualizacja indeksu i mapy"]:::det
+-    STOPN["STOP: podział story albo codemod<br/>zbiór roboczy ponad 20 bibliotek"]:::stopc
++    IN["story + design_ir z Figmy"]:::det
++    PK1["PK1 · INTENCJA — człowiek<br/>wynik: notatka rozstrzygnięć"]:::human
++    SCOUT["ZWIADOWCA<br/>tagi → FTS5 → +1 skok po grafie<br/>wynik: pakiet dowodowy z plik:linia"]:::agent
++    PLAN["PLANER<br/>dekompozycja + architektura + plan<br/>eksploruj → zdecyduj → emituj"]:::agent
++    GP["BRAMKI PLANU G1–G6"]:::det
++    PK2["PK2 · PLAN — człowiek<br/>zatwierdzenie albo korekta"]:::human
++    CODE["KODERZY — fale, osobne drzewa robocze<br/>scaffold → implementacja → pętla do zieleni"]:::agent
++    GD["BRAMKI DIFFU G7–G9"]:::det
++    REV["RECENZENT — czysty kontekst"]:::agent
++    PK3["PK3 · PRZEGLĄD — człowiek<br/>diff + wyniki + ustalenia → scalenie"]:::human
+ 
+-    IN --> PK1 --> SCOUT --> CHK --> PLAN --> GP --> PK2 --> CODE --> GD --> REV --> PK3 --> CI
+-    PK1 -.->|zakres do 3 bibliotek, brak otwartych pojęć| PLAN
+-    PLAN -.->|zawór luki: ponad 5 kwerend punktowych| SCOUT
++    IN --> PK1 --> SCOUT --> PLAN --> GP --> PK2 --> CODE --> GD --> REV --> PK3
++    PK1 -.->|zakres ≤3 bibliotek, brak otwartych pojęć| PLAN
++    PLAN -.->|zawór luki: ponad 5 kwerend| SCOUT
+     GP -.->|czerwone: planer poprawia sam| PLAN
+-    PLAN -.-> STOPN
+-    CODE -.->|eskalacja: decyzja spoza planu, jedno pytanie| PK2
+-
+-    subgraph WIEDZA["INFRASTRUKTURA WIEDZY — narzędzia, nie kontekst"]
+-        direction LR
+-        IDX["indeks kodu<br/>SQLite+FTS5, MCP"]:::infra
+-        GRA["graf projektu<br/>CLI nad nx graph"]:::infra
+-        MAPA["mapa bibliotek<br/>poziom 1, ~8 tys. tok."]:::infra
+-        STD["katalog standardów<br/>spis + treść na żądanie"]:::infra
+-        GEN["generatory Nx"]:::infra
+-        DIR["design_ir<br/>partycjonowany"]:::infra
+-        WZO["wzorcowa<br/>funkcjonalność"]:::infra
+-    end
+-    WIEDZA -.-> SCOUT
+-    WIEDZA -.-> PLAN
+-    WIEDZA -.-> CODE
+-    WIEDZA -.-> REV
++    CODE -.->|decyzja spoza planu| PK2
+ ```
+ 
+-Kolory: bursztyn = człowiek, indygo = agent LLM, zieleń = warstwa deterministyczna, szarość = infrastruktura.
++Bursztyn = człowiek, indygo = agent, zieleń = kod bez modelu.
+ 
+----
++### PK1 — intencja (człowiek)
+ 
+-## 6. Przepływ — szczegóły etapów
++Agent czyta repozytorium przez indeks i pyta **tylko** o to, czego nie wyczyta z kodu
++ani ze standardów. Każde pytanie ma gotową propozycję — odpowiedź to najczęściej jeden wybór.
++Trzy drogi: przyjmuję propozycję / własna odpowiedź / zdecyduj sam.
+ 
+-### PK1 — Intencja (człowiek, 2–5 min)
+-
+-- Wejście: story/zgłoszenie **w dowolnej formie** (bez wymuszonego formatu) + `design_ir` z deterministycznej
+-  ekstrakcji Figmy (REST, pobranie raz + pamięć podręczna, partycjonowanie per komponent).
+-- Agent czyta repozytorium przez indeks i pyta **tylko** o to, czego nie wyczyta z kodu ani standardów.
+-- Przewodnik pytań: lista clarifiera w konwencji Volere — roszczenie / kryterium spełnienia / sygnał porażki —
+-  jako **wiedza wewnętrzna agenta**, nie format dokumentu.
+-- Rozstrzygnięcia źródeł prawdy nie generują pytań, bo są regułami decyzyjnymi w kontekście agenta:
+-  układ zawsze z Figmy, treści z Figmy chyba że story stanowi inaczej, 5xx przez interceptor/modal,
+-  błędy domenowe przez snackbar.
+-- Wynik: **notatka rozstrzygnięć** — zapis, nie kontrakt; nikt jej nie waliduje.
++Rozstrzygnięcia źródeł prawdy są regułami w kontekście agenta, nie pytaniami: układ zawsze
++z Figmy, treści z Figmy chyba że story stanowi inaczej, 5xx przez interceptor lub modal,
++błędy domenowe przez snackbar.
++
++Wynik: `plan/intent.md` — zapis, nie kontrakt.
++
++### Zwiadowca
++
++Selekcja jest deterministyczna: tagi `scope:type` → FTS5 → jeden skok po grafie projektu.
++Model wyłącznie interpretuje mglistą story, filtruje i streszcza.
+ 
+-### Zwiadowca (subagent; szczegóły ekonomiczne w §8)
++Wynik: pakiet dowodowy, **każdy fakt z odnośnikiem plik:linia**. Rozwiązywalność odnośników
++sprawdza kod, zanim pakiet trafi do planera. Kontekst zwiadowcy nie przechodzi dalej —
++do planera trafia sam pakiet.
+ 
+-- Selekcja deterministyczna najpierw: tagi `scope:type` → FTS5 → +1 skok po grafie projektu.
+-  LLM tylko interpretuje mglistą story, filtruje i streszcza — **nie zastępuje indeksu**.
+-- Wynik: pakiet dowodowy 5–15 tys. tokenów; **każdy fakt z odnośnikiem plik:linia** (wymóg ugruntowania —
+-  lekcja z halucynującego architekta).
+-- Deterministyczny check rozwiązywalności odnośników biegnie **przed** podaniem pakietu planerowi.
+-- Kontekst zwiadowcy umiera po użyciu — surowizna eksploracji (40–80 tys. tokenów) nie obciąża sesji planera.
+-- Pomijany, gdy selekcja deterministyczna zwraca ≤3 biblioteki i story nie ma otwartych pojęć.
++Pomijany, gdy selekcja zwraca ≤3 biblioteki i story nie ma otwartych pojęć.
+ 
+-### Planer — scalone: dekompozycja + architektura + plan
++### Planer
+ 
+-- Jedna sesja, rosnący kontekst, **bez serializacji artefaktów między fazami wewnętrznymi**:
+-  eksploruj (kwerendy punktowe) → zdecyduj (biblioteki, kontrakty, podział na zadania) → emituj plan.
+-- Stały prefiks (buforowany): mapa bibliotek (~8 tys. tok.) · katalog standardów (1 linijka/standard) ·
+-  story + wycinek `design_ir` · pakiet dowodowy. Standardy dociągane na żądanie: typowo 2–4 na story (~3–6 tys. tok.).
+-- **Zawór luki**: brakuje faktu → kwerenda punktowa indeksu (kilkaset tokenów); ponad ~5 kwerend →
+-  ponowny zwiad z listą braków (seria kwerend = pakiet chybił zakresem, taniej uzupełnić hurtem).
+-- **Bezpiecznik epika**: zbiór roboczy ponad 20 bibliotek → stop i pytanie do człowieka — to epik do podziału
+-  albo mechaniczna migracja przekrojowa (deterministyczny codemod / rozrzut per biblioteka z identycznym małym
+-  promptem), nie praca dla agenta planującego.
+-- Budżet sesji: 30–50 tys. tokenów niezależnie od rozmiaru repozytorium.
++Jedna sesja: eksploruj (kwerendy punktowe) → zdecyduj (biblioteki, kontrakty, podział na
++zadania) → emituj plan. Bez serializacji artefaktów między fazami.
+ 
+-Ryzyka scalenia i domknięcia:
++Stały prefiks sesji: mapa bibliotek · katalog standardów (jedna linijka na standard) ·
++story z wycinkiem `design_ir` · pakiet dowodowy. Pełna treść standardu dociągana na żądanie.
+ 
+-| Ryzyko | Domknięcie |
+-|---|---|
+-| spłycenie architektury przy dużych story | wewnętrzne fazowanie + podział epików przed wejściem (wzorce dzielenia story) |
+-| utrata recenzji krzyżowej między etapami | rozdział generatora od sędziego: suita deterministyczna zawsze + tani recenzent nad planem dla story wielobibliotecznych |
+-| puchnięcie sesji | pomiar; regularnie puchnące sesje = sygnał do ostrzejszego podziału story, nie do powrotu trzech etapów |
++Dwa zawory:
+ 
+-### Bramki na planie (deterministyczne, PRZED człowiekiem)
++- **zawór luki** — brakuje faktu → kwerenda punktowa indeksu; ponad `MAX_POINT_QUERIES`
++  kwerend → ponowny zwiad z listą braków;
++- **bezpiecznik epika** — zbiór roboczy ponad `MAX_WORKING_SET_LIBRARIES` bibliotek → stop
++  i pytanie do człowieka.
+ 
+-Kolejność faz PK2 jest istotna: agent buduje → **maszyna sprawdza** → dopiero człowiek czyta.
+-Uwaga człowieka nie może być pierwszym filtrem — wtedy pilnuje literówek zamiast decyzji.
+-Czerwone → planer poprawia sam; człowiek nigdy nie ogląda planu, który obala maszyna.
++### Bramki planu (przed człowiekiem)
++
++Kolejność jest istotna: agent buduje → maszyna sprawdza → dopiero człowiek czyta.
++Czerwone bramki planer poprawia sam (do `MAX_REPAIR_ROUNDS` tur).
+ 
+ | Bramka | Sprawdzenie | Co łapie |
+ |---|---|---|
+-| G1 | walidator nazw na proponowanych bibliotekach | złe nazewnictwo zanim powstanie (`core/auth`, nie `auth/core`) |
+-| G2 | symulacja zależności przeciw grafowi projektu + tagom | nielegalne granice w projekcie planu |
+-| G3 | odnośniki ugruntowania rozwiązywalne; greenfield: „dostarcza wcześniejsze zadanie" | halucynowane symbole i API |
+-| G4 | zamknięty świat kontraktów zadań: każdy konsumowany ma producenta; graf zadań bez cykli | dziury i pętle w podziale pracy |
+-| G5 | każde AC ma poziom weryfikacji (statyczny / jednostkowy / komponentowy) | AC bez sposobu sprawdzenia |
+-| G6 | plan mieści się na jednym ekranie | agent nie umiał wybrać, co istotne |
++| G1 | nowe biblioteki zgodne z kanonem nazewnictwa | złe nazewnictwo zanim powstanie (`core/auth`, nie `auth/core`) |
++| G2 | symulacja każdej krawędzi zależności przeciw grafowi i tagom | nielegalne granice w projekcie planu |
++| G3 | każdy kontrakt ma ugruntowanie `{file,line}` albo `{providedByTask}` | halucynowane symbole i API |
++| G4 | każdy konsumowany klucz ma dokładnie jednego producenta; graf zadań bez cykli | dziury i pętle w podziale pracy |
++| G5 | każde kryterium akceptacji ma poziom weryfikacji (`static`/`unit`/`component`) | AC bez sposobu sprawdzenia |
++| G6 | plan mieści się w limicie linii | agent nie umiał wybrać, co istotne |
+ 
+-### PK2 — Zatwierdzenie planu (człowiek, 3–5 min)
++### PK2 — zatwierdzenie planu (człowiek)
+ 
+-Wzorcowy artefakt planu:
++Zatwierdzenie jest **jawne**. Wszystko inne jest korektą: planer nanosi ją i pokazuje różnicę,
++nie plan od nowa. Plan z otwartymi pytaniami nie ma opcji „zatwierdzam" — trzeba je zamknąć
++odpowiedzią, delegacją albo korektą planu.
++
++Format planu:
+ 
+ ```markdown
+ # Plan: US-042 Eksport danych osobowych
+@@ -263,326 +204,158 @@
+ historia eksportów (osobna story)
+ ```
+ 
+-Konstrukcja ekranu odpowiada temu, jak czyta człowiek:
++Sekcje mają różną moc wiążącą, i to jest reguła obowiązująca koderów:
+ 
+-- **Wiążące na górze** — jedyna sekcja, której błąd propaguje na inne zadania; przy 60 sekundach czytasz tylko ją.
+-- **„Rozstrzygnąłem sam" z cytowaną regułą** — człowiek nie odtwarza rozumowania, tylko skanuje, czy reguła
+-  pasuje do sytuacji; zła reguła = jedna linijka korekty.
+-- **Pytania z gotową propozycją** — odpowiedź to najczęściej „ok". Pytanie bez propozycji jest niedozwolone,
+-  bo przerzuca pracę na człowieka.
+-- **Twardy limit: jeden ekran** — dłuższy plan odsyłamy do skrócenia zamiast czytać.
++- od **KROKÓW** koder może odstąpić samodzielnie — odnotowuje to w raporcie odstępstw,
++- od **WIĄŻĄCYCH** — nigdy bez powrotu do człowieka. Powrót to jedna linijka:
++  *„API zwraca 202 z lokalizacją zadania, nie obiekt — zmieniam kontrakt fasady
++  na `Observable<JobRef>`, ok?"*.
+ 
+-Reguły interakcji:
++Pytanie bez gotowej propozycji jest niedozwolone. Plan ponad limit linii jest odsyłany
++do skrócenia.
+ 
+-- Korekty zgłaszane rozmową; agent odpowiada **różnicą planu**, nie planem od nowa.
+-- Zatwierdzenie jawne („zatwierdzam"); pytania blokujące muszą być odpowiedziane albo jawnie oddelegowane
+-  („zdecyduj sam").
+-- Zatwierdzony plan ląduje jako plik w repozytorium przy story — zamrożony kontekst implementacji i ślad decyzji.
++### Koderzy
+ 
+-Semantyka odstępstw w trakcie implementacji (reguła dwustronna):
++Zadania idą **falami**. Fala to zbiór zadań wykonywanych równolegle; kolejne fale rozdziela
++bariera, więc zadanie widzi zmiany wszystkich poprzednich fal. Zadanie czeka na inne
++z dwóch niezależnych powodów: konsumuje jego kontrakt, albo ich zakresy plików mogą
++się przeciąć.
+ 
+-- od sekcji **KROKI** koder może odstąpić samodzielnie (odnotowuje w raporcie końcowym),
+-- od sekcji **WIĄŻĄCE** — **nigdy** bez powrotu do człowieka. Powrót to mini-punkt kontrolny, jedna linijka:
+-  *„API zwraca 202 z lokalizacją zadania, nie obiekt — zmieniam kontrakt fasady na `Observable<JobRef>`, ok?"*.
+-  Dzięki temu plan nie musi być doskonały z góry — musi tylko poprawnie oddzielać, co wolno zmienić po cichu.
++Przed pierwszą falą biegnie sprawdzenie wstępne bazy. Czerwona baza przed startem to cudze
++błędy — krok się nie uruchamia i mówi o tym wprost.
+ 
+-### Koderzy (równolegle, per zadanie, osobne drzewa robocze)
++Kolejność w zadaniu: scaffold generatorem Nx (parametry pre-decydowane w planie, zero modelu)
++→ implementacja → pętla weryfikacji do zieleni: `lint`, `test`, `build` na projektach objętych
++zmianą (granice modułów niesie `lint`).
+ 
+-- Wąski kontekst per zadanie: brif + wycinek `design_ir` + wiążące minimum planu + standardy kodera na żądanie.
+-- Kolejność: scaffold generatorem Nx (parametry pre-decydowane w planie) → implementacja → pętla weryfikacji
+-  **do zieleni**: kompilacja/budowanie · `nx affected -t lint,test,build` · granice modułów + walidator nazw ·
+-  sceny Storybooka z `play` per AC (kontrakt weryfikacji).
+-- Naprawa czerwonych wyników w miejscu, w tej samej pętli — kategoria „powtórka etapu" nie istnieje.
+-- Eskalacja: decyzja, której plan nie pokrywa → jedno pytanie do człowieka i czekanie (zamiast zgadywania).
+-- Ponieważ uwaga człowieka potrzebna jest tylko w punktach kontrolnych, można prowadzić 2–3 story równolegle
+-  w osobnych drzewach roboczych — docelowy model pracy.
++Każde zadanie ma twardy budżet w kredytach AI. Po przekroczeniu runtime wstrzymuje żądania
++i zadanie się kończy, zamiast palić dalej.
+ 
+-### Bramki na diffie (deterministyczne)
++Decyzja, której plan nie pokrywa → jedno pytanie do człowieka i czekanie.
++
++### Bramki diffu
+ 
+ | Bramka | Sprawdzenie | Co łapie |
+ |---|---|---|
+-| G7 | zmienione pliki ⊆ zakres zadania | rozlewanie się zadania poza zakres |
+-| G8 | diff eksportów barrel = kontrakty z planu | cicha zmiana powierzchni publicznej |
+-| G9 | zakaz `*.stories.spec.ts` · progi pokrycia wg polityki aplikacji | znane reguły jakości (próg pokrycia to polityka aplikacji, nie zadania) |
++| G7 | zmienione pliki ⊆ zakres zadania (plus jawne wyjątki) | rozlewanie się zadania poza zakres |
++| G8 | diff eksportów barrela = kontrakty z planu | cicha zmiana powierzchni publicznej |
++| G9 | pliki zakazane wzorcem · próg pokrycia wg polityki aplikacji | znane reguły jakości |
+ 
+-### Recenzent (adwersaryjny, czysty kontekst)
++Wyjątki G7 i wzorce zakazane G9 stoją w `DIFF_GATE_DEFAULTS`. Domyślnie zakazane:
++`*.stories.spec.ts`. Domyślnie dozwolony poza zakresem: `tsconfig.base.json`
++(dopisuje go generator bibliotek).
+ 
+-- Nie dziedziczy kontekstu kodera (rozdział generatora od sędziego).
+-- Pytanie odwrotne: „które AC **nie** jest pokryte? który standard naruszony?" — kontrola szerokości
+-  implementacji, której bramki formatu nigdy nie robiły dobrze.
+-- Wejście: diff + plan z listą AC + wyniki weryfikacji. Wyjście: ustalenia przypięte do różnicy zmian.
++### Recenzent
+ 
+-### PK3 — Przegląd diffu (człowiek, 10–15 min)
++Nie dziedziczy kontekstu kodera — świeża sesja, czysty kontekst. Zadaje pytanie odwrotne:
++*które kryterium akceptacji **nie** jest pokryte? który standard naruszony?*
+ 
+-Człowiek czyta kod **raz, na końcu** — z zielonymi sprawdzeniami i gotową listą wątpliwości recenzenta.
+-Zero dokumentów pośrednich do pilnowania w trakcie. Zatwierdzenie → scalenie.
++Wejście: diff z gałęzi (nie z drzewa roboczego, więc krok da się uruchomić kiedykolwiek
++po wykonaniu), plan z listą AC, wyniki weryfikacji. Diff ponad `MAX_DIFF_LINES` jest
++**raportowany**, nie ucinany po cichu.
+ 
+-### CI
++### PK3 — przegląd (człowiek)
+ 
+-Ta sama suita weryfikacji co lokalnie — ostatni bezpiecznik, nie osobny system reguł.
+-Po scaleniu: przyrostowa aktualizacja indeksu kodu i mapy bibliotek (synchronizacja świadoma skrótów).
++Człowiek czyta kod raz, na końcu: diff, zielone sprawdzenia i gotowa lista wątpliwości.
++Metryki w raporcie liczą sumę czasu wszystkich kroków, nie czasu tego jednego.
++Zatwierdzenie → scalenie. Ta sama suita weryfikacji biegnie w CI jako ostatni bezpiecznik.
+ 
+ ---
+ 
+-## 7. Skalowanie kontekstu: projekt na 500 bibliotek
+-
+-Zasada: 500 bibliotek to problem **wyszukiwania**, nie pojemności. Trzy poziomy wiedzy:
+-
+-1. **Zawsze w kontekście (mały, buforowany):** pochodna mapa — drzewo zakresów z tagów + jedna linijka
+-   per bibliotekę (nazwa, tagi, opis). 500 × ~15 tokenów ≈ 8 tys.; generowana deterministycznie z grafu.
+-   Konwencja `scope/type` **jest** indeksem — z nazwy domeny w story wynikają kandydujące zakresy bez wyszukiwania.
+-2. **Na żądanie, przez narzędzia:** indeks FTS5, graf projektu jako kwerenda („sąsiedzi X", „biblioteki z tagiem Y",
+-   „czy zależność A→B legalna"), **powierzchnia publiczna per biblioteka** (eksporty z barrela `index.ts`)
+-   jako osobna tania kwerenda — kontrakty planuje się przeciw powierzchni publicznej, a czytanie plików po to,
+-   żeby ją poznać, to główny sposób puchnięcia sesji.
+-3. **Zbiór roboczy story:** pełne szczegóły tylko dla bibliotek, które story realnie dotyka (selekcja:
+-   tagi → FTS5 → +1 skok po grafie).
+-
+-Dyscyplina eksploracji (reguły w definicji agenta, nie nadzieja):
++## Infrastruktura wiedzy
+ 
+-- kwerenda indeksu zwraca sygnatury i fragmenty, nie pliki; odczyt pliku tylko dla zbioru roboczego,
+-- destylacja po eksploracji: maksymalnie dwie operacje LLM (zwiad → plan) z pakietem dowodowym pomiędzy.
++Narzędzia, a nie kontekst — agent po nie sięga, nie dostaje ich hurtem.
+ 
+-Rośnie projekt → rosną indeksy (tanie, poza kontekstem); kontekst sesji **nie rośnie wcale**.
+-Przepełnienie kontekstu przy tej konstrukcji jest objawem złamania dyscypliny eksploracji, nie rozmiaru projektu.
+-
+----
+-
+-## 8. Zwiad — rachunek ekonomiczny (decyzja D9)
+-
+-| | planer eksploruje sam | zwiad → pakiet → planer |
++| Narzędzie | Kto używa | Do czego |
+ |---|---|---|
+-| kontekst sesji planera | prefiks + ~50 tys. surowizny do końca sesji | prefiks + ~8 tys. pakietu |
+-| tury po punkcie kontrolnym (korekty, różnice planu) | każda tura ciągnie surowiznę | każda tura ciągnie tylko pakiet |
+-| prefiks pod pamięć podręczną | niestabilny (wyniki narzędzi w środku) | stabilny: mapa + standardy + story + pakiet |
+-| jakość emisji planu | uwaga rozmyta na długim kontekście | decyzje nad destylatem |
+-
+-Kluczowy jest wiersz drugi: sesja planera jest **konwersacyjna** (punkt kontrolny, korekty, ponowne emisje) —
+-każda tura płaci za cały kontekst sesji. Zwiad umiera po jednym użyciu; planer zostaje szczupły na całą rozmowę.
+-Główny zysk to tury korekt, nie pierwsza tura.
+-
+-Warunki: pakiet z ugruntowaniem plik:linia + check rozwiązywalności przed przekazaniem; zawór luki (§6);
+-zwiad = cienki LLM nad deterministycznym wyszukiwaniem. Pominięcie: zakres ≤3 znanych bibliotek, brak
+-otwartych pojęć — narzut zwiadu (~10 tys. tokenów wejścia) przekracza wtedy zysk.
+-
+-Ogólna reguła subagentów: **opłacają się, gdy surowe dane są duże, a potrzebny wynik mały**. Samo pobranie
+-z bazy czy kwerenda indeksu to wywołanie narzędzia — subagent dokłada tam tylko narzut. Zastosowania:
+-zwiad; rozrzut równoległy przy mglistej story (kilku zwiadowców różnymi trybami: po nazwach / po treści / po grafie);
+-koderzy zadań; recenzent. Antywzorce: subagent na pojedynczą kwerendę; wielu małych subagentów zamiast jednego
+-z listą pytań; subagent „żeby szybciej" tam, gdzie wąskim gardłem jest kompilacja i testy.
+-
+----
+-
+-## 9. Standardy — trzy mechanizmy zamiast hurtowego ładowania
+-
+-1. **Projekcja per konsument i per moment decyzji.** Planer dostaje wyłącznie reguły decyzyjne (granice,
+-   nazewnictwo, konwencje kontraktów, polityka weryfikacji, źródła prawdy); wzorce implementacyjne i styl kodu
+-   to standardy kodera. Audyt: ~70% prozy standardów w plan-agencie to balast — sam podział tnie wsad kilkukrotnie.
+-2. **Ujawnianie stopniowe.** W kontekście stałym tylko katalog: jedna linijka na standard (nazwa, zakres,
+-   kiedy sięgnąć) — 1–2 tys. tokenów. Pełna treść dociągana narzędziem, gdy story wchodzi w zakres:
+-   typowo 2–4 standardy na story (~3–6 tys. tokenów). Standardy „jedna sprawa na plik" są już pod to pocięte.
+-3. **Konwersja prozy na narzędzia.** Standard wymuszony generatorem/lintem/tagiem kosztuje w kontekście zero —
+-   agent nie musi go znać, żeby go przestrzegać. Standardy strukturalne (układ biblioteki, nazewnictwo,
+-   rejestracja tras, konfiguracja testów) zaszyte w generatorach; proza zredukowana do linijki „to robi generator".
+-   **Najtańszy standard to ten, którego nie da się złamać.**
+-
+-Budżet stały: ~7 tys. tokenów **niezależnie od liczby standardów** (rośnie katalog, nie wsad).
+-
+----
+-
+-## 10. Greenfield — projekt od zera
+-
+-„Repozytorium jako specyfikacja" nie działa na pustym repozytorium, ale wniosek „przykłady do kontekstu"
+-jest błędny (drogi, starzeje się źle). Sekwencja:
+-
+-1. **Greenfield nie zaczyna się pusty** — preset przestrzeni roboczej: tagi + granice + generatory + lint +
+-   katalog standardów + **jedna wzorcowa funkcjonalność** end-to-end (fasada + store + scena Storybooka + testy).
+-   Wzorzec w repozytorium bije przykłady w prompcie: przeszukiwalny indeksem (dociągany fragmentami),
+-   kompiluje się i testuje (nie może być przestarzały), nie płaci się za niego w każdej sesji.
+-2. **Generatory niosą wzorzec strukturalny** — świeży scaffold **jest** przykładem poprawnej struktury.
+-3. **Stan zanika wykładniczo** — po 5–10 story repozytorium samo jest bazą wzorców; koszt rozruchu liczony
+-   w dniach, nie stały podatek.
+-4. **Jedyna zmiana semantyki:** ugruntowanie przełącza się z „symbol istnieje (plik:linia)" na
+-   „symbol dostarcza wcześniejsze zadanie w kolejności realizacji" (mechanizm `provides` + derywowana kolejność).
+-   Symulacja granic działa od pierwszego dnia, bo graf projektu istnieje od scaffoldu.
+-
+----
+-
+-## 11. Pamięć podręczna promptów
+-
+-Pamięć nie jest przypisana do sesji, tylko do **identycznego prefiksu żądania** (konto + model). Każde żądanie —
+-z dowolnej sesji — zaczynające się bajt-w-bajt tym samym prefiksem trafia, dopóki nie minie TTL
+-(5 min, odświeżany trafieniem; wariant 1 h droższy w zapisie — do weryfikacji, czy SDK go eksponuje).
++| indeks kodu (SQLite+FTS5, MCP) | zwiad, planer, koder, recenzent | symbole, użycia, powierzchnie publiczne, ugruntowanie plik:linia |
++| graf projektu jako kwerenda | zwiad, planer, bramki | sąsiedzi, biblioteki po tagu, legalność zależności A→B |
++| mapa bibliotek | planer, zwiad | drzewo zakresów + jedna linijka na bibliotekę, w stałym prefiksie |
++| katalog standardów | planer, koder | spis zawsze, pełna treść na żądanie |
++| wycinek `design_ir` | planer, koder | partycja designu per komponent/rama |
++| generatory Nx | koder | scaffold z parametrami z planu, bez modelu |
++| biegacz weryfikacji | koder, recenzent | jedno polecenie → strukturalny wynik |
++| czytnik różnicy zmian | recenzent, człowiek | diff + wyniki weryfikacji + plan z listą AC |
+ 
+-Dźwignie:
++Źródła: `code-index` i `system-constraints-extractor` ze wspólnego `scripts/`,
++katalog `docs/standards`. Konsumenci sięgają po nie wyłącznie przez fasadę `Knowledge`.
+ 
+-1. **Stałe na początku, zmienne na końcu** — prefiks działa do pierwszego różniącego się tokenu.
+-   Kolejność: schematy/standardy/instrukcje → kontekst story → dane → dyrektywy naprawcze **na końcu**.
+-   Zmierzony minus starego potoku brał się z odwrotności (dyrektywy doklejane na początku).
+-2. **Deterministyczna serializacja** — niegwarantowana kolejność kluczy przy budowie promptu = dwa „identyczne"
+-   prompty różne bajtowo = zero trafień. Sortować klucze.
+-3. **Wspólny prefiks tylko w obrębie tego samego zestawu narzędzi** — definicje narzędzi stoją na początku żądania;
+-   agenci z różnymi narzędziami nie współdzielą pamięci. Realne pole: ten sam agent między operacjami i naprawami.
+-4. **Bliskość czasowa** — operacje tego samego szablonu blisko siebie względem TTL.
+-5. **Żądanie-zapłon przed rozrzutem równoległym** — wpis powstaje po rozpoczęciu pierwszej odpowiedzi;
+-   8 żądań jednocześnie = 8 zapisów. Jedno żądanie najpierw, potem reszta równolegle.
+-6. **Pomiar zamiast założeń** — pola `cache_read_input_tokens` / `cache_creation_input_tokens` w odpowiedzi;
+-   zapis kosztuje 1,25× wejścia, odczyt 0,1× — prefiks musi być użyty ponownie w oknie TTL, żeby wyjść na plus.
+-
+-**Ograniczenia copilot.js** (nasz SDK): brak jawnych punktów `cache_control`, brak `temperature` i trybu JSON;
+-znany defekt podwójnej dostawy zdarzeń (dedup po `event.id` w subskrypcji). Buforowanie automatyczne po stronie
+-serwera — zostają dźwignie 1, 2, 4, 5. Model rozliczenia decyduje o naturze zysku: abonament (per żądanie premium)
+-→ pamięć daje czas i limity, nie pieniądze; własny klucz / rozliczenie tokenowe → zysk finansowy.
+-
+-**Eksperyment rozstrzygający (10 min, wykonać przed inwestycją w higienę prefiksu):**
+-(a) dwa razy to samo żądanie z długim promptem (>2 tys. tokenów), osobne sesje, odstęp <1 min — porównać pola
+-`usage` albo czas do pierwszego tokenu; (b) powtórzyć ze zmienionym jednym znakiem **na początku** promptu.
+-Scenariusze: widać w `usage` → wdrażać i logować trafienia per szablon; widać tylko w czasie → wdrażać, mierzyć
+-zegarem; nie działa wcale → rozważyć podwójny tor: gorące szablonowe etapy bezpośrednio na interfejs Anthropic
+-z jawnymi punktami podziału, copilot.js tam, gdzie szablon zimny. Decyzji nie podejmować przed pomiarem.
++Nazwy narzędzi na liście dozwolonych muszą mieć **prefiks serwera MCP** — gołe nazwy cicho
++wyłączają narzędzie i agent zaczyna zgadywać.
+ 
+ ---
+ 
+-## 12. Narzędzia
++## Konfiguracja
+ 
+-| Narzędzie | Kto używa | Do czego | Charakter |
+-|---|---|---|---|
+-| indeks kodu (SQLite+FTS5, MCP) | zwiad, planer, koder, recenzent | symbole, użycia, powierzchnie publiczne; ugruntowanie plik:linia | jedyny MCP w systemie |
+-| graf projektu jako kwerenda | zwiad, planer, bramki | sąsiedzi, biblioteki po tagu, legalność zależności A→B | otoczka CLI nad `nx graph`, zero LLM |
+-| mapa bibliotek (poziom 1) | planer, zwiad | stały prefiks: drzewo zakresów + linijka per bibliotekę | derywowana z grafu, auto-regenerowana |
+-| katalog standardów + pobranie treści | planer, koder | spis zawsze; pełny standard na żądanie | odczyt plików, zero LLM |
+-| wycinek `design_ir` | planer, koder | partycja designu per komponent/rama do brifu | deterministyczny slicer |
+-| generatory Nx | koder | scaffold z parametrami z planu | czyste CLI, bez LLM |
+-| biegacz weryfikacji | koder, recenzent | jedno polecenie: kompilacja, affected lint/test/build, nazwy, granice, test-runner Storybooka; wynik strukturalny | skrypt, zero LLM |
+-| edycja plików + terminal | koder | implementacja | standard |
+-| czytnik różnicy zmian | recenzent, człowiek | diff + wyniki weryfikacji + plan z listą AC | skrypt |
++Wszystkie stałe zestawu stoją w [`config/global-config.js`](config/global-config.js).
++Zestaw nie zależy od innych zestawów agentów — adaptacja do innego projektu to edycja
++tego jednego pliku.
+ 
+-Znana pułapka: nazwy narzędzi na liście dozwolonych **z prefiksem serwera MCP** — gołe nazwy cicho wyłączają
+-narzędzie i agent zaczyna zgadywać.
++| Grupa | Co ustawia |
++|---|---|
++| `SPECS_DIR`, `KIT_DIR` | gdzie leżą artefakty funkcjonalności |
++| `WORKTREE_ROOT` | korzeń drzew roboczych (poza repozytorium) |
++| `STANDARDS_DIR`, `STANDARDS_META_FILE` | katalog standardów i jego plik-indeks |
++| `SYSTEM_CONSTRAINT_SOURCES` | pliki, z których czytany jest stan workspace'u |
++| `VERIFICATION_LEVELS`, `VERIFICATION_TARGETS` | poziomy weryfikacji per AC i cele nx w pętli kodera |
++| `PLAN_LIMITS` | limit długości planu (bramka G6) |
++| `WAVE` | równoległość fali i budżet kredytów na zadanie |
++| `DIFF_GATE_DEFAULTS` | wyjątki G7 i wzorce zakazane G9 |
++| `PLANNER`, `SCOUT`, `REVIEWER` | modele, limity tur, sufity kwerend i wyników |
+ 
+ ---
+ 
+-## 13. Przygotowanie przed pierwszą story
+-
+-Fundament repozytorium (raz, deterministycznie):
+-
+-1. Preset przestrzeni Nx: schemat tagów `scope:type`, `enforce-module-boundaries`, lint, tryb ścisły TS.
+-2. Generatory per typ biblioteki (feature / data-access / ui / util) — zaszywają standardy strukturalne.
+-3. Walidator nazw wpięty w lint i CI.
+-4. Storybook + test-runner scen.
+-
+-Wiedza:
+-
+-5. Standardy „jedna sprawa na plik" + katalog jednolinijkowy + podział projekcji planer/koder.
+-6. Indeks kodu zainicjalizowany, synchronizacja świadoma skrótów po każdej zmianie.
+-7. Generator mapy bibliotek wpięty w tę samą synchronizację.
+-8. Potok Figmy: konfiguracja ekstrakcji, mapa tokenów (`token-map.yaml`), mapa komponentów DS
+-   (`ds-component-map.yaml`), rejestr komponentów.
+-9. Wzorcowa funkcjonalność end-to-end (formularz logowania istnieje).
+-
+-Definicje agentów:
++## Struktura i konwencje kodu
+ 
+-10. Prompty: planer (wymóg ugruntowania + limit ekranu), koder (reguła eskalacji), recenzent (pytanie odwrotne).
+-11. Reguły decyzyjne w kontekście planera (źródła prawdy — patrz PK1).
+-12. Szablony: plan, brif zadania, raport odstępstw.
+-13. Miejsce składowania zatwierdzonych planów w repozytorium.
++```
++forge-kit/
++├── README.md
++├── runner.js       # jedyne wejście dla człowieka — wyłącznie rozmowa
++├── coder-permissions.js       # uprawnienia sesji kodera per żądanie
++├── coder-question-adapter.js  # port pytania kodera do terminala
++├── config/         # wszystkie stałe zestawu
++├── stages/         # tabela kroków, wykrywanie postępu, sprzątanie
++├── orchestrator/   # przepływ: fale, drzewa robocze, gałęzie, raport story
++├── scout/          # zwiadowca → pakiet dowodowy z ugruntowaniem
++├── planner/        # PK1 + planowanie + PK2
++├── coder/          # wykonawca zadania + pętla weryfikacji
++├── reviewer/       # adwersaryjny recenzent diffu
++├── gates/          # G1–G6 (plan) + G7–G9 (diff) + bramki narzędzi
++├── knowledge/      # mapa bibliotek, katalog standardów, kwerendy grafu
++├── templates/      # szablony wspólne: plan, brif zadania, raport odstępstw
++└── experiments/    # skrypty przebiegów kontrolnych
++```
+ 
+-Domknięcie: ta sama suita weryfikacji w CI co lokalnie.
+-
+----
+-
+-## 14. Konwencje kodu forge-kit
+-
+-**Każdy agent ma identyczną strukturę modułu** — moduł z fasadą według najlepszych praktyk modularności JS
+-(kontynuacja sprawdzonej konwencji fasad ze `story-flow`: zamrożona fasada, testy per fasada, liście jako
+-gołe named exports):
++Każdy agent ma tę samą strukturę modułu:
+ 
+ ```
+ <agent>/
+-├── index.js        # fasada — jedyny publiczny punkt wejścia modułu, zamrożona (Object.freeze)
++├── index.js        # fasada — jedyny publiczny punkt wejścia, zamrożona (Object.freeze)
+ ├── index.test.js   # test kontraktu fasady
+-├── runner.js       # orkiestracja przebiegu agenta (pętla operacji)
+-├── loaders.js      # wejścia (pliki, indeks) → znormalizowane struktury
+-├── templates/      # prompty *.template.md + partiale
++├── runner.js       # orkiestracja przebiegu agenta
++├── templates/      # prompty *.template.md
+ ├── gates/          # deterministyczne sprawdzenia własne agenta
+ └── utils/          # bezstanowe liście — gołe named exports, bez fasady
+ ```
+ 
+ Reguły:
+ 
+-- **Konsumpcja między agentami wyłącznie przez fasady.** Liście jednego agenta nie importują z wnętrza innego.
+-- **Nazewnictwo czytelne bez kontekstu:** pełne opisowe nazwy (`evidencePack`, `workingSetLibraries`,
+-  `bindingContracts`, `resolveGroundingRefs`), bez skrótów — wyjątek: indeksy pętli. Kod ma się czytać
+-  bez otwierania dokumentacji.
+-- **JSDoc dokumentuje wyłącznie faktyczne działanie** metody/klasy: co robi, parametry, wynik, rzucane błędy.
+-  Przemyślenia, uzasadnienia decyzji i odrzucone warianty **nie trafiają do kodu** — ich miejsce jest w tym
+-  README (dziennik decyzji, §2). Komentarz w kodzie tylko dla ograniczenia, którego kod sam nie pokaże.
++- **konsumpcja między agentami wyłącznie przez fasady** — liście jednego agenta nie importują
++  z wnętrza innego;
++- **nazwy czytelne bez kontekstu** — pełne opisowe nazwy (`evidencePack`, `workingSetLibraries`,
++  `bindingContracts`, `resolveGroundingRefs`), bez skrótów; wyjątek: indeksy pętli;
++- **JSDoc opisuje wyłącznie faktyczne działanie**: co robi, parametry, wynik, rzucane błędy.
++  Komentarz w kodzie tylko dla ograniczenia, którego kod sam nie pokaże.
+ 
+-Struktura całego zestawu:
+-
+-```
+-forge-kit/
+-├── README.md       # ten dokument — dziennik decyzji i instrukcja
+-├── scout/          # zwiadowca → pakiet dowodowy z ugruntowaniem
+-├── planner/        # scalony etap; sesja konwersacyjna z PK1 i PK2
+-├── coder/          # wykonawca zadania + pętla weryfikacji (duży reuse ze story-flow)
+-├── reviewer/       # adwersaryjny recenzent diffu
+-├── gates/          # wspólna suita na artefaktach: G1–G6 (plan) + G7–G9 (diff)
+-├── knowledge/      # generatory map: mapa bibliotek, katalog standardów, powierzchnie publiczne
+-└── templates/      # szablony wspólne: plan, brif zadania, raport odstępstw
+-```
+-
+-Sprawdzenia specyficzne dla agenta żyją w jego module (`<agent>/gates/`); suita na artefaktach wspólnych
+-(plan, diff) — w `gates/` na poziomie zestawu.
++Sprawdzenia specyficzne dla agenta żyją w jego module (`<agent>/gates/`); suita na artefaktach
++wspólnych (plan, diff) — w `gates/` na poziomie zestawu.
+ 
+ ---
+ 
+-## 15. Reuse ze story-flow / wygaszane
+-
+-**Przenosimy wprost** (inwestycja nie przepada): indeks kodu (SQLite+FTS5, MCP), generatory Nx + determinizm
+-nazewnictwa, projekcje standardów (do pocięcia planer/koder), kontrakt weryfikacji per AC
+-(poziomy statyczny/jednostkowy/komponentowy; jednostkowe=Vitest, komponentowe=scena Storybooka+`play`), ekstrakcję
+-Figmy z partycjonowanym `design_ir`, listę kontrolną clarifiera (roszczenie/kryterium/sygnał porażki) jako
+-przewodnik pytań PK1, mechanikę zwiadu z pakietem dowodowym (100% czułości na złotym evalu), niezmienniki
+-akceptacyjne przepisane na sprawdzenia repozytorium.
+-
+-**Wygaszamy:** bramkę grafu dekompozytora (12 kryteriów), warstwy architekta z pętlą samonaprawy, paczki zadań
+-planera z bramkami P0–P14, agregaty i walidację dokumentów pośrednich. Uzasadnienie w jednym zdaniu: każdy z tych
+-mechanizmów wykrywał lub naprawiał błędne rozstrzygnięcia **bez człowieka** — a człowiek jest teraz w obu
+-miejscach, gdzie rozstrzygnięcia zapadają.
++## Testy
+ 
+-Wiedza architektoniczna między story przestaje żyć w regenerowanych warstwach — zastępują ją ADR-y i standardy
+-(decyzja zapisana raz, czytana warunkowo) plus stan repozytorium jako jedyne źródło prawdy.
++Z korzenia repozytorium:
+ 
+----
+-
+-## 16. Pętle zwrotne — system uczy się między story
+-
+-- **Powtórzone pytanie agenta = luka w standardach** → nowa reguła decyzyjna; agent przestaje pytać, człowiek
+-  przestaje odpowiadać. Pierwsze dwa tygodnie: przeglądać pytania i dopisywać brakujące reguły — każde powtórzone
+-  pytanie to luka w standardach, nie wada agenta.
+-- **Merge → przyrostowa aktualizacja** indeksu kodu i mapy bibliotek.
+-- **Raport odstępstw kodera** → przegląd zbiorczy po story zamiast pilnowania każdej reguły w trakcie.
+-- **Zatwierdzone plany w repo = dziennik decyzji** — funkcja dawnych artefaktów bez ich kosztu.
+-
+-Ryzyka procesu do przypilnowania:
+-
+-- **Odklepywanie planów** — plan ponad ekran = koniec czytania i powrót dryfu; limit długości to część projektu.
+-- **Agent pyta za dużo / za mało** — kalibracja regułą: pyta wyłącznie, gdy odpowiedź zmienia plan lub kontrakt
+-  publiczny; resztę rozstrzyga standardami.
+-
+----
+-
+-## 17. Punkt odniesienia i pomiar
+-
+-Ostatni zmierzony przebieg `story-flow`: **$2,67 / 12,7 min / 27 zadań, 49% kosztu w powtórkach warstw**.
+-
+-Cele forge-kit:
+-
+-- kategoria „powtórka warstwy" nie istnieje (naprawa w pętli kodera / różnicą planu w rozmowie),
+-- budżet sesji planowania 30–50 tys. tokenów niezależnie od rozmiaru monorepo,
+-- koszt uwagi człowieka ~20 min osądu na story (PK1 2–5 + PK2 3–5 + PK3 10–15).
+-
+-Pilotaż: jedna story z przebiegu 008 przez forge-kit, równolegle do starego potoku. Metryki porównania:
+-koszt, czas, odsetek zielonych sprawdzeń, liczba interwencji człowieka. Przed inwestycją w higienę prefiksu —
+-eksperyment buforowania z §11.
++```bash
++npm test --prefix .ai-agentic-workspace
++```
+Index: scripts/generators/ngxs/utils/state-imports.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/utils/state-imports.js b/scripts/generators/ngxs/utils/state-imports.js
+new file mode 100644
+--- /dev/null	(date 1784632982405)
++++ b/scripts/generators/ngxs/utils/state-imports.js	(date 1784632982405)
+@@ -0,0 +1,33 @@
++import { deriveLibraryNaming } from '../../utils/library-naming.js';
++
++/* ─────────────────────────────────────────────────────────────────────────── *
++ * Aliasy bibliotek, po które sięga wygenerowany kod stanu.
++ *
++ * Biblioteki opisane są STRUKTURĄ (zakres, kontekst, typ, nazwa), a alias
++ * powstaje z niej tą samą funkcją, której używa generator bibliotek. Ścieżka
++ * pisana ręcznie rozjeżdżała się z tsconfig.base.json po cichu: wygenerowany
++ * plik importował z aliasu, którego nie ma, a widać to było dopiero przy
++ * kompilacji kodu, który powstał.
++ * ─────────────────────────────────────────────────────────────────────────── */
++
++/** Biblioteka z elementami NGXS: ActionBuilder, NgxsEffectsService, Effect. */
++const STATE_LIBRARY = Object.freeze({ scope: 'shared', context: 'common', type: 'core', name: 'state' });
++
++/** Biblioteka z klientem HTTP: ApiService. */
++const API_LIBRARY = Object.freeze({ scope: 'shared', context: 'common', type: 'core', name: 'api' });
++
++/**
++ * Aliasy importu obu bibliotek.
++ *
++ * @param {{sharedPrefix?: string}} [options] — `sharedPrefix` nadpisuje prefiks
++ *   z konfiguracji, gdy generator biegnie na innym workspace
++ * @returns {{state: string, api: string}}
++ */
++export function stateImports(options = {}) {
++  const naming = options?.sharedPrefix ? { sharedPrefix: options.sharedPrefix } : {};
++
++  return {
++    state: deriveLibraryNaming(STATE_LIBRARY, naming).importPath,
++    api: deriveLibraryNaming(API_LIBRARY, naming).importPath,
++  };
++}
+Index: scripts/generators/ngxs/commands/init-state.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/commands/init-state.js b/scripts/generators/ngxs/commands/init-state.js
+--- a/scripts/generators/ngxs/commands/init-state.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/commands/init-state.js	(date 1784632904496)
+@@ -3,7 +3,7 @@
+ import { toAbsolutePath, walkFiles, writeNewFile } from '../utils/fs-utils.js';
+ import { renderTemplateFile, resolveTemplateSegment } from '../utils/template.js';
+ import { camelize, classify, dasherize } from '../utils/strings.js';
+-import { LIBRARY_NAMING } from '../../../config/library.js';
++import { stateImports } from '../utils/state-imports.js';
+ 
+ export async function runInitState({ options, positionals }) {
+   const rawName = options.name || positionals[0];
+@@ -23,14 +23,15 @@
+   // Parser CLI normalizuje `--nested`/`--nested true` do boolean.
+   const useNestedLayout = options.nested === true;
+ 
+-  // Prefiks reużywalnych libów (alias `@<sharedPrefix>/shared/...`) pochodzi z JEDYNEGO
+-  // SSOT (global-config PROJECT.libraryNaming) — NIE hardcoduj w templejtach. CLI
+-  // `--shared-prefix` pozwala nadpisać per-workspace bez ruszania configu.
+-  const sharedPrefix = options.sharedPrefix || LIBRARY_NAMING.sharedPrefix;
++  // Aliasy bibliotek, z których importuje wygenerowany kod, przychodzą gotowe —
++  // szablon ma wstawić alias, a nie składać go z kawałków. CLI `--shared-prefix`
++  // pozwala nadpisać prefiks per-workspace bez ruszania konfiguracji.
++  const imports = stateImports(options);
+ 
+   const templateContext = {
+     name: rawName,
+-    sharedPrefix,
++    stateImport: imports.state,
++    apiImport: imports.api,
+     camelize,
+     classify,
+     dasherize,
+Index: scripts/generators/ngxs/commands/init-state.test.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/commands/init-state.test.js b/scripts/generators/ngxs/commands/init-state.test.js
+--- a/scripts/generators/ngxs/commands/init-state.test.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/commands/init-state.test.js	(date 1784633188701)
+@@ -56,3 +56,70 @@
+   const nestedFiles = listFilesRelative(path.join(nestedTarget, 'session'));
+   assert.deepEqual(nestedFiles, flatFiles);
+ });
++
++/* ── importy wygenerowanego kodu ───────────────────────────────────────────── */
++
++/** Wszystkie importy z aliasu workspace'u (`@…`), z wygenerowanych plików. */
++function collectWorkspaceImports(rootPath) {
++  const found = new Set();
++
++  const walk = (dirPath) => {
++    for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
++      const entryPath = path.join(dirPath, entry.name);
++      if (entry.isDirectory()) {
++        walk(entryPath);
++        continue;
++      }
++      for (const match of fs.readFileSync(entryPath, 'utf-8').matchAll(/from '(@[^']+)'/g)) {
++        found.add(match[1]);
++      }
++    }
++  };
++
++  walk(rootPath);
++  return [...found].sort();
++}
++
++test('wygenerowane importy wskazują na aliasy, które naprawdę są w workspace', async (t) => {
++  const target = makeTempDir(t);
++  await runInitState({ options: { name: 'session', path: target }, positionals: [] });
++
++  const tsconfig = JSON.parse(fs.readFileSync('tsconfig.base.json', 'utf-8'));
++  const aliases = Object.keys(tsconfig.compilerOptions.paths);
++
++  // Pakiety zewnętrzne (@angular/core, @ngxs/store) nie należą do workspace'u,
++  // więc sprawdzane są tylko aliasy o prefiksie stąd — te, które ten generator składa.
++  const workspacePrefixes = [...new Set(aliases.map((alias) => alias.split('/')[0]))];
++  const wygenerowane = collectWorkspaceImports(target).filter((used) =>
++    workspacePrefixes.includes(used.split('/')[0]),
++  );
++
++  assert.ok(wygenerowane.length > 0, 'generator ma importować z bibliotek workspace');
++  for (const used of wygenerowane) {
++    assert.ok(aliases.includes(used), `import "${used}" nie ma odpowiednika w tsconfig.base.json`);
++  }
++});
++
++test('index.ts wystawia wyłącznie fasadę i providera, nazwanymi eksportami', async (t) => {
++  const target = makeTempDir(t);
++  await runInitState({ options: { name: 'session', path: target }, positionals: [] });
++
++  const index = fs.readFileSync(path.join(target, 'index.ts'), 'utf-8');
++
++  assert.equal(
++    index.trim(),
++    [
++      "export { SessionStateService } from './session-state.service';",
++      "export { sessionStateProviders } from './session-state-providers';",
++    ].join('\n'),
++  );
++});
++
++test('--shared-prefix zmienia prefiks aliasu, reszta ścieżki zostaje', async (t) => {
++  const target = makeTempDir(t);
++  await runInitState({ options: { name: 'session', path: target, sharedPrefix: 'acme' }, positionals: [] });
++
++  const uzyte = collectWorkspaceImports(target).filter((used) => used.startsWith('@acme/'));
++
++  assert.deepEqual(uzyte, ['@acme/shared/common/core/api', '@acme/shared/common/core/state']);
++});
+Index: scripts/generators/README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/README.md b/scripts/generators/README.md
+--- a/scripts/generators/README.md	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/README.md	(date 1784633217716)
+@@ -79,10 +79,20 @@
+ Tworzy `*-state.ts`, `*-actions.ts`, `*-selectors.ts`, `*-effects.service.ts`,
+ `*-state.service.ts`, `*-state-providers.ts`, `index.ts` oraz `api/*-api.service.ts`.
+ 
++Publiczne wyjście stanu to **dwie rzeczy**: serwis fasady i funkcja providerów.
++Tylko one stoją w `index.ts`, nazwanymi eksportami. Stan, akcje, selektory, efekty
++i serwis API zostają wewnątrz — sięga się po nie przez fasadę, a nie przez alias
++biblioteki.
++
+ Domyślnie pliki lądują **bezpośrednio** w `--path` — układ dla biblioteki dedykowanej
+ jednemu stanowi, gdzie katalog biblioteki już niesie jego nazwę. Flaga `--nested`
+ tworzy podkatalog `<path>/<nazwa>/`, gdy jedna biblioteka mieści wiele stanów.
+ 
++Wygenerowany kod importuje z dwóch bibliotek współdzielonych. Ich aliasy **nie są
++wpisane w szablonach** — powstają z tego samego kanonu, co przy tworzeniu biblioteki
++(`ngxs/utils/state-imports.js`), więc nie mogą rozjechać się z `tsconfig.base.json`.
++Flaga `--shared-prefix` podmienia sam prefiks, gdy generator biegnie na innym workspace.
++
+ ### `add-state-action` — akcja synchroniczna
+ 
+ ```bash
+Index: .ai-agentic-workspace/scripts/code-index/viz/code-index-graph.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/scripts/code-index/viz/code-index-graph.js b/.ai-agentic-workspace/scripts/code-index/viz/code-index-graph.js
+--- a/.ai-agentic-workspace/scripts/code-index/viz/code-index-graph.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/.ai-agentic-workspace/scripts/code-index/viz/code-index-graph.js	(date 1784637874902)
+@@ -17,8 +17,8 @@
+  *
+  * Usage:
+  *   node .ai-agentic-workspace/scripts/code-index/viz/code-index-graph.js [options]
+- *     --out <path>     output HTML (default: node_modules/.cache/code-index-graph.html)
+- *     --db  <path>     index db (default: node_modules/.cache/code-index.db)
++ *     --out <path>     output HTML (default: alongside the index db)
++ *     --db  <path>     index db (default: the canonical DB_PATH of the facade)
+  *     --no-externals   do not bake external package nodes
+  *     --no-files       do not bake file nodes
+  *     --no-symbols     do not bake symbol nodes (implies --no-members)
+@@ -38,11 +38,15 @@
+ import path from 'path';
+ import { spawn } from 'child_process';
+ import { openIndex, syncWorkspace } from '../core/code-index-store.js';
++import { DB_PATH } from '../index.js';
++
++/** Wytwory renderu leżą obok bazy — w node_modules zestawu agentowego. */
++const CACHE_DIR = path.dirname(DB_PATH);
+ 
+ function parseArgs(argv) {
+   const a = {
+-    out: 'node_modules/.cache/code-index-graph.html',
+-    db: 'node_modules/.cache/code-index.db',
++    out: path.join(CACHE_DIR, 'code-index-graph.html'),
++    db: DB_PATH,
+     externals: true, files: true, symbols: true, members: true,
+     open: false, sync: true,
+   };
+Index: scripts/generators/ngxs/utils/state-file-utils.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/utils/state-file-utils.js b/scripts/generators/ngxs/utils/state-file-utils.js
+--- a/scripts/generators/ngxs/utils/state-file-utils.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/utils/state-file-utils.js	(date 1784632926728)
+@@ -5,11 +5,7 @@
+ import { camelize, classify, dasherize } from './strings.js';
+ import { renderTemplateFile } from './template.js';
+ import { ensureDirectory } from './fs-utils.js';
+-import { LIBRARY_NAMING } from '../../../config/library.js';
+-
+-// Prefiks reużywalnych libów (alias `@<sharedPrefix>/shared/...`) z JEDYNEGO SSOT
+-// (global-config). `options.sharedPrefix` nadpisuje per-workspace; NIE hardcoduj.
+-const resolveSharedPrefix = (options) => options?.sharedPrefix || LIBRARY_NAMING.sharedPrefix;
++import { stateImports } from './state-imports.js';
+ 
+ export function findFileInDir(folderPath, suffixPattern) {
+   const entries = fs.readdirSync(folderPath, { withFileTypes: true });
+@@ -462,7 +458,7 @@
+     actionPayloadName: options.actionPayloadModelName,
+   });
+ 
+-  effectContent = ensureNamedImportsInContent(effectContent, `@${resolveSharedPrefix(options)}/shared/core/state`, ['Effect']);
++  effectContent = ensureNamedImportsInContent(effectContent, stateImports(options).state, ['Effect']);
+ 
+   if (options.withPayload) {
+     const payloadImportLine = createImportLine(options.actionPayloadModelName, './payloads/' + dasherize(options.actionPayloadModelName));
+@@ -508,7 +504,7 @@
+     actionName: options.actionFullName,
+   });
+ 
+-  effectContent = ensureNamedImportsInContent(effectContent, `@${resolveSharedPrefix(options)}/shared/core/state`, ['Effect']);
++  effectContent = ensureNamedImportsInContent(effectContent, stateImports(options).state, ['Effect']);
+   effectContent = ensureNamedImportsInContent(effectContent, 'rxjs', ['EMPTY', 'Observable', 'of']);
+   effectContent = ensureNamedImportsInContent(effectContent, 'rxjs/operators', ['catchError', 'tap']);
+ 
+Index: .ai-agentic-workspace/workflows/forge-kit/config/global-config.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/config/global-config.js b/.ai-agentic-workspace/workflows/forge-kit/config/global-config.js
+--- a/.ai-agentic-workspace/workflows/forge-kit/config/global-config.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/.ai-agentic-workspace/workflows/forge-kit/config/global-config.js	(date 1784637532129)
+@@ -14,9 +14,6 @@
+ 
+ import * as globalUtils from '../../../scripts/utils.js';
+ 
+-/** Korzeń skryptów forge-kit (forma do `load()`). */
+-export const KIT_BASE = './.github/agents/forge-kit';
+-
+ /** Korzeń katalogów funkcjonalności — jeden katalog per story. */
+ export const SPECS_DIR = 'specs';
+ 
+Index: .ai-agentic-workspace/scripts/code-index/index.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/scripts/code-index/index.js b/.ai-agentic-workspace/scripts/code-index/index.js
+--- a/.ai-agentic-workspace/scripts/code-index/index.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/.ai-agentic-workspace/scripts/code-index/index.js	(date 1784637846199)
+@@ -5,9 +5,9 @@
+  * przez import) ORAZ serwera MCP (stdio). Generatory zasilają bazę, a tę samą bazę
+  * czytamy metodami stąd — bez duplikowania ekstrakcji.
+  *
+- * `getIndex()` otwiera KANONICZNĄ bazę (`node_modules/.cache/code-index.db` — ta
+- * sama, której używa MCP/coder) i robi różnicowy `syncWorkspace` (hash per plik),
+- * więc dane są ŚWIEŻE względem dysku zanim ktokolwiek je odczyta.
++ * `getIndex()` otwiera KANONICZNĄ bazę (patrz `DB_PATH` — ta sama, której używa
++ * MCP/coder) i robi różnicowy `syncWorkspace` (hash per plik), więc dane są
++ * ŚWIEŻE względem dysku zanim ktokolwiek je odczyta.
+  *
+  * Założenie: cwd = root workspace'u (jak istniejące generatory Fazy 1/1b).
+  *
+@@ -15,6 +15,7 @@
+  */
+ import fs from 'node:fs';
+ import path from 'node:path';
++import { fileURLToPath } from 'node:url';
+ import {
+   openIndex,
+   syncWorkspace,
+@@ -40,8 +41,21 @@
+ } from './core/code-index-store.js';
+ import { semanticSymbols, semanticEdges, semanticGraph, symbolFlow } from './core/semantic-queries.js';
+ 
+-/** Kanoniczna ścieżka bazy — współdzielona z serwerem MCP (.vscode/mcp.json). */
+-export const DB_PATH = path.join('node_modules', '.cache', 'code-index.db');
++/**
++ * Nazwa katalogu zestawu agentowego, odczytana z położenia tego pliku
++ * (`<zestaw>/scripts/code-index/index.js`). Przemianowanie katalogu nie wymaga
++ * edycji tej stałej.
++ */
++const WORKSPACE_DIR = path.basename(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..'));
++
++/**
++ * Kanoniczna ścieżka bazy, względem indeksowanego korzenia — współdzielona
++ * z serwerem MCP (.vscode/mcp.json).
++ *
++ * Baza jest wytworem zestawu agentowego, więc leży w JEGO `node_modules`,
++ * nie w `node_modules` indeksowanego repozytorium.
++ */
++export const DB_PATH = path.join(WORKSPACE_DIR, 'node_modules', '.cache', 'code-index.db');
+ 
+ /** Otwarte bazy i stan synchronizacji, po jednej pozycji na indeksowany katalog. */
+ const _indexes = new Map();
+@@ -53,7 +67,7 @@
+  * `sync:'force'` wymusza ponowny sync (np. po wygenerowaniu plików mid-task).
+  *
+  * `root` pozwala indeksować katalog inny niż katalog procesu — baza leży wtedy
+- * w jego `node_modules/.cache`, a ścieżki w indeksie są względne wobec niego.
++ * pod `DB_PATH` liczonym od niego, a ścieżki w indeksie są względne wobec niego.
+  * Bez tego dwa katalogi (np. drzewa robocze git) indeksowane w jednym procesie
+  * dzieliłyby jedną bazę i mieszały ścieżki.
+  * @param {object} [opts]
+Index: .ai-agentic-workspace/scripts/code-index/mcp/code-index-mcp-server.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/scripts/code-index/mcp/code-index-mcp-server.js b/.ai-agentic-workspace/scripts/code-index/mcp/code-index-mcp-server.js
+--- a/.ai-agentic-workspace/scripts/code-index/mcp/code-index-mcp-server.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/.ai-agentic-workspace/scripts/code-index/mcp/code-index-mcp-server.js	(date 1784637863441)
+@@ -8,10 +8,10 @@
+  * Transport: newline-delimited JSON-RPC 2.0 over stdin/stdout (the MCP stdio
+  * convention). Diagnostics go to stderr only — stdout carries protocol frames.
+  *
+- * Sync model (this iteration): MANUAL. The index lives at
+- * node_modules/.cache/code-index.db, is created ad hoc if missing, and is fully
+- * rebuilt (reindexWorkspace) both at boot and whenever the `reindex` tool is
+- * called. No file watcher yet — the DB is transparent and disposable.
++ * Sync model (this iteration): MANUAL. The index lives at DB_PATH (shared with
++ * the facade), is created ad hoc if missing, and is fully rebuilt
++ * (reindexWorkspace) both at boot and whenever the `reindex` tool is called.
++ * No file watcher yet — the DB is transparent and disposable.
+  *
+  * Registered in .vscode/mcp.json → "servers" as:
+  *   "code-index": { "type": "stdio", "command": "node",
+@@ -37,6 +37,7 @@
+   listComponents,
+ } from '../core/code-index-store.js';
+ import { semanticEdges, symbolFlow } from '../core/semantic-queries.js';
++import { DB_PATH } from '../index.js';
+ import { ensureDsComponents } from '../components/ds-component-scanner.js';
+ import { DS_LIBRARIES } from '../../project-config.js';
+ 
+@@ -44,15 +45,14 @@
+ const SERVER_INFO = { name: 'code-index', version: '1.0.0' };
+ 
+ // --- Workspace + DB bootstrap ---------------------------------------------
+-// The script lives at .ai-agentic-workspace/scripts/code-index/ → workspace root is 3 up.
+-// We chdir there so the generator's cwd-relative paths line up regardless of
+-// where the SDK spawned us from.
++// The script lives at <kit>/scripts/code-index/mcp/ → the INDEXED workspace root
++// (the repo holding apps/ and libs/) is 4 up. We chdir there so the scanner's
++// cwd-relative paths line up regardless of where the SDK spawned us from.
++// DB_PATH comes from the facade so the server and the scripts open the SAME file.
+ const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+-const WORKSPACE_ROOT = path.resolve(SCRIPT_DIR, '../../..');
++const WORKSPACE_ROOT = path.resolve(SCRIPT_DIR, '../../../..');
+ process.chdir(WORKSPACE_ROOT);
+ 
+-const DB_PATH = path.join('node_modules', '.cache', 'code-index.db');
+-
+ function log(...args) {
+   process.stderr.write(`[code-index] ${args.join(' ')}\n`);
+ }
+Index: scripts/generators/ngxs/templates/init-state/__name@dasherize__/index.ts.template
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/index.ts.template b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/index.ts.template
+--- a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/index.ts.template	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/index.ts.template	(date 1784633183120)
+@@ -1,6 +1,2 @@
+-export * from './<%= dasherize(name) %>-actions';
+-export * from './<%= dasherize(name) %>-state';
+-export * from './<%= dasherize(name) %>-state.service';
+-export * from './<%= dasherize(name) %>-selectors';
+-export * from './<%= dasherize(name) %>-effects.service';
+-export * from './<%= dasherize(name) %>-state-providers';
++export { <%= classify(name) %>StateService } from './<%= dasherize(name) %>-state.service';
++export { <%= camelize(name) %>StateProviders } from './<%= dasherize(name) %>-state-providers';
+Index: .ai-agentic-workspace/scripts/code-index/README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/scripts/code-index/README.md b/.ai-agentic-workspace/scripts/code-index/README.md
+--- a/.ai-agentic-workspace/scripts/code-index/README.md	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/.ai-agentic-workspace/scripts/code-index/README.md	(date 1784637903244)
+@@ -5,9 +5,15 @@
+ linii, sygnaturę oraz opis. Agent najpierw pyta indeks o adres, a dopiero potem czyta
+ sam plik — zamiast wczytywać do kontekstu całe metadane bibliotek.
+ 
+-Baza jest przezroczysta i jednorazowa. Leży w `node_modules/.cache/code-index.db`,
+-tworzy się sama przy pierwszym użyciu i można ją skasować w dowolnej chwili —
+-odbuduje się z dysku.
++Baza jest przezroczysta i jednorazowa. Leży w
++`.ai-agentic-workspace/node_modules/.cache/code-index.db` — jest wytworem zestawu
++agentowego, więc nie zaśmieca `node_modules` indeksowanego repozytorium. Tworzy się
++sama przy pierwszym użyciu i można ją skasować w dowolnej chwili — odbuduje się z dysku.
++
++Indeksowany korzeń to osobna sprawa niż położenie bazy: `getIndex({ root })` skanuje
++podany katalog (domyślnie katalog procesu), a bazę zakłada w jego
++`.ai-agentic-workspace/node_modules/.cache/`. Dzięki temu drzewa robocze git
++indeksowane w jednym procesie nie mieszają się ze sobą.
+ 
+ Wymaga Node 22 lub nowszego (wbudowany moduł `node:sqlite` z FTS5). Sprawdzone na 24.
+ Wszystkie ścieżki liczą się względem katalogu roboczego, więc skrypty uruchamiaj
