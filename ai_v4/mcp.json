@@ -1,0 +1,16 @@
+{
+  "servers": {
+    // code-index — wyszukiwanie pliku/symbolu w monorepo (po nazwie LUB opisie),
+    // routing do file:line. Lokalny serwer stdio, zero zależności (node:sqlite).
+    // Baza ad hoc w node_modules/.cache (niekomitowana). Sync ręczny: rebuild na
+    // starcie i przez narzędzie `reindex`. Narzędzia: find_symbol, find_file,
+    // describe_library, reindex.
+    "code-index": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        ".ai-agentic-workspace/scripts/code-index/mcp/code-index-mcp-server.js"
+      ]
+    }
+  }
+}
