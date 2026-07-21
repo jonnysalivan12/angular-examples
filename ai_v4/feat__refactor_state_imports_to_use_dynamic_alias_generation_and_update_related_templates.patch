@@ -1,0 +1,292 @@
+Subject: [PATCH] feat: refactor state imports to use dynamic alias generation and update related templates
+---
+Index: scripts/generators/ngxs/templates/init-state/__name@dasherize__/api/__name@dasherize__-api.service.ts.template
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/api/__name@dasherize__-api.service.ts.template b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/api/__name@dasherize__-api.service.ts.template
+--- a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/api/__name@dasherize__-api.service.ts.template	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/api/__name@dasherize__-api.service.ts.template	(date 1784632911261)
+@@ -1,5 +1,5 @@
+ import { inject, Injectable } from '@angular/core';
+-import { ApiService } from '@<%= sharedPrefix %>/shared/core/api';
++import { ApiService } from '<%= apiImport %>';
+ import { Observable } from 'rxjs';
+ 
+ @Injectable()
+Index: scripts/generators/ngxs/utils/state-file-utils.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/utils/state-file-utils.js b/scripts/generators/ngxs/utils/state-file-utils.js
+--- a/scripts/generators/ngxs/utils/state-file-utils.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/utils/state-file-utils.js	(date 1784632926728)
+@@ -5,11 +5,7 @@
+ import { camelize, classify, dasherize } from './strings.js';
+ import { renderTemplateFile } from './template.js';
+ import { ensureDirectory } from './fs-utils.js';
+-import { LIBRARY_NAMING } from '../../../config/library.js';
+-
+-// Prefiks reużywalnych libów (alias `@<sharedPrefix>/shared/...`) z JEDYNEGO SSOT
+-// (global-config). `options.sharedPrefix` nadpisuje per-workspace; NIE hardcoduj.
+-const resolveSharedPrefix = (options) => options?.sharedPrefix || LIBRARY_NAMING.sharedPrefix;
++import { stateImports } from './state-imports.js';
+ 
+ export function findFileInDir(folderPath, suffixPattern) {
+   const entries = fs.readdirSync(folderPath, { withFileTypes: true });
+@@ -462,7 +458,7 @@
+     actionPayloadName: options.actionPayloadModelName,
+   });
+ 
+-  effectContent = ensureNamedImportsInContent(effectContent, `@${resolveSharedPrefix(options)}/shared/core/state`, ['Effect']);
++  effectContent = ensureNamedImportsInContent(effectContent, stateImports(options).state, ['Effect']);
+ 
+   if (options.withPayload) {
+     const payloadImportLine = createImportLine(options.actionPayloadModelName, './payloads/' + dasherize(options.actionPayloadModelName));
+@@ -508,7 +504,7 @@
+     actionName: options.actionFullName,
+   });
+ 
+-  effectContent = ensureNamedImportsInContent(effectContent, `@${resolveSharedPrefix(options)}/shared/core/state`, ['Effect']);
++  effectContent = ensureNamedImportsInContent(effectContent, stateImports(options).state, ['Effect']);
+   effectContent = ensureNamedImportsInContent(effectContent, 'rxjs', ['EMPTY', 'Observable', 'of']);
+   effectContent = ensureNamedImportsInContent(effectContent, 'rxjs/operators', ['catchError', 'tap']);
+ 
+Index: scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-actions.ts.template
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-actions.ts.template b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-actions.ts.template
+--- a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-actions.ts.template	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-actions.ts.template	(date 1784632911297)
+@@ -1,3 +1,3 @@
+-import { ActionBuilder } from '@<%= sharedPrefix %>/shared/core/state';
++import { ActionBuilder } from '<%= stateImport %>';
+ 
+ export namespace <%= classify(name) %>Actions {}
+Index: scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-effects.service.ts.template
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-effects.service.ts.template b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-effects.service.ts.template
+--- a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-effects.service.ts.template	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/__name@dasherize__-effects.service.ts.template	(date 1784632911301)
+@@ -4,7 +4,7 @@
+ 
+ import { Store } from '@ngxs/store';
+ 
+-import { NgxsEffectsService } from '@<%= sharedPrefix %>/shared/core/state';
++import { NgxsEffectsService } from '<%= stateImport %>';
+ 
+ import { <%= classify(name) %>Actions } from './<%= dasherize(name) %>-actions';
+ import { <%= classify(name) %>ApiService } from './api/<%= dasherize(name) %>-api.service';
+Index: scripts/generators/ngxs/utils/state-imports.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/utils/state-imports.js b/scripts/generators/ngxs/utils/state-imports.js
+new file mode 100644
+--- /dev/null	(date 1784632982405)
++++ b/scripts/generators/ngxs/utils/state-imports.js	(date 1784632982405)
+@@ -0,0 +1,33 @@
++import { deriveLibraryNaming } from '../../utils/library-naming.js';
++
++/* ─────────────────────────────────────────────────────────────────────────── *
++ * Aliasy bibliotek, po które sięga wygenerowany kod stanu.
++ *
++ * Biblioteki opisane są STRUKTURĄ (zakres, kontekst, typ, nazwa), a alias
++ * powstaje z niej tą samą funkcją, której używa generator bibliotek. Ścieżka
++ * pisana ręcznie rozjeżdżała się z tsconfig.base.json po cichu: wygenerowany
++ * plik importował z aliasu, którego nie ma, a widać to było dopiero przy
++ * kompilacji kodu, który powstał.
++ * ─────────────────────────────────────────────────────────────────────────── */
++
++/** Biblioteka z elementami NGXS: ActionBuilder, NgxsEffectsService, Effect. */
++const STATE_LIBRARY = Object.freeze({ scope: 'shared', context: 'common', type: 'core', name: 'state' });
++
++/** Biblioteka z klientem HTTP: ApiService. */
++const API_LIBRARY = Object.freeze({ scope: 'shared', context: 'common', type: 'core', name: 'api' });
++
++/**
++ * Aliasy importu obu bibliotek.
++ *
++ * @param {{sharedPrefix?: string}} [options] — `sharedPrefix` nadpisuje prefiks
++ *   z konfiguracji, gdy generator biegnie na innym workspace
++ * @returns {{state: string, api: string}}
++ */
++export function stateImports(options = {}) {
++  const naming = options?.sharedPrefix ? { sharedPrefix: options.sharedPrefix } : {};
++
++  return {
++    state: deriveLibraryNaming(STATE_LIBRARY, naming).importPath,
++    api: deriveLibraryNaming(API_LIBRARY, naming).importPath,
++  };
++}
+Index: scripts/generators/ngxs/commands/init-state.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/commands/init-state.js b/scripts/generators/ngxs/commands/init-state.js
+--- a/scripts/generators/ngxs/commands/init-state.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/commands/init-state.js	(date 1784632904496)
+@@ -3,7 +3,7 @@
+ import { toAbsolutePath, walkFiles, writeNewFile } from '../utils/fs-utils.js';
+ import { renderTemplateFile, resolveTemplateSegment } from '../utils/template.js';
+ import { camelize, classify, dasherize } from '../utils/strings.js';
+-import { LIBRARY_NAMING } from '../../../config/library.js';
++import { stateImports } from '../utils/state-imports.js';
+ 
+ export async function runInitState({ options, positionals }) {
+   const rawName = options.name || positionals[0];
+@@ -23,14 +23,15 @@
+   // Parser CLI normalizuje `--nested`/`--nested true` do boolean.
+   const useNestedLayout = options.nested === true;
+ 
+-  // Prefiks reużywalnych libów (alias `@<sharedPrefix>/shared/...`) pochodzi z JEDYNEGO
+-  // SSOT (global-config PROJECT.libraryNaming) — NIE hardcoduj w templejtach. CLI
+-  // `--shared-prefix` pozwala nadpisać per-workspace bez ruszania configu.
+-  const sharedPrefix = options.sharedPrefix || LIBRARY_NAMING.sharedPrefix;
++  // Aliasy bibliotek, z których importuje wygenerowany kod, przychodzą gotowe —
++  // szablon ma wstawić alias, a nie składać go z kawałków. CLI `--shared-prefix`
++  // pozwala nadpisać prefiks per-workspace bez ruszania konfiguracji.
++  const imports = stateImports(options);
+ 
+   const templateContext = {
+     name: rawName,
+-    sharedPrefix,
++    stateImport: imports.state,
++    apiImport: imports.api,
+     camelize,
+     classify,
+     dasherize,
+Index: scripts/generators/ngxs/templates/init-state/__name@dasherize__/index.ts.template
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/index.ts.template b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/index.ts.template
+--- a/scripts/generators/ngxs/templates/init-state/__name@dasherize__/index.ts.template	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/templates/init-state/__name@dasherize__/index.ts.template	(date 1784633183120)
+@@ -1,6 +1,2 @@
+-export * from './<%= dasherize(name) %>-actions';
+-export * from './<%= dasherize(name) %>-state';
+-export * from './<%= dasherize(name) %>-state.service';
+-export * from './<%= dasherize(name) %>-selectors';
+-export * from './<%= dasherize(name) %>-effects.service';
+-export * from './<%= dasherize(name) %>-state-providers';
++export { <%= classify(name) %>StateService } from './<%= dasherize(name) %>-state.service';
++export { <%= camelize(name) %>StateProviders } from './<%= dasherize(name) %>-state-providers';
+Index: scripts/generators/ngxs/commands/init-state.test.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/ngxs/commands/init-state.test.js b/scripts/generators/ngxs/commands/init-state.test.js
+--- a/scripts/generators/ngxs/commands/init-state.test.js	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/ngxs/commands/init-state.test.js	(date 1784633188701)
+@@ -56,3 +56,70 @@
+   const nestedFiles = listFilesRelative(path.join(nestedTarget, 'session'));
+   assert.deepEqual(nestedFiles, flatFiles);
+ });
++
++/* ── importy wygenerowanego kodu ───────────────────────────────────────────── */
++
++/** Wszystkie importy z aliasu workspace'u (`@…`), z wygenerowanych plików. */
++function collectWorkspaceImports(rootPath) {
++  const found = new Set();
++
++  const walk = (dirPath) => {
++    for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
++      const entryPath = path.join(dirPath, entry.name);
++      if (entry.isDirectory()) {
++        walk(entryPath);
++        continue;
++      }
++      for (const match of fs.readFileSync(entryPath, 'utf-8').matchAll(/from '(@[^']+)'/g)) {
++        found.add(match[1]);
++      }
++    }
++  };
++
++  walk(rootPath);
++  return [...found].sort();
++}
++
++test('wygenerowane importy wskazują na aliasy, które naprawdę są w workspace', async (t) => {
++  const target = makeTempDir(t);
++  await runInitState({ options: { name: 'session', path: target }, positionals: [] });
++
++  const tsconfig = JSON.parse(fs.readFileSync('tsconfig.base.json', 'utf-8'));
++  const aliases = Object.keys(tsconfig.compilerOptions.paths);
++
++  // Pakiety zewnętrzne (@angular/core, @ngxs/store) nie należą do workspace'u,
++  // więc sprawdzane są tylko aliasy o prefiksie stąd — te, które ten generator składa.
++  const workspacePrefixes = [...new Set(aliases.map((alias) => alias.split('/')[0]))];
++  const wygenerowane = collectWorkspaceImports(target).filter((used) =>
++    workspacePrefixes.includes(used.split('/')[0]),
++  );
++
++  assert.ok(wygenerowane.length > 0, 'generator ma importować z bibliotek workspace');
++  for (const used of wygenerowane) {
++    assert.ok(aliases.includes(used), `import "${used}" nie ma odpowiednika w tsconfig.base.json`);
++  }
++});
++
++test('index.ts wystawia wyłącznie fasadę i providera, nazwanymi eksportami', async (t) => {
++  const target = makeTempDir(t);
++  await runInitState({ options: { name: 'session', path: target }, positionals: [] });
++
++  const index = fs.readFileSync(path.join(target, 'index.ts'), 'utf-8');
++
++  assert.equal(
++    index.trim(),
++    [
++      "export { SessionStateService } from './session-state.service';",
++      "export { sessionStateProviders } from './session-state-providers';",
++    ].join('\n'),
++  );
++});
++
++test('--shared-prefix zmienia prefiks aliasu, reszta ścieżki zostaje', async (t) => {
++  const target = makeTempDir(t);
++  await runInitState({ options: { name: 'session', path: target, sharedPrefix: 'acme' }, positionals: [] });
++
++  const uzyte = collectWorkspaceImports(target).filter((used) => used.startsWith('@acme/'));
++
++  assert.deepEqual(uzyte, ['@acme/shared/common/core/api', '@acme/shared/common/core/state']);
++});
+Index: scripts/generators/README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scripts/generators/README.md b/scripts/generators/README.md
+--- a/scripts/generators/README.md	(revision 3b3b879edad7e6d0fbaf1c8f43cfa285cf6534a9)
++++ b/scripts/generators/README.md	(date 1784633217716)
+@@ -79,10 +79,20 @@
+ Tworzy `*-state.ts`, `*-actions.ts`, `*-selectors.ts`, `*-effects.service.ts`,
+ `*-state.service.ts`, `*-state-providers.ts`, `index.ts` oraz `api/*-api.service.ts`.
+ 
++Publiczne wyjście stanu to **dwie rzeczy**: serwis fasady i funkcja providerów.
++Tylko one stoją w `index.ts`, nazwanymi eksportami. Stan, akcje, selektory, efekty
++i serwis API zostają wewnątrz — sięga się po nie przez fasadę, a nie przez alias
++biblioteki.
++
+ Domyślnie pliki lądują **bezpośrednio** w `--path` — układ dla biblioteki dedykowanej
+ jednemu stanowi, gdzie katalog biblioteki już niesie jego nazwę. Flaga `--nested`
+ tworzy podkatalog `<path>/<nazwa>/`, gdy jedna biblioteka mieści wiele stanów.
+ 
++Wygenerowany kod importuje z dwóch bibliotek współdzielonych. Ich aliasy **nie są
++wpisane w szablonach** — powstają z tego samego kanonu, co przy tworzeniu biblioteki
++(`ngxs/utils/state-imports.js`), więc nie mogą rozjechać się z `tsconfig.base.json`.
++Flaga `--shared-prefix` podmienia sam prefiks, gdy generator biegnie na innym workspace.
++
+ ### `add-state-action` — akcja synchroniczna
+ 
+ ```bash
