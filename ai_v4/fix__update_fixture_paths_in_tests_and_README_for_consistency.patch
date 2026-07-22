@@ -1,0 +1,2015 @@
+Subject: [PATCH] fix: update fixture paths in tests and README for consistency
+---
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/m2/deviation-report.md
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/m2/deviation-report.md b/.ai-agentic-workspace/workflows/forge-kit/experiments/m2/deviation-report.md
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/m2/deviation-report.md	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,18 +0,0 @@
+-<!--
+-  Raport odstępstw kodera — wypełniany na koniec zadania, przeglądany zbiorczo
+-  po story (pętla zwrotna: powtarzające się odstępstwo = kandydat na zmianę
+-  standardu albo szablonu planu).
+-
+-  Reguły stałe:
+-  - trafiają tu WYŁĄCZNIE odstępstwa od sekcji KROKI (dozwolone samodzielnie),
+-  - odstępstwa od sekcji WIĄŻĄCE tu NIE trafiają — te wymagały zgody człowieka
+-    w trakcie zadania (mini-punkt kontrolny),
+-  - format wpisu: krok planu → co zrobiono inaczej → dlaczego (jedno zdanie).
+--->
+-# Raport odstępstw — zadanie T1 (story M2-SMOKE)
+-
+-## Odstępstwa od KROKÓW
+-(brak — zadanie zrealizowane zgodnie z KROKAMI)
+-
+-## Pytania zadane w trakcie (mini-punkty kontrolne)
+-(brak)
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/m2/plan.md
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/m2/plan.md b/.ai-agentic-workspace/workflows/forge-kit/experiments/m2/plan.md
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/m2/plan.md	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,40 +0,0 @@
+----
+-story: M2-SMOKE
+-binding:
+-  libraries:
+-    - name: frontend-app-core-auth
+-      status: existing
+-  contracts:
+-    - key: maskSessionToken
+-      library: frontend-app-core-auth
+-      grounding:
+-        providedByTask: T1
+-tasks:
+-  - id: T1
+-    title: Funkcja maskująca token sesji
+-    library: frontend-app-core-auth
+-    provides:
+-      - maskSessionToken
+-    scope:
+-      - libs/apps/frontend-app/core/auth
+-acceptanceCriteria:
+-  - id: AC-1
+-    text: maskSessionToken zwraca pierwsze 4 znaki + „…" + ostatnie 4 znaki tokenu; dla wejścia krótszego niż 12 znaków zwraca samo „…" (bez wycieku treści)
+-    verification: unit
+----
+-
+-# Plan: M2-SMOKE — maskowanie tokenu sesji do logów
+-
+-## KROKI
+-1. W libs/apps/frontend-app/core/auth dodaj plik src/lib/mask-session-token.ts z czystą funkcją `maskSessionToken(token: string): string` (bez zależności)
+-2. Wyeksportuj funkcję z barrela src/index.ts
+-3. Dodaj test jednostkowy Vitest src/lib/mask-session-token.spec.ts pokrywający AC-1 (przypadki: token 12+ znaków, token krótki, pusty string)
+-
+-## ROZSTRZYGNĄŁEM SAM (reguła → decyzja)
+-(brak — zadanie czysto techniczne z jednoznacznym AC)
+-
+-## PYTANIA (blokują zatwierdzenie — każde z propozycją)
+-(brak)
+-
+-## POZA ZAKRESEM
+-użycie maskSessionToken w interceptorze/logach (osobna story)
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/m3/intent-note.md
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/m3/intent-note.md b/.ai-agentic-workspace/workflows/forge-kit/experiments/m3/intent-note.md
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/m3/intent-note.md	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,20 +0,0 @@
+-# Notatka rozstrzygnięć — US-008 (PK1, 2026-07-15)
+-
+-## Rozstrzygnięcia człowieka (pytanie → odpowiedź)
+-- Czy access/refresh token po zalogowaniu mają być trwałe w storage (przetrwać odświeżenie strony) niezależnie od "Zapamiętaj hasło", czy tylko przy zaznaczonym rememberMe (bez niego sesja tylko w pamięci/session storage)?
+-  → ok
+-- Czy pole hasła ma być czyszczone przy błędzie 401 automatycznie przez sam komponent prezentacyjny, czy tylko gdy fasada/wywołujący jawnie zresetuje wejście password po otrzymaniu błędu (formularz nie ma własnej logiki pobierania danych)?
+-  → ok
+-
+-## Delegacje („zdecyduj sam")
+-(brak)
+-
+-## Reguły źródeł prawdy zastosowane bez pytania
+-- Układ zawsze z makiety → Rozmieszczenie pól (email, hasło+toggle, checkbox, przycisk) i breakpointy 1:1 z Figma.
+-- Treści z makiety, chyba że story stanowi inaczej → Story nadpisuje treści komunikatów błędów domenowych (401/429) — użyte dosłowne teksty ze story jako wartości kluczy i18n, reszta etykiet z makiety.
+-- Błędy 5xx przez interceptor/modal → Warstwa state/API tej story nie obsługuje prezentacji 5xx — jedynie czyści stan pending; interceptor globalny odpowiada za modal.
+-- Błędy domenowe przez snackbar → 401/429 nie trafiają do interceptora — fasada udostępnia komunikat jako dane wejściowe do komponentu (przez snackbar poza zakresem tej story, chyba że integracja snackbar jest już gotowa w shared-core-state).
+-- Treści z makiety, chyba że story stanowi inaczej → Story nadpisuje treści komunikatów błędów domenowych (401/429) — dosłowne teksty ze story jako wartości kluczy i18n, reszta etykiet z makiety.
+-- Błędy domenowe przez snackbar → 401/429 nie trafiają do interceptora — fasada udostępnia komunikat błędu jako dane wejściowe do komponentu prezentacyjnego; prezentacja snackbar poza zakresem tej story.
+-- rememberMe steruje trwałością sesji → rememberMe=true → persist w localStorage (przez sync-storage state), rememberMe=false → sessionStorage; oba przez mechanizm sync ze stanem NGXS, nigdy bezpośredni zapis.
+-- Formularz reaguje deklaratywnie na wejścia → Pole hasła jest czyszczone lokalnie w komponencie prezentacyjnym w reakcji na zmianę @Input errorMessage odpowiadającą błędowi 401 — bez własnej logiki pobierania danych.
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/m3/plan.md
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/m3/plan.md b/.ai-agentic-workspace/workflows/forge-kit/experiments/m3/plan.md
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/m3/plan.md	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,51 +0,0 @@
+----
+-story: US-008
+-binding:
+-  libraries:
+-    - { name: frontend-app-state-auth, status: existing }
+-    - { name: frontend-app-ui-auth, status: existing }
+-    - { name: frontend-app-feature-auth, status: existing }
+-  contracts:
+-    - { key: AuthStateService.login, library: frontend-app-state-auth, grounding: { providedByTask: T1 } }
+-    - { key: AuthStateService.isLoading|errorMessage, library: frontend-app-state-auth, grounding: { providedByTask: T1 } }
+-    - { key: LoginCredentials, library: frontend-app-ui-auth, grounding: { file: libs/apps/frontend-app/ui/auth/src/lib/login-form/login-form.component.ts, line: 16 } }
+-    - { key: "LoginFormComponent.inputs(loading,errorMessage)", library: frontend-app-ui-auth, grounding: { providedByTask: T3 } }
+-tasks:
+-  - { id: T1, title: "Dodać akcję login (trójka async) w AuthState — POST /api/login, mapowanie 401/429, pending, storage sync, SessionCheckImpl update", library: frontend-app-state-auth, provides: [ AuthStateService.login, AuthStateService.isLoading|errorMessage ], scope: [ libs/apps/frontend-app/state/auth/src/lib/auth/** ] }
+-  - { id: T3, title: "Rozbudować LoginFormComponent — walidacja, toggle hasła, a11y, i18n, reset hasła na błąd 401", library: frontend-app-ui-auth, provides: [ "LoginFormComponent.inputs(loading,errorMessage)" ], consumes: [ LoginCredentials ], scope: [ libs/apps/frontend-app/ui/auth/src/lib/login-form/** ] }
+-  - { id: T4, title: "Podłączyć LoginViewComponent do fasady stanu i formularza (submit, loading, error)", library: frontend-app-feature-auth, consumes: [ AuthStateService.login, AuthStateService.isLoading|errorMessage, "LoginFormComponent.inputs(loading,errorMessage)" ], scope: [ libs/apps/frontend-app/feature/auth/src/lib/login-view/** ] }
+-acceptanceCriteria:
+-  - { id: AC-1, text: "POST /api/login z email/password/rememberMe; 200 zapisuje tokeny w NGXS zsynchronizowane ze storage (localStorage gdy rememberMe, sessionStorage gdy nie) i ustanawia sesję", verification: unit }
+-  - { id: AC-2, text: '401 → błąd domenowy „Nieprawidłowy login lub hasło", brak zapisu sesji; 429 → „Zbyt wiele prób logowania. Spróbuj za chwilę."', verification: unit }
+-  - { id: AC-3, text: Stan pending ustawiany na Request i czyszczony na Success/Failure (w tym 5xx), verification: unit }
+-  - { id: AC-4, text: "Formularz waliduje email/hasło lokalnie, emituje submit tylko przy poprawnych danych, błędy powiązane z polami i ogłaszane a11y", verification: component }
+-  - { id: AC-5, text: "Przy errorMessage odpowiadającym 401 pole hasła czyszczone reaktywnie, email pozostaje; toggle hasła ma dostępną nazwę", verification: component }
+----
+-
+-# Plan: US-008 — Logowanie — formularz + logika sesji
+-
+-## KROKI
+-1. T1: dodać payloads/ (LoginRequestPayload), api/ (login.request.ts, login.response.ts, auth-api.service.ts) wg api.md
+-2. T1: trójka LoginRequest/Success/Failure w auth-actions.ts, effect exhaustMap+catchError mapujący 401/429 na komunikaty domenowe
+-3. T1: ekstrakcja accessToken/refreshToken do modelu domenowego przed patchState; SessionCheckImpl odzwierciedla isSessionEstablished
+-4. T1: storage sync przez @ngxs/storage-plugin skonfigurowany per rememberMe (localStorage/sessionStorage), nigdy zapis bezpośredni
+-5. T3: dodać walidatory Reactive Forms (required, email, minLength 8), touched|submitted gating komunikatów
+-6. T3: toggle widoczności hasła z aria-label kluczem i18n odzwierciedlającym stan; effect na @Input errorMessage czyszczący hasło przy 401
+-7. T3: klucze i18n wg wzorca componentName.elementName.type dla wszystkich etykiet/błędów/aria
+-8. T4: podłączyć AuthStateService sygnały do inputów LoginFormComponent, submit → login()
+-
+-## ROZSTRZYGNĄŁEM SAM (reguła → decyzja)
+-- Login jako LoginRequest/LoginSuccess/LoginFailure z exhaustMap (submit formularza) ← state.md §2 — trójka async
+-- POST /api/login modelowany jako mock request/response w api/models/, oznaczony [ZAŁOŻENIE], open_question do backendu ← api.md — brak kontraktu → mock
+-- Treść błędów 401/429 dosłownie ze story; pozostałe etykiety — placeholder do czasu makiety, klucze wg componentName.elementName.type ← i18n.md — klucze nadaje agent, treść z makiety/story
+-- rememberMe=true → localStorage, false → sessionStorage, przez storage-plugin, nigdy bezpośrednio ← PK1 — rememberMe steruje trwałością
+-- Czyszczenie pola hasła w komponencie prezentacyjnym jako efekt zmiany @Input errorMessage (401), bez fetchu danych ← PK1 — formularz reaguje deklaratywnie na wejścia
+-
+-## PYTANIA (blokują zatwierdzenie — każde z propozycją)
+-(brak)
+-
+-## POZA ZAKRESEM
+-- Prezentacja 5xx (interceptor/modal — poza tą warstwą)
+-- Integracja snackbar dla 401/429 (poza zakresem story)
+-- Makieta Figma (brak) — layout wg placeholderów do czasu dostarczenia
+-- Historia logowań (osobna story)
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/PK3.md
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/PK3.md b/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/PK3.md
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/PK3.md	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,46 +0,0 @@
+-# PK3 — US-006
+-
+-**Blokad: 11.** Scalenie przedwczesne, dopóki nie zostaną rozstrzygnięte.
+-
+-Gałąź: `forge/US-006/integration` · plan: `.github\agents\forge-kit\experiments\pilot-006\plan.md`
+-
+-## Blokady
+-- T1 (frontend-app-ui-auth): ESKALACJA bez odpowiedzi — Błędy `frontend-app:build/lint/test` są pre-existingowe i niezwiązane z T1 (brakujący `environment.prod.ts`, pusty `environment.dev.ts`, puste `APP_ROUTES` czekające na T2/T6) — `frontend-app` trafił do `affected` wyłącznie przez moje zmiany w plikach i18n. Czy powinienem przenieść klucze i18n do osobnego pliku fixture w bibliotece `frontend-app-ui-auth` (poza `apps/frontend-app/src/assets/i18n`), by T1 nie powodował `affected` na `frontend-app`, a zielony pipeline wymagał naprawy tych 3 błędów dopiero w dedykowanych zadaniach (env-setup, T2, T6)?
+-- T1 (frontend-app-ui-auth): G7 — plik poza zakresem zadania: 'apps/frontend-app/src/assets/i18n/cs-CZ.json' (zakres: libs/apps/frontend-app/ui/auth/src/lib/info-banner, libs/apps/frontend-app/ui/auth/src/index.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.html, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.scss)
+-- T1 (frontend-app-ui-auth): G7 — plik poza zakresem zadania: 'apps/frontend-app/src/assets/i18n/de-DE.json' (zakres: libs/apps/frontend-app/ui/auth/src/lib/info-banner, libs/apps/frontend-app/ui/auth/src/index.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.html, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.scss)
+-- T1 (frontend-app-ui-auth): G7 — plik poza zakresem zadania: 'apps/frontend-app/src/assets/i18n/en-US.json' (zakres: libs/apps/frontend-app/ui/auth/src/lib/info-banner, libs/apps/frontend-app/ui/auth/src/index.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.html, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.scss)
+-- T1 (frontend-app-ui-auth): G7 — plik poza zakresem zadania: 'apps/frontend-app/src/assets/i18n/es-ES.json' (zakres: libs/apps/frontend-app/ui/auth/src/lib/info-banner, libs/apps/frontend-app/ui/auth/src/index.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.html, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.scss)
+-- T1 (frontend-app-ui-auth): G7 — plik poza zakresem zadania: 'apps/frontend-app/src/assets/i18n/it-IT.json' (zakres: libs/apps/frontend-app/ui/auth/src/lib/info-banner, libs/apps/frontend-app/ui/auth/src/index.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.html, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.scss)
+-- T1 (frontend-app-ui-auth): G7 — plik poza zakresem zadania: 'apps/frontend-app/src/assets/i18n/pl-PL.json' (zakres: libs/apps/frontend-app/ui/auth/src/lib/info-banner, libs/apps/frontend-app/ui/auth/src/index.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.html, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.scss)
+-- T1 (frontend-app-ui-auth): G7 — plik poza zakresem zadania: 'apps/frontend-app/src/assets/i18n/pt-PT.json' (zakres: libs/apps/frontend-app/ui/auth/src/lib/info-banner, libs/apps/frontend-app/ui/auth/src/index.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.html, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.scss)
+-- T1 (frontend-app-ui-auth): G7 — plik poza zakresem zadania: 'apps/frontend-app/src/assets/i18n/ro-RO.json' (zakres: libs/apps/frontend-app/ui/auth/src/lib/info-banner, libs/apps/frontend-app/ui/auth/src/index.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.html, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.scss)
+-- T1 (frontend-app-ui-auth): G7 — plik poza zakresem zadania: 'nx.json' (zakres: libs/apps/frontend-app/ui/auth/src/lib/info-banner, libs/apps/frontend-app/ui/auth/src/index.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.html, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.scss)
+-- T2 (frontend-app-feature-auth): koder przerwał pracę — nie uruchomione — konsumuje kontrakty zadania, które nie doszło do zieleni: T1
+-
+-## Zadania
+-
+-| zadanie | biblioteka | implementacja | G7–G9 | rundy naprawy | plików |
+-|---|---|---|---|---|---|
+-| T1 | frontend-app-ui-auth | ESKALACJA | FAIL | 1 | 11 |
+-| T2 | frontend-app-feature-auth | PRZERWANY | — | 0 | 0 |
+-
+-Fale: 1. [T1] → 2. [T2]
+-
+-## Eskalacje (decyzja spoza planu — koder czeka)
+-
+-- **T1 (frontend-app-ui-auth)**: Błędy `frontend-app:build/lint/test` są pre-existingowe i niezwiązane z T1 (brakujący `environment.prod.ts`, pusty `environment.dev.ts`, puste `APP_ROUTES` czekające na T2/T6) — `frontend-app` trafił do `affected` wyłącznie przez moje zmiany w plikach i18n. Czy powinienem przenieść klucze i18n do osobnego pliku fixture w bibliotece `frontend-app-ui-auth` (poza `apps/frontend-app/src/assets/i18n`), by T1 nie powodował `affected` na `frontend-app`, a zielony pipeline wymagał naprawy tych 3 błędów dopiero w dedykowanych zadaniach (env-setup, T2, T6)?
+-
+-## Odstępstwa od KROKÓW
+-
+-- **T1**: Krok 1 (scaffold przez generator) → generator Nx podwoił suffix tworząc `info-banner.component.component.ts`; usunąłem błędne pliki i stworzyłem ręcznie poprawne → błąd narzędzia (przekazana ścieżka zawierała już `.component`, generator dodał drugi sufiks).
+-
+-## Recenzja
+-
+-(recenzja nie została wykonana)
+-
+-## Metryki
+-
+-- koszt: **$1.78** (planer $0.13 · koderzy $1.65 · recenzent $0.00)
+-- czas: **20.0 min**
+-- zadania: 0/2 zielone, 0 za pierwszym podejściem, 1 rund naprawy w pętli kodera
+-- interwencje człowieka: 2 (PK1 0 · PK2 1 · eskalacje 1)
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/plan.md
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/plan.md b/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/plan.md
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/plan.md	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,44 +0,0 @@
+----
+-story: US-006-baner-informacyjny-logowanie
+-binding:
+-  libraries:
+-    - { name: frontend-app-ui-auth, status: existing }
+-    - { name: frontend-app-feature-auth, status: existing, dependsOn: [ frontend-app-ui-auth ] }
+-  contracts:
+-    - { key: InfoBannerComponent, library: frontend-app-ui-auth, grounding: { providedByTask: T1 } }
+-    - { key: LoginViewComponent, library: frontend-app-feature-auth, grounding: { file: libs/apps/frontend-app/feature/auth/src/lib/login-view/login-view.component.ts, line: 13 } }
+-tasks:
+-  - { id: T1, title: "Stwórz statyczny komponent InfoBannerComponent (Dummy, type:ui) z rolą region i etykietą a11y", library: frontend-app-ui-auth, provides: [ InfoBannerComponent ], scope: [ libs/apps/frontend-app/ui/auth/src/lib/info-banner/, libs/apps/frontend-app/ui/auth/src/index.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.ts, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.html, libs/apps/frontend-app/ui/auth/src/lib/info-banner/info-banner.component.scss ] }
+-  - { id: T2, title: Osadź InfoBannerComponent nad LoginFormComponent w kolumnie formularza LoginViewComponent, library: frontend-app-feature-auth, consumes: [ InfoBannerComponent ], scope: [ libs/apps/frontend-app/feature/auth/src/lib/login-view/login-view.component.ts, libs/apps/frontend-app/feature/auth/src/lib/login-view/login-view.component.html, libs/apps/frontend-app/feature/auth/src/lib/login-view/login-view.component.scss ] }
+-acceptanceCriteria:
+-  - { id: AC-1, text: "Baner renderuje się nad LoginFormComponent, wewnątrz kolumny formularza (SC1)", verification: component }
+-  - { id: AC-2, text: "Treść banera pochodzi wyłącznie z kluczy i18n, brak HttpClient/wywołań sieciowych w komponencie (SC2)", verification: static }
+-  - { id: AC-3, text: Baner widoczny na publicznej trasie /login bez sesji (SC3), verification: component }
+-  - { id: AC-4, text: 'Baner responsywny per breakpoint, nie zasłania pól ani przycisku „Zaloguj" (SC4)', verification: component }
+-  - { id: AC-5, text: 'Baner ma role="region" z aria-labelledby/aria-label, brak aria-live/role=alert (SC5)', verification: unit }
+----
+-
+-# Plan: US-006-baner-informacyjny-logowanie — Statyczny baner informacyjny na logowaniu
+-
+-## KROKI
+-1. T1: dodać InfoBannerComponent (standalone, OnPush) z template zawierającym role="region" + aria-labelledby wskazujące na nagłówek banera
+-2. T1: klucze i18n: auth.login.infoBanner.title = 'Informacja porządkowa', auth.login.infoBanner.text = neutralny komunikat porządkowy (np. o charakterze regulaminowym serwisu) — dodać do plików tłumaczeń wg i18n.md
+-3. T1: SCSS wg ui.md (BEM, mobile-first) — layout dopasowany do istniejącej kolumny formularza w LoginFormComponent
+-4. T1: wyeksportować komponent przez index.ts biblioteki (barrel)
+-5. T2: zaimportować InfoBannerComponent przez @gdprrt-app/ui/auth w LoginViewComponent, umieścić w template jako sibling nad <lib-login-form>
+-6. T2: sprawdzić w SCSS widoku, że spacing nie nachodzi na formularz na żadnym breakpoincie
+-
+-## ROZSTRZYGNĄŁEM SAM (reguła → decyzja)
+-- Baner jako nowy komponent w istniejącej bibliotece frontend-app-ui-auth, bez state/feature logiki. ← architecture.md §4 (Dummy/type:ui) — notatka PK1: baner czysto prezentacyjny
+-- Baner umieszczony nad LoginFormComponent, wewnątrz kolumny formularza w LoginViewComponent. ← notatka PK1 — pozycja rozstrzygnięta słownie, wiążąco
+-- Użyto role="region" + aria-labelledby, bez aria-live/role="alert". ← a11y.md §6 — treść statyczna obecna od pierwszego renderu
+-- Klucze i18n: auth.login.infoBanner.title = 'Informacja porządkowa', auth.login.infoBanner.text = neutralny komunikat porządkowy o charakterze regulaminowym; treść ostateczna finalizowana w PR bez dalszych ustaleń. ← i18n.md — format kluczy: <domena>.<widok>.<komponent>.<pole>
+-- AC-1/AC-3/AC-4 weryfikowane component-testem InfoBannerComponent i LoginViewComponent. ← testing.md §2 — component testy ≥80% dla type:ui
+-
+-## PYTANIA (blokują zatwierdzenie — każde z propozycją)
+-(brak)
+-
+-## POZA ZAKRESEM
+-- Dynamiczna treść / API dla banera
+-- Zamykanie banera, CTA, warianty typu
+-- Persystencja stanu banera
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/result.json
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/result.json b/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/result.json
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006/result.json	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,88 +0,0 @@
+-{
+-  "status": "review",
+-  "metrics": {
+-    "costUsd": {
+-      "planner": 0.12630945,
+-      "coders": 1.6536597,
+-      "reviewer": 0,
+-      "total": 1.7799691499999999
+-    },
+-    "durationMinutes": 20.028866666666666,
+-    "tasks": {
+-      "total": 2,
+-      "green": 0,
+-      "greenFirstTry": 0,
+-      "repaired": 1,
+-      "repairRounds": 1,
+-      "escalated": 1
+-    },
+-    "interventions": {
+-      "pk1Questions": 0,
+-      "pk2Corrections": 1,
+-      "escalations": 1,
+-      "total": 2
+-    }
+-  },
+-  "findings": [],
+-  "waves": [
+-    [
+-      "T1"
+-    ],
+-    [
+-      "T2"
+-    ]
+-  ],
+-  "tasks": [
+-    {
+-      "taskId": "T1",
+-      "library": "frontend-app-ui-auth",
+-      "ok": false,
+-      "rounds": 1,
+-      "escalated": true,
+-      "question": "Błędy `frontend-app:build/lint/test` są pre-existingowe i niezwiązane z T1 (brakujący `environment.prod.ts`, pusty `environment.dev.ts`, puste `APP_ROUTES` czekające na T2/T6) — `frontend-app` trafił do `affected` wyłącznie przez moje zmiany w plikach i18n. Czy powinienem przenieść klucze i18n do osobnego pliku fixture w bibliotece `frontend-app-ui-auth` (poza `apps/frontend-app/src/assets/i18n`), by T1 nie powodował `affected` na `frontend-app`, a zielony pipeline wymagał naprawy tych 3 błędów dopiero w dedykowanych zadaniach (env-setup, T2, T6)?",
+-      "changedFiles": [
+-        "apps/frontend-app/src/assets/i18n/cs-CZ.json",
+-        "apps/frontend-app/src/assets/i18n/de-DE.json",
+-        "apps/frontend-app/src/assets/i18n/en-US.json",
+-        "apps/frontend-app/src/assets/i18n/es-ES.json",
+-        "apps/frontend-app/src/assets/i18n/it-IT.json",
+-        "apps/frontend-app/src/assets/i18n/pl-PL.json",
+-        "apps/frontend-app/src/assets/i18n/pt-PT.json",
+-        "apps/frontend-app/src/assets/i18n/ro-RO.json",
+-        "libs/apps/frontend-app/ui/auth/src/index.ts",
+-        "nx.json",
+-        "libs/apps/frontend-app/ui/auth/src/lib/info-banner/"
+-      ],
+-      "diffGatesOk": false,
+-      "deviations": [
+-        {
+-          "step": "Krok 1 (scaffold przez generator)",
+-          "change": "generator Nx podwoił suffix tworząc `info-banner.component.component.ts`; usunąłem błędne pliki i stworzyłem ręcznie poprawne",
+-          "reason": "błąd narzędzia (przekazana ścieżka zawierała już `.component`, generator dodał drugi sufiks)."
+-        }
+-      ],
+-      "usage": {
+-        "inputTokens": 2457131,
+-        "outputTokens": 28888,
+-        "cacheReadTokens": 2316344,
+-        "cacheWriteTokens": 137434,
+-        "calls": 58,
+-        "model": "claude-sonnet-4.6",
+-        "costUsd": 1.6536597
+-      }
+-    },
+-    {
+-      "taskId": "T2",
+-      "library": "frontend-app-feature-auth",
+-      "ok": false,
+-      "rounds": 0,
+-      "escalated": false,
+-      "error": "nie uruchomione — konsumuje kontrakty zadania, które nie doszło do zieleni: T1",
+-      "changedFiles": [],
+-      "diffGatesOk": null,
+-      "deviations": [],
+-      "usage": null
+-    }
+-  ],
+-  "elapsedMinutes": 20
+-}
+\ No newline at end of file
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/auth-probe.mjs
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/auth-probe.mjs b/.ai-agentic-workspace/workflows/forge-kit/experiments/auth-probe.mjs
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/auth-probe.mjs	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,32 +0,0 @@
+-/* ─────────────────────────────────────────────────────────────────────────── *
+- * Diagnostyka uwierzytelnienia sesji SDK: sam status, ZERO wywołań modelu.
+- *
+- * Odpowiada na pytanie „czy runtime widzi zalogowanego użytkownika", które przy
+- * błędzie „Session was not created with authentication info" jest pierwszym
+- * krokiem — zanim ktokolwiek zacznie ruszać tokeny.
+- *
+- * Uruchomienie z roota repo:
+- *   node .ai-agentic-workspace/workflows/forge-kit/experiments/auth-probe.mjs
+- * ─────────────────────────────────────────────────────────────────────────── */
+-
+-import { Copilot } from '../../../scripts/copilot.js';
+-
+-const copilot = new Copilot();
+-await copilot._ensureStarted();
+-const client = copilot._client;
+-
+-console.log('status klienta:', JSON.stringify(await client.getStatus()));
+-try {
+-  console.log('status uwierzytelnienia:', JSON.stringify(await client.getAuthStatus()));
+-} catch (error) {
+-  console.log('getAuthStatus() padło:', error?.message ?? error);
+-}
+-try {
+-  const models = await client.listModels();
+-  console.log(`modele widoczne dla sesji: ${models.length}`);
+-} catch (error) {
+-  console.log('listModels() padło:', error?.message ?? error);
+-}
+-
+-await copilot.stop();
+-process.exit(0);
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/etap0.mjs
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/etap0.mjs b/.ai-agentic-workspace/workflows/forge-kit/experiments/etap0.mjs
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/etap0.mjs	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,86 +0,0 @@
+-/* ─────────────────────────────────────────────────────────────────────────── *
+- * Eksperymenty Etapu 0 (PLAN 0.1 + 0.2) — wyniki wpisywane do CHANGELOG.md.
+- *
+- *   0.1 Buforowanie prefiksu przez copilot.js: trzy zimne sesje —
+- *       A (długi prompt), B (identyczny prompt <1 min później),
+- *       C (ten sam prompt z ZMIENIONYM PIERWSZYM znakiem).
+- *       Odczyt pól usage.cacheReadTokens / cacheWriteTokens per ask.
+- *   0.2 Zdolność SDK do sesji wieloturowej i wznowienia:
+- *       dwie tury w jednej sesji (retencja kontekstu), potem nowa sesja
+- *       z tym samym sessionId (wasResumed) i trzecia tura.
+- *
+- * Uruchomienie z roota repo:  node .ai-agentic-workspace/workflows/forge-kit/experiments/etap0.mjs
+- * Model: Haiku (najtańszy; semantyka buforowania jak w pozostałych Claude).
+- * ─────────────────────────────────────────────────────────────────────────── */
+-
+-import { Copilot, MODELS } from '../../../scripts/copilot.js';
+-
+-const MODEL = MODELS.HAIKU;
+-const copilot = new Copilot();
+-
+-/** Deterministyczny długi prefiks (~22 tys. znaków ≈ 5,5 tys. tokenów). */
+-function buildLongPrefix() {
+-  const lines = ['Kontekst referencyjny procesu forge-kit (materiał stały eksperymentu buforowania):'];
+-  for (let index = 1; index <= 250; index++) {
+-    lines.push(
+-      `Reguła ${String(index).padStart(3, '0')}: biblioteka warstwy feature może zależeć od state, ui, core, util oraz model zgodnie z tagami nx.`,
+-    );
+-  }
+-  return lines.join('\n');
+-}
+-
+-const LONG_PREFIX = buildLongPrefix();
+-const QUESTION = '\n\nPytanie kontrolne: odpowiedz jednym słowem — jak nazywa się pierwsza litera greckiego alfabetu?';
+-
+-/** Jedno pytanie w świeżej sesji; zwraca usage + czas. */
+-async function askInFreshSession(label, prompt) {
+-  const session = copilot.create({ model: MODEL, silent: true });
+-  await session.start();
+-  const result = await session.ask(prompt, { timeout: 120_000 });
+-  await session.end();
+-  const usage = result.usage;
+-  console.log(
+-    `${label}: ${result.durationMs} ms | in=${usage.inputTokens} out=${usage.outputTokens} ` +
+-      `cacheRead=${usage.cacheReadTokens} cacheWrite=${usage.cacheWriteTokens} | model=${usage.model}`,
+-  );
+-  return { usage, durationMs: result.durationMs };
+-}
+-
+-console.log('═══ Eksperyment 0.1: buforowanie prefiksu (3 zimne sesje) ═══');
+-const runA = await askInFreshSession('A zimny        ', LONG_PREFIX + QUESTION);
+-const runB = await askInFreshSession('B identyczny   ', LONG_PREFIX + QUESTION);
+-const runC = await askInFreshSession('C mutacja 1 zn.', 'X' + LONG_PREFIX.slice(1) + QUESTION);
+-
+-const cacheWorks = runB.usage.cacheReadTokens > 1000;
+-const prefixKeyed = cacheWorks && runC.usage.cacheReadTokens < runB.usage.cacheReadTokens / 2;
+-console.log('\nWerdykt 0.1:');
+-console.log(`  buforowanie między osobnymi sesjami: ${cacheWorks ? 'DZIAŁA (cacheRead w B)' : 'BRAK ŚLADU (cacheRead≈0 w B)'}`);
+-console.log(`  klucz prefiksowy (mutacja 1. znaku psuje trafienie): ${prefixKeyed ? 'POTWIERDZONY' : cacheWorks ? 'NIEPOTWIERDZONY' : 'n/d'}`);
+-
+-console.log('\n═══ Eksperyment 0.2: sesja wieloturowa + wznowienie po sessionId ═══');
+-const sessionId = `forge-kit-etap0-${Date.now()}`;
+-
+-const firstSession = copilot.create({ model: MODEL, silent: true, sessionId });
+-await firstSession.start();
+-await firstSession.ask('Zapamiętaj liczbę 47. Odpowiedz dokładnie jednym słowem: OK', { timeout: 120_000 });
+-const secondTurn = await firstSession.ask('Jaką liczbę kazałem zapamiętać? Odpowiedz samą liczbą.', { timeout: 120_000 });
+-const secondTurnAnswer = secondTurn.stdout.trim();
+-console.log(`tura 2 w tej samej sesji → "${secondTurnAnswer}" (oczekiwane: 47)`);
+-await firstSession.end();
+-
+-const resumedSession = copilot.create({ model: MODEL, silent: true, sessionId });
+-await resumedSession.start();
+-console.log(`wznowienie z dysku: wasResumed=${resumedSession.wasResumed}`);
+-const thirdTurn = await resumedSession.ask('Jaką liczbę kazałem zapamiętać wcześniej w tej rozmowie? Odpowiedz samą liczbą.', { timeout: 120_000 });
+-const thirdTurnAnswer = thirdTurn.stdout.trim();
+-console.log(`tura po wznowieniu → "${thirdTurnAnswer}" (oczekiwane: 47)`);
+-await resumedSession.end();
+-await copilot.deleteSession(sessionId);
+-
+-console.log('\nWerdykt 0.2:');
+-console.log(`  wiele tur w jednej sesji (retencja kontekstu): ${secondTurnAnswer.includes('47') ? 'DZIAŁA' : 'NIE DZIAŁA'}`);
+-console.log(`  wznowienie sesji po sessionId (dialog przez granicę procesów): ${resumedSession.wasResumed && thirdTurnAnswer.includes('47') ? 'DZIAŁA' : 'NIE DZIAŁA'}`);
+-
+-const total = copilot.cumulativeUsage;
+-console.log(`\nKoszt łączny eksperymentów: ~$${(total.costUsd ?? 0).toFixed(4)} (${total.totalTokens} tokenów, ${total.sessions} sesji)`);
+-await copilot.stop();
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/etap0b.mjs
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/etap0b.mjs b/.ai-agentic-workspace/workflows/forge-kit/experiments/etap0b.mjs
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/etap0b.mjs	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,46 +0,0 @@
+-/* ─────────────────────────────────────────────────────────────────────────── *
+- * Eksperyment 0.1b (uzupełnienie): trafienia pamięci podręcznej WEWNĄTRZ jednej
+- * sesji wieloturowej — druga tura po długim prefiksie powinna czytać z cache
+- * (usage.cacheReadTokens > 0), skoro między sesjami trafień nie ma (etap0.mjs).
+- *
+- * Uruchomienie z roota repo:  node .ai-agentic-workspace/workflows/forge-kit/experiments/etap0b.mjs
+- * ─────────────────────────────────────────────────────────────────────────── */
+-
+-import { Copilot, MODELS } from '../../../scripts/copilot.js';
+-
+-const copilot = new Copilot();
+-
+-function buildLongPrefix() {
+-  const lines = ['Kontekst referencyjny procesu forge-kit (materiał stały eksperymentu buforowania, wariant B):'];
+-  for (let index = 1; index <= 250; index++) {
+-    lines.push(
+-      `Reguła ${String(index).padStart(3, '0')}: biblioteka warstwy feature może zależeć od state, ui, core, util oraz model zgodnie z tagami nx.`,
+-    );
+-  }
+-  return lines.join('\n');
+-}
+-
+-const session = copilot.create({ model: MODELS.HAIKU, silent: true });
+-await session.start();
+-
+-const firstTurn = await session.ask(
+-  buildLongPrefix() + '\n\nPytanie: ile reguł wymieniono powyżej? Odpowiedz samą liczbą.',
+-  { timeout: 120_000 },
+-);
+-const firstUsage = firstTurn.usage;
+-console.log(`tura 1 (zimna):  in=${firstUsage.inputTokens} cacheRead=${firstUsage.cacheReadTokens} cacheWrite=${firstUsage.cacheWriteTokens}`);
+-
+-const secondTurn = await session.ask('A teraz odpowiedz jednym słowem: od jakiej warstwy może zależeć util według reguł wyżej?', {
+-  timeout: 120_000,
+-});
+-const secondUsage = secondTurn.usage;
+-console.log(`tura 2 (ciepła): in=${secondUsage.inputTokens} cacheRead=${secondUsage.cacheReadTokens} cacheWrite=${secondUsage.cacheWriteTokens}`);
+-
+-await session.end();
+-
+-const inSessionHit = secondUsage.cacheReadTokens > 1000;
+-console.log(`\nWerdykt 0.1b: trafienia WEWNĄTRZ sesji: ${inSessionHit ? 'DZIAŁAJĄ (tura 2 czyta prefiks z cache)' : 'BRAK (cacheRead≈0 także w tej samej sesji)'}`);
+-
+-const total = copilot.cumulativeUsage;
+-console.log(`Koszt: ~$${(total.costUsd ?? 0).toFixed(4)}`);
+-await copilot.stop();
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/m2-smoke.mjs
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/m2-smoke.mjs b/.ai-agentic-workspace/workflows/forge-kit/experiments/m2-smoke.mjs
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/m2-smoke.mjs	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,95 +0,0 @@
+-/* ─────────────────────────────────────────────────────────────────────────── *
+- * Smoke kamienia M2 (PLAN Etap 4): koder wykonuje zadanie z RĘCZNIE napisanego
+- * planu end-to-end: parse → bramki G1–G6 → brif → sesja implementatora
+- * (wieloturowa, enableTools) → pętla weryfikacji → bramki G7–G9 → raport.
+- *
+- * Uruchomienie z roota repo:  node .ai-agentic-workspace/workflows/forge-kit/experiments/m2-smoke.mjs
+- * Zmiany zadania zostają NIEZACOMMITOWANE w drzewie roboczym do inspekcji.
+- * ─────────────────────────────────────────────────────────────────────────── */
+-
+-import fs from 'node:fs';
+-import { execSync } from 'node:child_process';
+-
+-import { Copilot, MODELS } from '../../../scripts/copilot.js';
+-import { getIndex } from '../../../scripts/code-index/index.js';
+-import { Templates } from '../templates/index.js';
+-import { Gates } from '../gates/index.js';
+-import { Coder } from '../coder/index.js';
+-
+-const TASK_ID = 'T1';
+-const LIBRARY = 'frontend-app-core-auth';
+-
+-console.log('═══ M2 SMOKE: plan → bramki → implementator → weryfikacja → bramki diffu ═══\n');
+-
+-const plan = Templates.parsePlan(fs.readFileSync('.ai-agentic-workspace/workflows/forge-kit/experiments/m2/plan.md', 'utf8'));
+-
+-const planVerdict = await Gates.planGates(plan);
+-console.log(`[1/5] bramki planu G1–G6: ${planVerdict.ok ? 'PASS' : 'FAIL'}`);
+-if (!planVerdict.ok) {
+-  console.log(JSON.stringify(planVerdict.findings, null, 1));
+-  process.exit(1);
+-}
+-
+-console.log('[pre-flight] baseline: bieg weryfikacji PRZED zadaniem (zadanie startuje tylko z zielonego)');
+-const baseline = await Coder.runVerification({ base: 'HEAD', onLog: (message) => console.log(`      ${message}`) });
+-if (!baseline.ok) {
+-  const failedStep = baseline.steps.find((step) => !step.ok && !step.skipped);
+-  console.log(`\n[pre-flight] BASELINE CZERWONY w kroku '${failedStep.id}' — napraw repo przed zadaniem. Końcówka wyjścia:`);
+-  console.log(failedStep.outputTail.slice(-1500));
+-  process.exit(2);
+-}
+-
+-const db = Coder.getDb();
+-const beforeApi = Coder.barrelSnapshot(db, [LIBRARY]);
+-const brief = Coder.buildTaskBrief({ plan, taskId: TASK_ID });
+-console.log(`[2/5] brif zbudowany (${brief.length} znaków); powierzchnia przed: ${beforeApi[LIBRARY].length} eksportów`);
+-
+-const statusBefore = new Set(
+-  execSync('git status --porcelain', { encoding: 'utf8' }).split('\n').filter(Boolean).map((line) => line.slice(3).trim()),
+-);
+-
+-const copilot = new Copilot();
+-const session = copilot.create({
+-  model: MODELS.SONNET5,
+-  enableTools: true,
+-  progress: true,
+-  timeout: 15 * 60 * 1000,
+-});
+-await session.start();
+-
+-console.log('[3/5] sesja implementatora (wieloturowa) — start');
+-const implementation = await Coder.implementTask({
+-  session,
+-  brief,
+-  runVerification: () => Coder.runVerification({ base: 'HEAD', onLog: (message) => console.log(`      ${message}`) }),
+-  maxRepairRounds: 2,
+-  onLog: (message) => console.log(`    ${message}`),
+-});
+-const sessionUsage = session.totalUsage;
+-await session.end();
+-console.log(
+-  `[3/5] implementacja: ${implementation.ok ? 'GREEN' : 'RED'} po ${implementation.rounds} turach naprawczych | ` +
+-    `koszt sesji ~$${(sessionUsage.costUsd ?? 0).toFixed(4)} (cacheRead=${sessionUsage.cacheReadTokens})`,
+-);
+-
+-const changedFiles = execSync('git status --porcelain', { encoding: 'utf8' })
+-  .split('\n')
+-  .filter(Boolean)
+-  .map((line) => line.slice(3).trim().replace(/^"|"$/g, ''))
+-  .filter((file) => !file.startsWith('.github/') && !statusBefore.has(file));
+-console.log(`[4/5] zmienione pliki zadania: ${changedFiles.join(', ') || '(brak)'}`);
+-
+-const freshDb = getIndex({ sync: 'force' });
+-const afterApi = Coder.barrelSnapshot(freshDb, [LIBRARY]);
+-const diffVerdict = Coder.diffGatesForTask({ plan, taskId: TASK_ID, changedFiles, beforeApi, afterApi });
+-console.log(`[4/5] bramki diffu G7–G9: ${diffVerdict.ok ? 'PASS' : 'FAIL'}`);
+-if (diffVerdict.findings.length > 0) console.log(JSON.stringify(diffVerdict.findings, null, 1));
+-
+-const report = Coder.renderDeviationReport(Coder.createDeviationLog(), { taskId: TASK_ID, storyId: plan.story });
+-fs.writeFileSync('.ai-agentic-workspace/workflows/forge-kit/experiments/m2/deviation-report.md', report, 'utf8');
+-console.log('[5/5] raport odstępstw zapisany (pusty dziennik — brak odstępstw od KROKÓW)');
+-
+-const pass = implementation.ok && diffVerdict.ok;
+-console.log(`\n═══ M2 SMOKE: ${pass ? 'PASS — kamień M2 osiągnięty' : 'FAIL'} ═══`);
+-await copilot.stop();
+-process.exit(pass ? 0 : 1);
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/m3-smoke.mjs
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/m3-smoke.mjs b/.ai-agentic-workspace/workflows/forge-kit/experiments/m3-smoke.mjs
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/m3-smoke.mjs	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,193 +0,0 @@
+-/* ─────────────────────────────────────────────────────────────────────────── *
+- * Smoke kamienia M3 (PLAN Etap 6): pełny przepływ PK1 → zwiad → plan → bramki
+- * → PK2 → szew do kodera, na story 008 (ta sama, co złoto zwiadu).
+- *
+- * Człowiek jest zasymulowany deterministycznie: PK1 odpowiada „ok" (przyjęcie
+- * propozycji — najczęstszy przypadek wg README), PK2 deleguje pytania blokujące
+- * („zdecyduj sam") albo — gdy planer o nic nie pyta — zgłasza korektę, po czym
+- * zatwierdza plan.
+- *
+- * Uruchomienie z roota repo:  node .ai-agentic-workspace/workflows/forge-kit/experiments/m3-smoke.mjs
+- * Z wykonaniem zadania przez kodera (edytuje pliki repo!):  … m3-smoke.mjs --with-coder
+- * ─────────────────────────────────────────────────────────────────────────── */
+-
+-import fs from 'node:fs';
+-import { execSync } from 'node:child_process';
+-
+-import yaml from 'yaml';
+-
+-import { Copilot } from '../../../scripts/copilot.js';
+-import { getIndex } from '../../../scripts/code-index/index.js';
+-import { Coder } from '../coder/index.js';
+-import { Planner } from '../planner/index.js';
+-import { Templates } from '../templates/index.js';
+-
+-const PLAN_PATH = '.ai-agentic-workspace/workflows/forge-kit/experiments/m3/plan.md';
+-const NOTE_PATH = '.ai-agentic-workspace/workflows/forge-kit/experiments/m3/intent-note.md';
+-const FIXTURE = '.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/real-008-login.yaml';
+-const WITH_CODER = process.argv.includes('--with-coder');
+-
+-const story = yaml.parse(fs.readFileSync(FIXTURE, 'utf8')).case.story_text;
+-const storyId = 'US-008';
+-const log = (message) => console.log(`    ${message}`);
+-
+-console.log('═══ M3 SMOKE: PK1 → zwiad → planer → bramki → PK2 → szew kodera ═══\n');
+-
+-const copilot = new Copilot();
+-const startedAt = Date.now();
+-
+-/* ── PK1 ─────────────────────────────────────────────────────────────────── */
+-console.log('[1/5] PK1 — intencja (człowiek z puszki: „ok" na każdą propozycję)');
+-const askedQuestions = [];
+-const intent = await Planner.runIntent({
+-  story,
+-  storyId,
+-  copilot,
+-  date: new Date().toISOString().slice(0, 10),
+-  askHuman: async (question) => {
+-    askedQuestions.push(question);
+-    console.log(`      ? ${question.question}\n        (propozycja: ${question.proposal}) → ok`);
+-    return 'ok';
+-  },
+-  onLog: log,
+-});
+-fs.mkdirSync('.ai-agentic-workspace/workflows/forge-kit/experiments/m3', { recursive: true });
+-fs.writeFileSync(NOTE_PATH, intent.note, 'utf8');
+-console.log(`[1/5] pytań do człowieka: ${askedQuestions.length}, reguł bez pytania: ${intent.appliedRules.length}`);
+-
+-/* ── Zwiad + planer + bramki ──────────────────────────────────────────────── */
+-console.log('\n[2/5] zwiad + sesja planera + bramki G1–G6');
+-const planned = await Planner.planStory({
+-  story,
+-  storyId,
+-  intentNote: intent.note,
+-  copilot,
+-  onLog: log,
+-});
+-
+-console.log(`[2/5] status: ${planned.status}`);
+-if (planned.status !== Planner.PLAN_STATUSES.READY) {
+-  console.log('— powód —');
+-  if (planned.gaps) console.log(`braki do ponownego zwiadu:\n${planned.gaps.map((gap) => `  - ${gap}`).join('\n')}`);
+-  if (planned.libraries) console.log(`zbiór roboczy (epik): ${planned.libraries.join(', ')}`);
+-  if (planned.findings?.length) console.log(JSON.stringify(planned.findings, null, 1));
+-  if (planned.errors) console.log(planned.errors.join('\n'));
+-  if (planned.artifact) {
+-    console.log('\n— plan odrzucony przez bramki (do diagnozy) —');
+-    console.log(planned.artifact.split('\n').map((line, index) => `  ${String(index + 1).padStart(3)} │ ${line}`).join('\n'));
+-  }
+-  await copilot.stop();
+-  console.log('\n═══ M3 SMOKE: FAIL ═══');
+-  process.exit(1);
+-}
+-
+-/* ── PK2 ─────────────────────────────────────────────────────────────────── */
+-console.log('\n[3/5] PK2 — ekran człowieka:\n');
+-console.log(planned.artifact.split('\n').map((line) => `  │ ${line}`).join('\n'));
+-
+-const blocking = Planner.blockingQuestions(planned.emission);
+-const correction = blocking.length > 0
+-  ? 'zdecyduj sam'
+-  : 'Dopisz do POZA ZAKRESEM: historia logowań (osobna story).';
+-console.log(`\n[3/5] korekta człowieka: „${correction}"${blocking.length > 0 ? ` (${blocking.length} pytań blokujących)` : ''}`);
+-
+-const revised = await Planner.revisePlan({
+-  session: planned.session,
+-  plan: planned.plan,
+-  emission: planned.emission,
+-  correction,
+-  state: planned.state,
+-  onLog: log,
+-});
+-if (revised.status !== Planner.PLAN_STATUSES.READY) {
+-  console.log(`[3/5] korekta nieudana (${revised.status})`);
+-  if (revised.findings?.length) console.log(JSON.stringify(revised.findings, null, 1));
+-  await copilot.stop();
+-  console.log('\n═══ M3 SMOKE: FAIL ═══');
+-  process.exit(1);
+-}
+-console.log('[3/5] różnica planu (policzona w kodzie, nie przez model):');
+-console.log(Planner.formatPlanDiff(revised.diff).split('\n').map((line) => `  │ ${line}`).join('\n'));
+-
+-const finalEmission = revised.emission;
+-const finalPlan = revised.plan;
+-const stillBlocking = Planner.blockingQuestions(finalEmission);
+-console.log(`\n[4/5] „zatwierdzam" — pytania blokujące: ${stillBlocking.length === 0 ? 'brak' : stillBlocking.map((q) => q.question).join('; ')}`);
+-Planner.freezePlan({ artifact: revised.artifact, filePath: PLAN_PATH });
+-console.log(`[4/5] plan zamrożony: ${PLAN_PATH}`);
+-
+-const sessionUsage = planned.session.totalUsage;
+-await copilot.stop();
+-
+-/* ── Szew do kodera ───────────────────────────────────────────────────────── */
+-console.log('\n[5/5] szew plan → koder (deterministycznie, bez LLM)');
+-const frozenPlan = Templates.parsePlan(fs.readFileSync(PLAN_PATH, 'utf8'));
+-const briefs = frozenPlan.tasks.map((task) => ({
+-  id: task.id,
+-  library: task.library,
+-  brief: Coder.buildTaskBrief({ plan: frozenPlan, taskId: task.id }),
+-}));
+-for (const entry of briefs) {
+-  console.log(`      ${entry.id} (${entry.library}): brif ${entry.brief.length} znaków`);
+-}
+-
+-/* ── Werdykt ──────────────────────────────────────────────────────────────── */
+-const elapsedMinutes = ((Date.now() - startedAt) / 60000).toFixed(1);
+-const planLines = revised.artifact.split('\n').length;
+-console.log('\n— werdykt —');
+-console.log(`plan zielony na bramkach:  TAK (${finalPlan.tasks.length} zadań, ${finalPlan.binding.libraries.length} bibliotek, ${planLines} linii)`);
+-console.log(`pytania blokujące:         ${stillBlocking.length === 0 ? 'rozstrzygnięte' : `POZOSTAŁY (${stillBlocking.length})`}`);
+-console.log(`kwerendy punktowe indeksu: ${revised.state.askedIndexQueries.length}, standardy: ${revised.state.standardsLoaded.join(', ') || '(brak)'}`);
+-console.log(`brify dla kodera:          ${briefs.length}/${frozenPlan.tasks.length}`);
+-console.log(`koszt sesji planera:       ~$${(sessionUsage.costUsd ?? 0).toFixed(4)} (cacheRead=${sessionUsage.cacheReadTokens}), czas całości ${elapsedMinutes} min`);
+-
+-const pass = stillBlocking.length === 0 && briefs.length === frozenPlan.tasks.length && briefs.every((entry) => entry.brief.length > 0);
+-if (!WITH_CODER) {
+-  console.log('\n(koder pominięty — uruchom z --with-coder, żeby wykonać zadanie z tego planu; edytuje pliki repo)');
+-  console.log(`\n═══ M3 SMOKE (bez kodera): ${pass ? 'PASS' : 'FAIL'} ═══`);
+-  process.exit(pass ? 0 : 1);
+-}
+-
+-/* ── Koder na zadaniu z planu (opcjonalnie) ───────────────────────────────── */
+-const task = frozenPlan.tasks[0];
+-console.log(`\n[6/6] koder — zadanie ${task.id} (${task.library})`);
+-const baseline = await Coder.runVerification({ base: 'HEAD', onLog: log });
+-if (!baseline.ok) {
+-  const failedStep = baseline.steps.find((step) => !step.ok && !step.skipped);
+-  console.log(`[pre-flight] BASELINE CZERWONY w kroku '${failedStep.id}' — napraw repo przed zadaniem.`);
+-  console.log(failedStep.outputTail.slice(-1500));
+-  process.exit(2);
+-}
+-
+-const db = Coder.getDb();
+-const beforeApi = Coder.barrelSnapshot(db, [task.library]);
+-const statusBefore = new Set(
+-  execSync('git status --porcelain', { encoding: 'utf8' }).split('\n').filter(Boolean).map((line) => line.slice(3).trim()),
+-);
+-
+-const coderCopilot = new Copilot();
+-const session = coderCopilot.create({ model: 'claude-sonnet-5', enableTools: true, progress: true, timeout: 15 * 60 * 1000 });
+-await session.start();
+-const implementation = await Coder.implementTask({
+-  session,
+-  brief: briefs[0].brief,
+-  runVerification: () => Coder.runVerification({ base: 'HEAD', onLog: log }),
+-  onLog: log,
+-});
+-await session.end();
+-await coderCopilot.stop();
+-
+-const changedFiles = execSync('git status --porcelain', { encoding: 'utf8' })
+-  .split('\n').filter(Boolean)
+-  .map((line) => line.slice(3).trim().replace(/^"|"$/g, ''))
+-  .filter((file) => !file.startsWith('.github/') && !statusBefore.has(file));
+-const afterApi = Coder.barrelSnapshot(getIndex({ sync: 'force' }), [task.library]);
+-const diffVerdict = Coder.diffGatesForTask({ plan: frozenPlan, taskId: task.id, changedFiles, beforeApi, afterApi });
+-
+-console.log(`[6/6] implementacja: ${implementation.ok ? 'GREEN' : 'RED'}${implementation.escalated ? ` (ESKALACJA: ${implementation.question})` : ''}`);
+-console.log(`[6/6] bramki diffu G7–G9: ${diffVerdict.ok ? 'PASS' : 'FAIL'}`);
+-if (diffVerdict.findings.length > 0) console.log(JSON.stringify(diffVerdict.findings, null, 1));
+-
+-const fullPass = pass && implementation.ok && diffVerdict.ok;
+-console.log(`\n═══ M3 SMOKE: ${fullPass ? 'PASS — kamień M3 osiągnięty' : 'FAIL'} ═══`);
+-process.exit(fullPass ? 0 : 1);
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006.mjs
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006.mjs b/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006.mjs
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006.mjs	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,100 +0,0 @@
+-/* ─────────────────────────────────────────────────────────────────────────── *
+- * Pilotaż (PLAN 8.2, kamień M4) — story 006 (statyczny baner na logowaniu)
+- * przez pełny przepływ forge-kit: PK1 → zwiad → planer → bramki → PK2 → fale
+- * koderów w drzewach roboczych → G7–G9 → recenzent → PK3.
+- *
+- * Wejściem jest SUROWA story (`init/story.md`), nie wersja po clarifierze
+- * story-flow: PK1 zastępuje clarifiera, więc podanie wyjaśnionej story dałoby
+- * forge-kitowi fory w porównaniu.
+- *
+- * Człowiek jest PRAWDZIWY: porty PK1/PK2 wystawiają pytanie plikiem i czekają
+- * na odpowiedź. Zawsze wisi najwyżej jedno pytanie, więc nazwy plików są stałe.
+- *
+- *   pytanie:    experiments/pilot-006/ask/pending.question.json
+- *   odpowiedź:  experiments/pilot-006/ask/pending.answer.txt   (utwórz, żeby ruszyć dalej)
+- *
+- * Uruchomienie z roota repo:  node .ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006.mjs
+- * ─────────────────────────────────────────────────────────────────────────── */
+-
+-import fs from 'node:fs';
+-import path from 'node:path';
+-
+-import { Copilot } from '../../../scripts/copilot.js';
+-import { Orchestrator } from '../orchestrator/index.js';
+-
+-const OUT_DIR = '.ai-agentic-workspace/workflows/forge-kit/experiments/pilot-006';
+-const ASK_DIR = path.join(OUT_DIR, 'ask');
+-const QUESTION_PATH = path.join(ASK_DIR, 'pending.question.json');
+-const ANSWER_PATH = path.join(ASK_DIR, 'pending.answer.txt');
+-
+-const STORY_PATH = 'specs/006-login-info-banner/init/story.md';
+-const STORY_ID = 'US-006';
+-const WORKTREE_ROOT = path.join(process.env.TEMP ?? '/tmp', 'forge-kit-worktrees');
+-
+-fs.mkdirSync(ASK_DIR, { recursive: true });
+-fs.rmSync(QUESTION_PATH, { force: true });
+-fs.rmSync(ANSWER_PATH, { force: true });
+-
+-const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+-
+-/**
+- * Port człowieka przez pliki: wystawia pytanie i czeka na odpowiedź.
+- * @param {string} kind — 'PK1' | 'PK2'
+- * @param {object} payload
+- * @returns {Promise<string>}
+- */
+-async function askHuman(kind, payload) {
+-  fs.writeFileSync(QUESTION_PATH, JSON.stringify({ kind, ...payload }, null, 2), 'utf8');
+-  console.log(`\n>>> CZEKAM NA CZŁOWIEKA (${kind}) — pytanie w ${QUESTION_PATH}`);
+-  while (!fs.existsSync(ANSWER_PATH)) await sleep(2000);
+-  await sleep(150);                                    // zapis pliku mógł się nie domknąć
+-  const answer = fs.readFileSync(ANSWER_PATH, 'utf8').trim();
+-  fs.rmSync(ANSWER_PATH, { force: true });
+-  fs.rmSync(QUESTION_PATH, { force: true });
+-  console.log(`<<< ODPOWIEDŹ (${kind}): ${answer}`);
+-  return answer;
+-}
+-
+-const startedAt = Date.now();
+-console.log('═══ PILOTAŻ 006 — forge-kit end-to-end (PK1 → PK3) ═══\n');
+-
+-const result = await Orchestrator.runStory({
+-  story: fs.readFileSync(STORY_PATH, 'utf8'),
+-  storyId: STORY_ID,
+-  copilot: new Copilot(),
+-  askIntent: (question) => askHuman('PK1', question),
+-  askPlanDecision: (screen) => askHuman('PK2', {
+-    plan: screen.artifact,
+-    blocking: screen.blocking?.map((entry) => entry.question) ?? [],
+-  }),
+-  worktreeRoot: WORKTREE_ROOT,
+-  repoRoot: process.cwd(),
+-  planPath: path.join(OUT_DIR, 'plan.md'),
+-  base: 'HEAD',
+-  onLog: (message) => console.log(`    ${message}`),
+-});
+-
+-/* ── wynik ────────────────────────────────────────────────────────────────── */
+-fs.writeFileSync(path.join(OUT_DIR, 'result.json'), JSON.stringify({
+-  status: result.status,
+-  metrics: result.metrics ?? null,
+-  findings: result.findings ?? [],
+-  waves: result.waves ?? [],
+-  tasks: (result.tasks ?? []).map((task) => ({
+-    taskId: task.taskId, library: task.library, ok: task.ok, rounds: task.rounds,
+-    escalated: task.escalated, question: task.question, error: task.error,
+-    changedFiles: task.changedFiles, diffGatesOk: task.diffGates?.ok ?? null,
+-    deviations: task.deviations?.deviations ?? [], usage: task.usage ?? null,
+-  })),
+-  elapsedMinutes: Number(((Date.now() - startedAt) / 60000).toFixed(1)),
+-}, null, 2), 'utf8');
+-
+-if (result.report) fs.writeFileSync(path.join(OUT_DIR, 'PK3.md'), result.report, 'utf8');
+-
+-console.log(`\n═══ PILOTAŻ 006: ${result.status} ═══`);
+-if (result.status !== Orchestrator.STORY_STATUSES.REVIEW) {
+-  console.log(JSON.stringify({ findings: result.findings, baseline: result.baseline?.output?.slice(-1200), planned: result.planned?.status }, null, 2));
+-} else {
+-  console.log(result.report);
+-}
+-process.exit(result.status === Orchestrator.STORY_STATUSES.REVIEW ? 0 : 1);
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/reviewer-smoke.mjs
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/reviewer-smoke.mjs b/.ai-agentic-workspace/workflows/forge-kit/experiments/reviewer-smoke.mjs
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/reviewer-smoke.mjs	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,74 +0,0 @@
+-/* ─────────────────────────────────────────────────────────────────────────── *
+- * Smoke recenzenta (PLAN Etap 7, kryterium ukończenia): test negatywny w wersji
+- * A/B na jednym planie i dwóch wariantach diffu.
+- *
+- * Sam test negatywny („wskaż AC z usuniętym pokryciem") przeszedłby recenzent,
+- * który zawsze narzeka. Dlatego mierzymy ROZRÓŻNIANIE:
+- *   - diff PEŁNY    → recenzent ma milczeć (zero kryteriów bez pokrycia),
+- *   - diff OKROJONY → recenzent ma wskazać DOKŁADNIE ablowane AC (nie nadzbiór).
+- *
+- * Uruchomienie z roota repo:  node .ai-agentic-workspace/workflows/forge-kit/experiments/reviewer-smoke.mjs
+- * ─────────────────────────────────────────────────────────────────────────── */
+-
+-import fs from 'node:fs';
+-
+-import yaml from 'yaml';
+-
+-import { Copilot } from '../../../scripts/copilot.js';
+-import { Reviewer } from '../reviewer/index.js';
+-
+-const FIXTURE = '.ai-agentic-workspace/workflows/forge-kit/reviewer/fixtures/logout-ablation.yaml';
+-const testCase = yaml.parse(fs.readFileSync(FIXTURE, 'utf8')).case;
+-
+-console.log('═══ SMOKE RECENZENTA: A/B — pełny diff vs diff z usuniętym pokryciem AC-3 ═══\n');
+-
+-const copilot = new Copilot();
+-const startedAt = Date.now();
+-
+-/** Recenzuje jeden wariant diffu i zwraca listę kryteriów bez potwierdzonego pokrycia. */
+-async function review(label, diff) {
+-  const input = Reviewer.buildReviewInput({
+-    plan: testCase.plan,
+-    taskId: 'T1',
+-    diff,
+-    verification: { ok: true, steps: [{ id: 'affected', ok: true }] },
+-  });
+-  console.log(`\n— ${label} (${input.diffLineCount} linii, ${input.diffFiles.length} plików) —`);
+-  const result = await Reviewer.reviewTask({ input, copilot, onLog: (message) => console.log(`  [recenzent] ${message}`) });
+-
+-  if (result.status !== Reviewer.REVIEW_STATUSES.OK) {
+-    console.log(`  status: ${result.status} — ${(result.errors ?? []).join('; ')}`);
+-    return null;
+-  }
+-  for (const verdict of result.verdicts) {
+-    const mark = verdict.verdict === Reviewer.AC_VERDICTS.COVERED ? `→ ${verdict.evidence}` : `— ${verdict.why}`;
+-    console.log(`  ${verdict.ac}: ${verdict.verdict} ${mark}`);
+-  }
+-  if (result.notes.length > 0) console.log(`  bramki odrzuciły: ${result.notes.join(' | ')}`);
+-  return result;
+-}
+-
+-const full = await review('diff PEŁNY (wszystkie kryteria zrealizowane)', testCase.diff_full);
+-const ablated = await review(`diff OKROJONY (usunięte pokrycie ${testCase.ablated_ac})`, testCase.diff_ablated);
+-const elapsedSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
+-const usage = copilot.cumulativeUsage;
+-await copilot.stop();
+-
+-console.log('\n— werdykt —');
+-const fullSilent = full !== null && full.uncovered.length === 0;
+-const ablatedExact = ablated !== null
+-  && ablated.uncovered.length === 1
+-  && ablated.uncovered[0] === testCase.ablated_ac;
+-
+-console.log(`na pełnym diffie milczy:        ${fullSilent ? 'TAK' : `NIE — zgłosił ${full ? full.uncovered.join(', ') : '(recenzja nieudana)'}`}`);
+-console.log(`na okrojonym wskazuje ${testCase.ablated_ac}:    ${ablatedExact ? 'TAK, dokładnie to jedno' : `NIE — zgłosił ${ablated ? ablated.uncovered.join(', ') || '(nic)' : '(recenzja nieudana)'}`}`);
+-console.log(`koszt: ~$${(usage.costUsd ?? 0).toFixed(4)}, czas ${elapsedSeconds}s`);
+-
+-if (ablated?.report) {
+-  console.log('\n— raport dla PK3 (wariant okrojony) —');
+-  console.log(ablated.report.split('\n').map((line) => `  │ ${line}`).join('\n'));
+-}
+-
+-const pass = fullSilent && ablatedExact;
+-console.log(`\n═══ SMOKE RECENZENTA: ${pass ? 'PASS — recenzent ROZRÓŻNIA, nie tylko narzeka' : 'FAIL'} ═══`);
+-process.exit(pass ? 0 : 1);
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/scout-smoke.mjs
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/scout-smoke.mjs b/.ai-agentic-workspace/workflows/forge-kit/experiments/scout-smoke.mjs
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/scout-smoke.mjs	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,49 +0,0 @@
+-/* ─────────────────────────────────────────────────────────────────────────── *
+- * Smoke zwiadu (PLAN Etap 5): pełny przebieg scoutStory na żywym repo i żywym
+- * LLM — story 008 zamrożona w fiksturze złota (to samo wejście co eval czułości,
+- * ale infrastruktura żywa: Knowledge/Gates/copilot).
+- *
+- * Uruchomienie z roota repo:  node .ai-agentic-workspace/workflows/forge-kit/experiments/scout-smoke.mjs
+- * Kryteria PASS: status=ok, 4 biblioteki auth w pakiecie, ≥1 ugruntowany fakt.
+- * ─────────────────────────────────────────────────────────────────────────── */
+-
+-import fs from 'node:fs';
+-
+-import yaml from 'yaml';
+-
+-import { Copilot } from '../../../scripts/copilot.js';
+-import { Scout } from '../scout/index.js';
+-
+-const fixture = yaml.parse(
+-  fs.readFileSync('.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/real-008-login.yaml', 'utf8'),
+-).case;
+-
+-console.log('═══ SCOUT SMOKE: selekcja → LLM (Haiku) → bramki ugruntowania → pakiet ═══\n');
+-
+-const copilot = new Copilot();
+-const startedAt = Date.now();
+-const pack = await Scout.scoutStory({
+-  story: fixture.story_text,
+-  copilot,
+-  onLog: (message) => console.log(`  [scout] ${message}`),
+-});
+-const elapsedSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
+-await copilot.stop();
+-
+-console.log(`\n— pakiet (status=${pack.status}, ${elapsedSeconds}s) —\n`);
+-console.log(Scout.serializePack(pack));
+-
+-const packLibraryNames = new Set(pack.libraries.map((entry) => entry.name));
+-const missingMustInclude = fixture.labels.must_include.filter((name) => !packLibraryNames.has(name));
+-const ratedCount = pack.libraries.filter((entry) => entry.relevance !== 'unrated').length;
+-
+-console.log('— werdykt —');
+-console.log(`status ok:            ${pack.status === Scout.PACK_STATUSES.OK ? 'TAK' : `NIE (${pack.status})`}`);
+-console.log(`must_include w pakiecie: ${missingMustInclude.length === 0 ? '4/4' : `BRAK: ${missingMustInclude.join(', ')}`}`);
+-console.log(`ocenione biblioteki:  ${ratedCount}/${pack.libraries.length}`);
+-console.log(`ugruntowane fakty:    ${pack.facts.length}`);
+-console.log(`pytania otwarte:      ${pack.open_questions.length}`);
+-
+-const pass = pack.status === Scout.PACK_STATUSES.OK && missingMustInclude.length === 0 && pack.facts.length >= 1;
+-console.log(`\n═══ SCOUT SMOKE: ${pass ? 'PASS' : 'FAIL'} ═══`);
+-process.exit(pass ? 0 : 1);
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/sdk-1-0-7-smoke.mjs
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/sdk-1-0-7-smoke.mjs b/.ai-agentic-workspace/workflows/forge-kit/experiments/sdk-1-0-7-smoke.mjs
+deleted file mode 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/sdk-1-0-7-smoke.mjs	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,112 +0,0 @@
+-/* ─────────────────────────────────────────────────────────────────────────── *
+- * Przebieg dymny mechanizmów wpiętych 2026-07-19 na SDK 1.0.7.
+- *
+- * Sprawdza NA ŻYWO to, czego nie da się sprawdzić atrapą: czy runtime honoruje
+- * katalog roboczy sesji, odmowę bramki przed narzędziem, wyciszenie skilli,
+- * rozgałęzienie sesji i rozliczenie w kredytach.
+- *
+- * Pracuje w KATALOGU TYMCZASOWYM (nie w repozytorium i nie w drzewie roboczym
+- * git) — przebieg niczego w repo nie rusza. Dwa zapytania, mały model.
+- *
+- * Uruchomienie z roota repo:
+- *   node .ai-agentic-workspace/workflows/forge-kit/experiments/sdk-1-0-7-smoke.mjs
+- * ─────────────────────────────────────────────────────────────────────────── */
+-
+-import fs from 'node:fs';
+-import os from 'node:os';
+-import path from 'node:path';
+-
+-import { Copilot } from '../../../scripts/copilot.js';
+-import { Gates } from '../gates/index.js';
+-import { makeCoderPermissionHandler } from '../coder-permissions.js';
+-
+-const SCOPE = ['libs/demo/**'];
+-const MODEL = 'claude-haiku-4.5';
+-
+-/** Buduje katalog roboczy sesji: plik W zakresie i plik POZA zakresem. */
+-function makeWorkdir() {
+-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-smoke-'));
+-  fs.mkdirSync(path.join(root, 'libs', 'demo', 'src'), { recursive: true });
+-  fs.mkdirSync(path.join(root, 'libs', 'other', 'src'), { recursive: true });
+-  fs.writeFileSync(path.join(root, 'libs', 'demo', 'src', 'greeting.ts'), 'export const GREETING = "cześć";\n', 'utf8');
+-  fs.writeFileSync(path.join(root, 'libs', 'other', 'src', 'secret.ts'), 'export const SECRET = 42;\n', 'utf8');
+-  return root;
+-}
+-
+-const workdir = makeWorkdir();
+-console.log(`katalog roboczy sesji: ${workdir}\n`);
+-
+-const denials = [];
+-const questions = [];
+-const warnings = [];
+-
+-const copilot = new Copilot();
+-const session = copilot.create({
+-  model: MODEL,
+-  cwd: workdir,
+-  enableTools: true,
+-  progress: true,
+-  maxAiCredits: 30,  // runtime odrzuca mniej: „Minimum session limit is 30 AI credits"
+-  timeout: 4 * 60 * 1000,
+-  onPermissionRequest: makeCoderPermissionHandler({ onLog: (message) => console.log(`   [uprawnienia] ${message}`) }),
+-  onUserInput: async (request) => {
+-    questions.push(request.question);
+-    return 'tak, użyj istniejącego pliku';
+-  },
+-  hooks: {
+-    onPreToolUse: (input) => {
+-      const decision = Gates.toolScopeDecision({
+-        toolName: input?.toolName, toolArgs: input?.toolArgs, allowedScopes: SCOPE, workspaceRoot: workdir,
+-      });
+-      if (decision.decision === 'allow') return undefined;
+-      denials.push({ tool: input?.toolName, paths: decision.offendingPaths });
+-      return { permissionDecision: 'deny', permissionDecisionReason: decision.reason };
+-    },
+-  },
+-  onLog: (channel, message) => {
+-    if (channel === 'warn') warnings.push(message);
+-    console.log(`   [${channel}] ${message}`);
+-  },
+-});
+-
+-await session.start();
+-
+-console.log('\n─── 1. Praca W ZAKRESIE (sprawdza katalog roboczy sesji) ───');
+-await session.ask(
+-  'W pliku libs/demo/src/greeting.ts dopisz eksport `export const FAREWELL = "do zobaczenia";`. '
+-  + 'Użyj narzędzi plikowych. Po zakończeniu odpowiedz: GOTOWE.',
+-);
+-const greeting = fs.readFileSync(path.join(workdir, 'libs', 'demo', 'src', 'greeting.ts'), 'utf8');
+-console.log(`plik w katalogu tymczasowym zmieniony: ${greeting.includes('FAREWELL') ? 'TAK' : 'NIE'}`);
+-
+-console.log('\n─── 2. Rozgałęzienie sesji przed ostatnią turą ───');
+-const forked = await session.forkBeforeLastAsk({ name: 'smoke-fork' });
+-console.log(`rozgałęzienie: ${forked ? `DZIAŁA (${forked.sessionId ?? 'bez id'})` : 'NIEDOSTĘPNE'}`);
+-if (forked) await forked.end();
+-
+-console.log('\n─── 3. Sięgnięcie POZA ZAKRES (sprawdza odmowę bramki) ───');
+-await session.ask(
+-  'Przeczytaj plik libs/other/src/secret.ts i powiedz, jaka liczba jest w SECRET. '
+-  + 'Jeśli nie możesz, napisz dlaczego.',
+-);
+-
+-const secret = fs.readFileSync(path.join(workdir, 'libs', 'other', 'src', 'secret.ts'), 'utf8');
+-const usage = session.totalUsage;
+-const runtime = await session.runtimeMetrics();
+-
+-console.log('\n═══ WYNIK ═══');
+-console.log(`odmowy bramki zakresu:      ${denials.length} ${denials.length ? JSON.stringify(denials) : ''}`);
+-console.log(`licznik odbić w sesji:      ${session.isolationStatus.toolCallsDenied}`);
+-console.log(`pytania do człowieka:       ${questions.length} ${questions.length ? JSON.stringify(questions) : ''}`);
+-console.log(`zdarzenia pod-agentów:      ${session.isolationStatus.subAgentEvents}`);
+-console.log(`ostrzeżenia (np. skille):   ${warnings.length} ${warnings.length ? JSON.stringify(warnings) : ''}`);
+-console.log(`plik poza zakresem nietknięty: ${secret.includes('42') ? 'TAK' : 'NIE'}`);
+-console.log(`wywołania modelu:           ${usage.calls}`);
+-console.log(`koszt (kredyty AI):         ${usage.credits} (nano: ${usage.nanoAiu})`);
+-console.log(`metryki z runtime:          ${runtime ? JSON.stringify(runtime.credits) + ' kredytów, żądań: ' + runtime.userRequests : 'NIEDOSTĘPNE'}`);
+-console.log(`budżet wyczerpany:          ${session.budgetExhausted ? 'TAK' : 'nie'}`);
+-console.log(`\nkatalog do obejrzenia: ${workdir}`);
+-
+-await session.end();
+-await copilot.stop();
+-process.exit(0);
+Index: specs/011-delete-login-form/forge-kit/plan/audit/intent.yaml
+===================================================================
+diff --git a/specs/011-delete-login-form/forge-kit/plan/audit/intent.yaml b/specs/011-delete-login-form/forge-kit/plan/audit/intent.yaml
+deleted file mode 100644
+--- a/specs/011-delete-login-form/forge-kit/plan/audit/intent.yaml	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,57 +0,0 @@
+-resolutions:
+-  - question: Story mówi o usunięciu 'biblioteki formularza logowania' — to
+-      konkretnie frontend-app-ui-auth (type:ui, komponent formularza). Widok
+-      /login w frontend-app-feature-auth zależy od niej (feature -> ui jest
+-      dozwolone w grafie). Czy usuwamy WYŁĄCZNIE tę bibliotekę UI (a
+-      feature-auth/state-auth/core-auth zostają, trasa /login zostaje bez
+-      formularza) — czy chodzi o usunięcie całej funkcjonalności logowania
+-      (feature-auth + state-auth + trasa /login), a 'formularz' to skrót myślowy
+-      na cały login?
+-    answer: tylko formatkę logowania form komponent
+-  - question: Po usunięciu widoku logowania (jeśli trasa /login zniknie), co ma się
+-      stać z guardem sesji z frontend-app-core-auth, który prawdopodobnie
+-      przekierowuje na /login przy braku aktywnej sesji?
+-    answer: Guard i core-auth zostają bez zmian — to poza zakresem story; jeśli
+-      trasa /login zniknie, guard i tak nie jest tu modyfikowany (osobna story),
+-      więc nie zmieniamy jego zachowania w tym zadaniu.
+-delegations: []
+-appliedRules:
+-  - rule: §1 reguła lokalizacji + §4 klasyfikacja Dummy/Smart — komponent formularza
+-      logowania bez integracji ze state i bez powiązania z trasą jest Dummy
+-      (type:ui), stąd biblioteka frontend-app-ui-auth jest właściwym celem
+-      usunięcia.
+-    decision: Bibliotekę do usunięcia identyfikujemy jako frontend-app-ui-auth.
+-  - rule: "§2 Graf zależności: type:feature -> type:ui jest dozwolone, więc jedynym
+-      legalnym konsumentem frontend-app-ui-auth w grafie może być
+-      frontend-app-feature-auth."
+-    decision: Weryfikacja 'braku zależności innych części projektu' ogranicza się do
+-      sprawdzenia importów w frontend-app-feature-auth (i ewentualnie apps/
+-      jeśli łamałoby to regułę cienkiego App Shell, co i tak jest zabronione).
+-  - rule: §2 Publiczne API / Deep imports zabronione
+-    decision: Usunięcie musi obejmować też wpis aliasu w tsconfig.base.json oraz
+-      wszelkie importy przez alias `@.../ui/auth` w kodzie konsumującym.
+-  - rule: §1 reguła lokalizacji + §4 klasyfikacja Dummy/Smart — komponent formularza
+-      logowania bez integracji ze state i bez powiązania z trasą jest Dummy
+-      (type:ui).
+-    decision: "Cel usunięcia: biblioteka frontend-app-ui-auth (cała, wraz z
+-      komponentami, stylami, testami)."
+-  - rule: "§2 Graf zależności: type:feature -> type:ui jest jedynym dozwolonym
+-      kierunkiem konsumpcji tej biblioteki."
+-    decision: frontend-app-feature-auth pozostaje, ale traci import/użycie
+-      komponentu formularza z frontend-app-ui-auth; widok logowania (trasa
+-      /login) zostaje w feature-auth bez formularza (zakres story ograniczony do
+-      usunięcia UI, nie usunięcia trasy).
+-  - rule: core-auth i state-auth nie zależą od type:ui wg dozwolonych zależności
+-      (core -> model/util, state -> core/model/util/ui — teoretycznie state MOŻE
+-      zależeć od ui, ale nic w opisie nie wskazuje, by state-auth importował
+-      formularz).
+-    decision: frontend-app-core-auth i frontend-app-state-auth pozostają bez zmian —
+-      poza zakresem story, zgodnie z decyzją człowieka.
+-  - rule: §2 Publiczne API / Deep imports zabronione
+-    decision: "Usunięcie obejmuje: fizyczne pliki biblioteki, wpis aliasu w
+-      tsconfig.base.json, referencje w nx.json/project graph, oraz wszystkie
+-      importy `@.../ui/auth` w frontend-app-feature-auth (i ewentualnie
+-      testach)."
+-standardsLoaded:
+-  - architecture.md
+-rounds: 2
+Index: specs/011-delete-login-form/forge-kit/plan/audit/planner-round-1.yaml
+===================================================================
+diff --git a/specs/011-delete-login-form/forge-kit/plan/audit/planner-round-1.yaml b/specs/011-delete-login-form/forge-kit/plan/audit/planner-round-1.yaml
+deleted file mode 100644
+--- a/specs/011-delete-login-form/forge-kit/plan/audit/planner-round-1.yaml	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,91 +0,0 @@
+-round: 1
+-outcome: repair
+-blocking: &a1 []
+-findings:
+-  - gate: REGUŁY
+-    severity: error
+-    message: decyzja „Usunięcie obejmuje alias tsconfig i wszystkie importy via
+-      @gdprrt-app/ui/auth, nie tylko pliki fizyczne." powołuje się na
+-      'architecture.md', którego NIE wczytałeś w tej sesji — wczytaj go kwerendą
+-      `standard` albo usuń cytat i oprzyj decyzję na tym, co masz
+-  - gate: REGUŁY
+-    severity: error
+-    message: decyzja „Weryfikacja braku zależności ogranicza się do
+-      frontend-app-feature-auth (jedyny możliwy konsument wg grafu)." powołuje
+-      się na 'architecture.md', którego NIE wczytałeś w tej sesji — wczytaj go
+-      kwerendą `standard` albo usuń cytat i oprzyj decyzję na tym, co masz
+-emission:
+-  story: 011-delete-login-form
+-  binding:
+-    libraries:
+-      - name: frontend-app-ui-auth
+-        status: existing
+-        dependsOn: []
+-      - name: frontend-app-feature-auth
+-        status: existing
+-        dependsOn: []
+-    contracts: []
+-  tasks:
+-    - id: T1
+-      title: Usuń bibliotekę frontend-app-ui-auth wraz z konfiguracją projektu i
+-        aliasem
+-      library: frontend-app-ui-auth
+-      provides: []
+-      consumes: []
+-      scope:
+-        - libs/apps/frontend-app/ui/auth/**
+-        - tsconfig.base.json
+-        - nx.json
+-    - id: T2
+-      title: Usuń użycie LoginFormComponent z LoginViewComponent, zachowaj trasę
+-        /login
+-      library: frontend-app-feature-auth
+-      provides: []
+-      consumes: []
+-      scope:
+-        - libs/apps/frontend-app/feature/auth/src/lib/login-view/**
+-  acceptanceCriteria:
+-    - id: AC-1
+-      text: Katalog libs/apps/frontend-app/ui/auth nie istnieje, projekt usunięty z
+-        nx.json/project graph
+-      verification: static
+-    - id: AC-2
+-      text: Brak referencji do aliasu @gdprrt-app/ui/auth w tsconfig.base.json i
+-        kodzie repo
+-      verification: static
+-    - id: AC-3
+-      text: LoginViewComponent kompiluje się i renderuje bez importu
+-        LoginFormComponent, trasa /login nadal rozwiązywalna
+-      verification: component
+-  body:
+-    title: Usunięcie biblioteki formularza logowania
+-    steps:
+-      - Usuń katalog libs/apps/frontend-app/ui/auth (komponenty, style, testy)
+-        oraz wpis w nx.json/project.json referencjach
+-      - Usuń alias @gdprrt-app/ui/auth z tsconfig.base.json
+-      - "Zaktualizuj LoginViewComponent w feature-auth: usuń import i użycie
+-        LoginFormComponent (LoginCredentials, submit handler) z szablonu i
+-        klasy"
+-      - Zaktualizuj/usuń testy LoginViewComponent odwołujące się do formularza
+-      - Zweryfikuj brak deep-importów @gdprrt-app/ui/auth w całym repo (grep)
+-    decided_alone:
+-      - rule: "PK1 — delegacja: 'tylko formatkę logowania form komponent'"
+-        decision: Usuwamy wyłącznie frontend-app-ui-auth; feature-auth, state-auth,
+-          core-auth i trasa /login pozostają.
+-      - rule: "PK1 — delegacja: guard/core-auth poza zakresem"
+-        decision: Nie modyfikujemy AUTH_GUARD ani frontend-app-core-auth.
+-      - rule: architecture.md §2 Deep imports zabronione
+-        decision: Usunięcie obejmuje alias tsconfig i wszystkie importy via
+-          @gdprrt-app/ui/auth, nie tylko pliki fizyczne.
+-      - rule: architecture.md §2 graf feature->ui jedynym legalnym konsumentem
+-        decision: Weryfikacja braku zależności ogranicza się do
+-          frontend-app-feature-auth (jedyny możliwy konsument wg grafu).
+-      - rule: Minimalna ingerencja — brak makiety dla tej story
+-        decision: LoginViewComponent po usunięciu formularza pozostaje z pustym miejscem
+-          po komponencie (bez placeholdera zastępczego) — trasa działa, brak
+-          nowej treści UI.
+-    questions: *a1
+-    out_of_scope:
+-      - Zmiana zachowania AUTH_GUARD i frontend-app-core-auth
+-      - Usunięcie trasy /login lub feature-auth/state-auth
+-      - Dodanie nowego formularza/placeholdera w miejsce usuniętego komponentu
+Index: specs/011-delete-login-form/forge-kit/plan/audit/planner-round-2.yaml
+===================================================================
+diff --git a/specs/011-delete-login-form/forge-kit/plan/audit/planner-round-2.yaml b/specs/011-delete-login-form/forge-kit/plan/audit/planner-round-2.yaml
+deleted file mode 100644
+--- a/specs/011-delete-login-form/forge-kit/plan/audit/planner-round-2.yaml	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,81 +0,0 @@
+-round: 2
+-outcome: green
+-blocking: &a1 []
+-findings: []
+-emission:
+-  story: 011-delete-login-form
+-  binding:
+-    libraries:
+-      - name: frontend-app-ui-auth
+-        status: existing
+-        dependsOn: []
+-      - name: frontend-app-feature-auth
+-        status: existing
+-        dependsOn: []
+-    contracts: []
+-  tasks:
+-    - id: T1
+-      title: Usuń bibliotekę frontend-app-ui-auth wraz z konfiguracją projektu i
+-        aliasem
+-      library: frontend-app-ui-auth
+-      provides: []
+-      consumes: []
+-      scope:
+-        - libs/apps/frontend-app/ui/auth/**
+-        - tsconfig.base.json
+-        - nx.json
+-    - id: T2
+-      title: Usuń użycie LoginFormComponent z LoginViewComponent, zachowaj trasę
+-        /login
+-      library: frontend-app-feature-auth
+-      provides: []
+-      consumes: []
+-      scope:
+-        - libs/apps/frontend-app/feature/auth/src/lib/login-view/**
+-  acceptanceCriteria:
+-    - id: AC-1
+-      text: Katalog libs/apps/frontend-app/ui/auth nie istnieje, projekt usunięty z
+-        nx.json/project graph
+-      verification: static
+-    - id: AC-2
+-      text: Brak referencji do aliasu @gdprrt-app/ui/auth w tsconfig.base.json i
+-        kodzie repo
+-      verification: static
+-    - id: AC-3
+-      text: LoginViewComponent kompiluje się i renderuje bez importu
+-        LoginFormComponent, trasa /login nadal rozwiązywalna
+-      verification: component
+-  body:
+-    title: Usunięcie biblioteki formularza logowania
+-    steps:
+-      - Usuń katalog libs/apps/frontend-app/ui/auth (komponenty, style, testy)
+-        oraz wpis w nx.json/project.json referencjach
+-      - Usuń alias @gdprrt-app/ui/auth z tsconfig.base.json
+-      - "Zaktualizuj LoginViewComponent w feature-auth: usuń import i użycie
+-        LoginFormComponent (LoginCredentials, submit handler) z szablonu i
+-        klasy"
+-      - Zaktualizuj/usuń testy LoginViewComponent odwołujące się do formularza
+-      - Zweryfikuj brak deep-importów @gdprrt-app/ui/auth w całym repo (grep)
+-    decided_alone:
+-      - rule: "PK1 — delegacja: 'tylko formatkę logowania form komponent'"
+-        decision: Usuwamy wyłącznie frontend-app-ui-auth; feature-auth, state-auth,
+-          core-auth i trasa /login pozostają.
+-      - rule: "PK1 — delegacja: guard/core-auth poza zakresem"
+-        decision: Nie modyfikujemy AUTH_GUARD ani frontend-app-core-auth.
+-      - rule: PK1 notatka — 'Usunięcie musi obejmować też wpis aliasu w
+-          tsconfig.base.json oraz wszelkie importy przez alias @.../ui/auth'
+-        decision: Usunięcie obejmuje alias tsconfig i wszystkie importy via
+-          @gdprrt-app/ui/auth, nie tylko pliki fizyczne.
+-      - rule: PK1 notatka — 'jedynym legalnym konsumentem tej biblioteki w grafie może
+-          być frontend-app-feature-auth'
+-        decision: Weryfikacja braku zależności ogranicza się do
+-          frontend-app-feature-auth (jedyny konsument wg notatki PK1).
+-      - rule: Minimalna ingerencja — brak makiety dla tej story
+-        decision: LoginViewComponent po usunięciu formularza pozostaje z pustym miejscem
+-          po komponencie (bez placeholdera zastępczego) — trasa działa, brak
+-          nowej treści UI.
+-    questions: *a1
+-    out_of_scope:
+-      - Zmiana zachowania AUTH_GUARD i frontend-app-core-auth
+-      - Usunięcie trasy /login lub feature-auth/state-auth
+-      - Dodanie nowego formularza/placeholdera w miejsce usuniętego komponentu
+Index: specs/011-delete-login-form/forge-kit/plan/audit/scout.yaml
+===================================================================
+diff --git a/specs/011-delete-login-form/forge-kit/plan/audit/scout.yaml b/specs/011-delete-login-form/forge-kit/plan/audit/scout.yaml
+deleted file mode 100644
+--- a/specs/011-delete-login-form/forge-kit/plan/audit/scout.yaml	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,218 +0,0 @@
+-story: "Usuń biblioteke formularza logowania z projektu.\r
+-
+-  Usuń wszystkie pliki i foldery związane z formularzem logowania, w tym
+-  komponenty, style i testy.\r
+-
+-  Upewnij się, że żadne inne części projektu nie zależą od tej biblioteki.\n"
+-status: ok
+-keywords:
+-  - delete
+-  - login
+-  - form
+-  - biblioteke
+-  - formularza
+-  - logowania
+-  - projektu
+-  - wszystkie
+-  - pliki
+-  - foldery
+-  - formularzem
+-  - komponenty
+-  - style
+-  - testy
+-  - upewnij
+-  - inne
+-  - biblioteki
+-  - notatka
+-  - pytanie
+-  - story
+-  - konkretnie
+-  - frontend
+-  - auth
+-  - komponent
+-open_concepts: []
+-libraries:
+-  - name: frontend-app-state-auth
+-    origins:
+-      - metadata
+-      - symbols
+-    matched:
+-      - auth
+-      - biblioteke
+-      - frontend
+-      - login
+-    relevance: low
+-    why: Tłohistorii (zawiera akcje logowania), ale state-auth pozostaje poza
+-      zakresem; feature-auth zależy od niej, nie od ui-auth.
+-    importPath: "@gdprrt-app/state/auth"
+-    api:
+-      - AuthActions
+-      - AuthEffectsService
+-      - AuthSelectors
+-      - AuthState
+-      - AuthStateModel
+-      - AuthStateService
+-      - SessionCheckImpl
+-      - authStateProviders
+-  - name: frontend-app-feature-auth
+-    origins:
+-      - metadata
+-      - symbols
+-    matched:
+-      - form
+-      - formularza
+-      - formularzem
+-      - komponent
+-      - login
+-      - logowania
+-    relevance: high
+-    why: Konsumuje LoginFormComponent z ui-auth; zmiana wymagana po usunięciu
+-      biblioteki (ubytek importu w LoginViewComponent).
+-    importPath: "@gdprrt-app/feature/auth"
+-    api:
+-      - LOGIN_ROUTE_PROVIDERS
+-  - name: frontend-app-ui-auth
+-    origins:
+-      - metadata
+-      - symbols
+-    matched:
+-      - form
+-      - formularza
+-      - komponent
+-      - login
+-      - logowania
+-      - story
+-    relevance: high
+-    why: Biblioteka zawiera LoginFormComponent i LoginCredentials — dokładnie to, co
+-      story zleca do usunięcia.
+-    importPath: "@gdprrt-app/ui/auth"
+-    api:
+-      - LoginCredentials
+-      - LoginFormComponent
+-  - name: shared-core-api
+-    origins:
+-      - metadata
+-      - symbols
+-    matched:
+-      - biblioteki
+-      - delete
+-    relevance: low
+-    why: Trafiona za „delete", ale brak relacji do logowania; tło — infrastruktura
+-      API.
+-    importPath: "@gdprrt/shared/core/api"
+-    api:
+-      - API_CONFIG_TOKEN
+-      - ApiConfig
+-      - ApiService
+-      - DeleteOptions
+-      - GetOptions
+-      - HttpError
+-      - PostOptions
+-      - QueryParams
+-      - RequestCustomOptions
+-      - RequestOptions
+-  - name: shared-util
+-    origins:
+-      - metadata
+-      - symbols
+-    matched:
+-      - form
+-      - wszystkie
+-    relevance: low
+-    why: Trafiona za „form" i helper formularzy; tło — brak bezpośredniego związku z
+-      formularzem logowania.
+-    importPath: "@gdprrt/shared/util"
+-    api:
+-      - ArrayUtils
+-      - CurrencyFormatterConfig
+-      - DateTimeUtils
+-      - FilteringUtils
+-      - FormatterUtils
+-      - Interval
+-      - ObjectUtils
+-      - StringUtils
+-      - Utils
+-  - name: shared-core-state
+-    origins:
+-      - metadata
+-    matched:
+-      - biblioteki
+-    relevance: low
+-    why: Trafiona za „biblioteki"; tło — infrastruktura NGXS niezwiązana z
+-      formularzem.
+-    importPath: "@gdprrt/shared/core/state"
+-    api:
+-      - ActionBuilder
+-      - CustomEffect
+-      - EFFECTS_META_KEY
+-      - Effect
+-      - EffectMeta
+-      - EffectOperator
+-      - NgxsEffectsService
+-  - name: frontend-app-core-auth
+-    origins:
+-      - symbols
+-    matched:
+-      - logowania
+-    relevance: low
+-    why: Zawiera AUTH_GUARD; trafiona leksykalnie, ale poza zakresem story (wg
+-      notatki PK1 guard pozostaje).
+-    importPath: "@gdprrt-app/core/auth"
+-    api:
+-      - AUTH_GUARD
+-      - SESSION_CHECK_TOKEN
+-      - SessionCheck
+-      - maskSessionToken
+-  - name: shared-models
+-    origins:
+-      - graph
+-    matched: []
+-    relevance: low
+-    why: Brak trafień leksykalnych; trafiona przez graf; tło.
+-    importPath: "@gdprrt/shared/model"
+-    api:
+-      - CurrencyCode
+-      - DeepPartial
+-      - EnvironmentModel
+-      - Language
+-      - PartialRecord
+-    via:
+-      - shared-util
+-facts:
+-  - claim: LoginFormComponent jest głównym komponentem formularza logowania,
+-      stanowiącym cel usunięcia.
+-    symbol: LoginFormComponent
+-    library: frontend-app-ui-auth
+-    at: libs/apps/frontend-app/ui/auth/src/lib/login-form/login-form.component.ts:31
+-  - claim: LoginCredentials opisuje interfejs danych wejściowych formularza, usuwany
+-      razem z komponentem.
+-    symbol: LoginCredentials
+-    library: frontend-app-ui-auth
+-    at: libs/apps/frontend-app/ui/auth/src/lib/login-form/login-form.component.ts:16
+-  - claim: LoginViewComponent w feature-auth importuje i renderuje
+-      LoginFormComponent, wymaga modyfikacji po usunięciu ui-auth.
+-    symbol: LoginViewComponent
+-    library: frontend-app-feature-auth
+-    at: libs/apps/frontend-app/feature/auth/src/lib/login-view/login-view.component.ts:13
+-  - claim: LOGIN_ROUTE_PROVIDERS definiuje trasę /login w feature-auth; trasa
+-      pozostaje, ale bez formularza po usunięciu ui-auth.
+-    symbol: LOGIN_ROUTE_PROVIDERS
+-    library: frontend-app-feature-auth
+-    at: libs/apps/frontend-app/feature/auth/src/lib/auth.routes.ts:5
+-open_questions:
+-  - Czy w tsconfig.base.json istnieje alias `@gdprrt-app/ui/auth` dla biblioteki
+-    ui-auth i czy powinien być usunięty?
+-  - Czy nx.json lub project.json zawierają konfigurację projektu
+-    frontend-app-ui-auth, która wymaga usunięcia?
+-  - Czy importy w LoginViewComponent odwołują się do ui-auth przez alias
+-    `@gdprrt-app/ui/auth` czy przez deep import?
+-  - Co powinno się wyświetlić w LoginViewComponent po usunięciu formularza —
+-    pusty slot, fallback czy błąd?
+-  - Czy istnieją testy jednostkowe lub integracyjne dla LoginViewComponent
+-    testujące formularz, które wymagają aktualizacji?
+-  - Czy istnieją testy e2e lub scenariusze logowania zależne od struktury
+-    formularza, które zostaną dotknięte?
+-  - Czy dokumentacja monorepo zawiera referencje do frontend-app-ui-auth
+-    wymagające aktualizacji lub usunięcia?
+-unverified: []
+-dropped_by_cap: []
+Index: specs/011-delete-login-form/forge-kit/plan/intent.md
+===================================================================
+diff --git a/specs/011-delete-login-form/forge-kit/plan/intent.md b/specs/011-delete-login-form/forge-kit/plan/intent.md
+deleted file mode 100644
+--- a/specs/011-delete-login-form/forge-kit/plan/intent.md	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,19 +0,0 @@
+-# Notatka rozstrzygnięć — 011-delete-login-form (PK1, 2026-07-16)
+-
+-## Rozstrzygnięcia człowieka (pytanie → odpowiedź)
+-- Story mówi o usunięciu 'biblioteki formularza logowania' — to konkretnie frontend-app-ui-auth (type:ui, komponent formularza). Widok /login w frontend-app-feature-auth zależy od niej (feature -> ui jest dozwolone w grafie). Czy usuwamy WYŁĄCZNIE tę bibliotekę UI (a feature-auth/state-auth/core-auth zostają, trasa /login zostaje bez formularza) — czy chodzi o usunięcie całej funkcjonalności logowania (feature-auth + state-auth + trasa /login), a 'formularz' to skrót myślowy na cały login?
+-  → tylko formatkę logowania form komponent
+-- Po usunięciu widoku logowania (jeśli trasa /login zniknie), co ma się stać z guardem sesji z frontend-app-core-auth, który prawdopodobnie przekierowuje na /login przy braku aktywnej sesji?
+-  → Guard i core-auth zostają bez zmian — to poza zakresem story; jeśli trasa /login zniknie, guard i tak nie jest tu modyfikowany (osobna story), więc nie zmieniamy jego zachowania w tym zadaniu.
+-
+-## Delegacje („zdecyduj sam")
+-(brak)
+-
+-## Reguły źródeł prawdy zastosowane bez pytania
+-- §1 reguła lokalizacji + §4 klasyfikacja Dummy/Smart — komponent formularza logowania bez integracji ze state i bez powiązania z trasą jest Dummy (type:ui), stąd biblioteka frontend-app-ui-auth jest właściwym celem usunięcia. → Bibliotekę do usunięcia identyfikujemy jako frontend-app-ui-auth.
+-- §2 Graf zależności: type:feature -> type:ui jest dozwolone, więc jedynym legalnym konsumentem frontend-app-ui-auth w grafie może być frontend-app-feature-auth. → Weryfikacja 'braku zależności innych części projektu' ogranicza się do sprawdzenia importów w frontend-app-feature-auth (i ewentualnie apps/ jeśli łamałoby to regułę cienkiego App Shell, co i tak jest zabronione).
+-- §2 Publiczne API / Deep imports zabronione → Usunięcie musi obejmować też wpis aliasu w tsconfig.base.json oraz wszelkie importy przez alias `@.../ui/auth` w kodzie konsumującym.
+-- §1 reguła lokalizacji + §4 klasyfikacja Dummy/Smart — komponent formularza logowania bez integracji ze state i bez powiązania z trasą jest Dummy (type:ui). → Cel usunięcia: biblioteka frontend-app-ui-auth (cała, wraz z komponentami, stylami, testami).
+-- §2 Graf zależności: type:feature -> type:ui jest jedynym dozwolonym kierunkiem konsumpcji tej biblioteki. → frontend-app-feature-auth pozostaje, ale traci import/użycie komponentu formularza z frontend-app-ui-auth; widok logowania (trasa /login) zostaje w feature-auth bez formularza (zakres story ograniczony do usunięcia UI, nie usunięcia trasy).
+-- core-auth i state-auth nie zależą od type:ui wg dozwolonych zależności (core -> model/util, state -> core/model/util/ui — teoretycznie state MOŻE zależeć od ui, ale nic w opisie nie wskazuje, by state-auth importował formularz). → frontend-app-core-auth i frontend-app-state-auth pozostają bez zmian — poza zakresem story, zgodnie z decyzją człowieka.
+-- §2 Publiczne API / Deep imports zabronione → Usunięcie obejmuje: fizyczne pliki biblioteki, wpis aliasu w tsconfig.base.json, referencje w nx.json/project graph, oraz wszystkie importy `@.../ui/auth` w frontend-app-feature-auth (i ewentualnie testach).
+Index: specs/011-delete-login-form/forge-kit/plan/plan.md
+===================================================================
+diff --git a/specs/011-delete-login-form/forge-kit/plan/plan.md b/specs/011-delete-login-form/forge-kit/plan/plan.md
+deleted file mode 100644
+--- a/specs/011-delete-login-form/forge-kit/plan/plan.md	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,39 +0,0 @@
+----
+-story: 011-delete-login-form
+-binding:
+-  libraries:
+-    - { name: frontend-app-ui-auth, status: existing }
+-    - { name: frontend-app-feature-auth, status: existing }
+-  contracts: []
+-tasks:
+-  - { id: T1, title: Usuń bibliotekę frontend-app-ui-auth wraz z konfiguracją projektu i aliasem, library: frontend-app-ui-auth, scope: [ libs/apps/frontend-app/ui/auth/**, tsconfig.base.json, nx.json ] }
+-  - { id: T2, title: "Usuń użycie LoginFormComponent z LoginViewComponent, zachowaj trasę /login", library: frontend-app-feature-auth, scope: [ libs/apps/frontend-app/feature/auth/src/lib/login-view/** ] }
+-acceptanceCriteria:
+-  - { id: AC-1, text: "Katalog libs/apps/frontend-app/ui/auth nie istnieje, projekt usunięty z nx.json/project graph", verification: static }
+-  - { id: AC-2, text: Brak referencji do aliasu @gdprrt-app/ui/auth w tsconfig.base.json i kodzie repo, verification: static }
+-  - { id: AC-3, text: "LoginViewComponent kompiluje się i renderuje bez importu LoginFormComponent, trasa /login nadal rozwiązywalna", verification: component }
+----
+-
+-# Plan: 011-delete-login-form — Usunięcie biblioteki formularza logowania
+-
+-## KROKI
+-1. Usuń katalog libs/apps/frontend-app/ui/auth (komponenty, style, testy) oraz wpis w nx.json/project.json referencjach
+-2. Usuń alias @gdprrt-app/ui/auth z tsconfig.base.json
+-3. Zaktualizuj LoginViewComponent w feature-auth: usuń import i użycie LoginFormComponent (LoginCredentials, submit handler) z szablonu i klasy
+-4. Zaktualizuj/usuń testy LoginViewComponent odwołujące się do formularza
+-5. Zweryfikuj brak deep-importów @gdprrt-app/ui/auth w całym repo (grep)
+-
+-## ROZSTRZYGNĄŁEM SAM (reguła → decyzja)
+-- Usuwamy wyłącznie frontend-app-ui-auth; feature-auth, state-auth, core-auth i trasa /login pozostają. ← PK1 — delegacja: 'tylko formatkę logowania form komponent'
+-- Nie modyfikujemy AUTH_GUARD ani frontend-app-core-auth. ← PK1 — delegacja: guard/core-auth poza zakresem
+-- Usunięcie obejmuje alias tsconfig i wszystkie importy via @gdprrt-app/ui/auth, nie tylko pliki fizyczne. ← PK1 notatka — 'Usunięcie musi obejmować też wpis aliasu w tsconfig.base.json oraz wszelkie importy przez alias @.../ui/auth'
+-- Weryfikacja braku zależności ogranicza się do frontend-app-feature-auth (jedyny konsument wg notatki PK1). ← PK1 notatka — 'jedynym legalnym konsumentem tej biblioteki w grafie może być frontend-app-feature-auth'
+-- LoginViewComponent po usunięciu formularza pozostaje z pustym miejscem po komponencie (bez placeholdera zastępczego) — trasa działa, brak nowej treści UI. ← Minimalna ingerencja — brak makiety dla tej story
+-
+-## PYTANIA (blokują zatwierdzenie — każde z propozycją)
+-(brak)
+-
+-## POZA ZAKRESEM
+-- Zmiana zachowania AUTH_GUARD i frontend-app-core-auth
+-- Usunięcie trasy /login lub feature-auth/state-auth
+-- Dodanie nowego formularza/placeholdera w miejsce usuniętego komponentu
+Index: specs/011-delete-login-form/forge-kit/plan/state.json
+===================================================================
+diff --git a/specs/011-delete-login-form/forge-kit/plan/state.json b/specs/011-delete-login-form/forge-kit/plan/state.json
+deleted file mode 100644
+--- a/specs/011-delete-login-form/forge-kit/plan/state.json	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ /dev/null	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
+@@ -1,71 +0,0 @@
+-{
+-  "storyId": "011-delete-login-form",
+-  "plan": {
+-    "story": "011-delete-login-form",
+-    "binding": {
+-      "libraries": [
+-        {
+-          "name": "frontend-app-ui-auth",
+-          "status": "existing"
+-        },
+-        {
+-          "name": "frontend-app-feature-auth",
+-          "status": "existing"
+-        }
+-      ],
+-      "contracts": []
+-    },
+-    "tasks": [
+-      {
+-        "id": "T1",
+-        "title": "Usuń bibliotekę frontend-app-ui-auth wraz z konfiguracją projektu i aliasem",
+-        "library": "frontend-app-ui-auth",
+-        "scope": [
+-          "libs/apps/frontend-app/ui/auth/**",
+-          "tsconfig.base.json",
+-          "nx.json"
+-        ]
+-      },
+-      {
+-        "id": "T2",
+-        "title": "Usuń użycie LoginFormComponent z LoginViewComponent, zachowaj trasę /login",
+-        "library": "frontend-app-feature-auth",
+-        "scope": [
+-          "libs/apps/frontend-app/feature/auth/src/lib/login-view/**"
+-        ]
+-      }
+-    ],
+-    "acceptanceCriteria": [
+-      {
+-        "id": "AC-1",
+-        "text": "Katalog libs/apps/frontend-app/ui/auth nie istnieje, projekt usunięty z nx.json/project graph",
+-        "verification": "static"
+-      },
+-      {
+-        "id": "AC-2",
+-        "text": "Brak referencji do aliasu @gdprrt-app/ui/auth w tsconfig.base.json i kodzie repo",
+-        "verification": "static"
+-      },
+-      {
+-        "id": "AC-3",
+-        "text": "LoginViewComponent kompiluje się i renderuje bez importu LoginFormComponent, trasa /login nadal rozwiązywalna",
+-        "verification": "component"
+-      }
+-    ],
+-    "body": "# Plan: 011-delete-login-form — Usunięcie biblioteki formularza logowania\n\n## KROKI\n1. Usuń katalog libs/apps/frontend-app/ui/auth (komponenty, style, testy) oraz wpis w nx.json/project.json referencjach\n2. Usuń alias @gdprrt-app/ui/auth z tsconfig.base.json\n3. Zaktualizuj LoginViewComponent w feature-auth: usuń import i użycie LoginFormComponent (LoginCredentials, submit handler) z szablonu i klasy\n4. Zaktualizuj/usuń testy LoginViewComponent odwołujące się do formularza\n5. Zweryfikuj brak deep-importów @gdprrt-app/ui/auth w całym repo (grep)\n\n## ROZSTRZYGNĄŁEM SAM (reguła → decyzja)\n- Usuwamy wyłącznie frontend-app-ui-auth; feature-auth, state-auth, core-auth i trasa /login pozostają. ← PK1 — delegacja: 'tylko formatkę logowania form komponent'\n- Nie modyfikujemy AUTH_GUARD ani frontend-app-core-auth. ← PK1 — delegacja: guard/core-auth poza zakresem\n- Usunięcie obejmuje alias tsconfig i wszystkie importy via @gdprrt-app/ui/auth, nie tylko pliki fizyczne. ← PK1 notatka — 'Usunięcie musi obejmować też wpis aliasu w tsconfig.base.json oraz wszelkie importy przez alias @.../ui/auth'\n- Weryfikacja braku zależności ogranicza się do frontend-app-feature-auth (jedyny konsument wg notatki PK1). ← PK1 notatka — 'jedynym legalnym konsumentem tej biblioteki w grafie może być frontend-app-feature-auth'\n- LoginViewComponent po usunięciu formularza pozostaje z pustym miejscem po komponencie (bez placeholdera zastępczego) — trasa działa, brak nowej treści UI. ← Minimalna ingerencja — brak makiety dla tej story\n\n## PYTANIA (blokują zatwierdzenie — każde z propozycją)\n(brak)\n\n## POZA ZAKRESEM\n- Zmiana zachowania AUTH_GUARD i frontend-app-core-auth\n- Usunięcie trasy /login lub feature-auth/state-auth\n- Dodanie nowego formularza/placeholdera w miejsce usuniętego komponentu",
+-    "markdown": "---\nstory: 011-delete-login-form\nbinding:\n  libraries:\n    - { name: frontend-app-ui-auth, status: existing }\n    - { name: frontend-app-feature-auth, status: existing }\n  contracts: []\ntasks:\n  - { id: T1, title: Usuń bibliotekę frontend-app-ui-auth wraz z konfiguracją projektu i aliasem, library: frontend-app-ui-auth, scope: [ libs/apps/frontend-app/ui/auth/**, tsconfig.base.json, nx.json ] }\n  - { id: T2, title: \"Usuń użycie LoginFormComponent z LoginViewComponent, zachowaj trasę /login\", library: frontend-app-feature-auth, scope: [ libs/apps/frontend-app/feature/auth/src/lib/login-view/** ] }\nacceptanceCriteria:\n  - { id: AC-1, text: \"Katalog libs/apps/frontend-app/ui/auth nie istnieje, projekt usunięty z nx.json/project graph\", verification: static }\n  - { id: AC-2, text: Brak referencji do aliasu @gdprrt-app/ui/auth w tsconfig.base.json i kodzie repo, verification: static }\n  - { id: AC-3, text: \"LoginViewComponent kompiluje się i renderuje bez importu LoginFormComponent, trasa /login nadal rozwiązywalna\", verification: component }\n---\n\n# Plan: 011-delete-login-form — Usunięcie biblioteki formularza logowania\n\n## KROKI\n1. Usuń katalog libs/apps/frontend-app/ui/auth (komponenty, style, testy) oraz wpis w nx.json/project.json referencjach\n2. Usuń alias @gdprrt-app/ui/auth z tsconfig.base.json\n3. Zaktualizuj LoginViewComponent w feature-auth: usuń import i użycie LoginFormComponent (LoginCredentials, submit handler) z szablonu i klasy\n4. Zaktualizuj/usuń testy LoginViewComponent odwołujące się do formularza\n5. Zweryfikuj brak deep-importów @gdprrt-app/ui/auth w całym repo (grep)\n\n## ROZSTRZYGNĄŁEM SAM (reguła → decyzja)\n- Usuwamy wyłącznie frontend-app-ui-auth; feature-auth, state-auth, core-auth i trasa /login pozostają. ← PK1 — delegacja: 'tylko formatkę logowania form komponent'\n- Nie modyfikujemy AUTH_GUARD ani frontend-app-core-auth. ← PK1 — delegacja: guard/core-auth poza zakresem\n- Usunięcie obejmuje alias tsconfig i wszystkie importy via @gdprrt-app/ui/auth, nie tylko pliki fizyczne. ← PK1 notatka — 'Usunięcie musi obejmować też wpis aliasu w tsconfig.base.json oraz wszelkie importy przez alias @.../ui/auth'\n- Weryfikacja braku zależności ogranicza się do frontend-app-feature-auth (jedyny konsument wg notatki PK1). ← PK1 notatka — 'jedynym legalnym konsumentem tej biblioteki w grafie może być frontend-app-feature-auth'\n- LoginViewComponent po usunięciu formularza pozostaje z pustym miejscem po komponencie (bez placeholdera zastępczego) — trasa działa, brak nowej treści UI. ← Minimalna ingerencja — brak makiety dla tej story\n\n## PYTANIA (blokują zatwierdzenie — każde z propozycją)\n(brak)\n\n## POZA ZAKRESEM\n- Zmiana zachowania AUTH_GUARD i frontend-app-core-auth\n- Usunięcie trasy /login lub feature-auth/state-auth\n- Dodanie nowego formularza/placeholdera w miejsce usuniętego komponentu\n"
+-  },
+-  "standardsLoaded": [],
+-  "plannerUsage": {
+-    "inputTokens": 25152,
+-    "outputTokens": 4008,
+-    "cacheReadTokens": 13636,
+-    "cacheWriteTokens": 11512,
+-    "calls": 2,
+-    "model": "claude-sonnet-5",
+-    "costUsd": 0.10739280000000001
+-  },
+-  "pk1Questions": 2,
+-  "corrections": 0,
+-  "elapsedMs": 246350
+-}
+Index: .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/real-008-login.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/real-008-login.yaml b/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/real-008-login.yaml
+--- a/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/real-008-login.yaml	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ b/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/real-008-login.yaml	(date 1784720185641)
+@@ -8,7 +8,7 @@
+     source: story-flow real-008-type-{state,ui} (etykiety) + żywy code-index
+       (workspace, symbol_hits)
+     frozen: 2026-07-15
+-    regenerate: node .github/agents/forge-kit/experiments/freeze-scout-fixtures.mjs
++    regenerate: node .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs
+   story_text: >-
+     Story 008: logowanie użytkownika (formularz + logika sesji).
+ 
+Index: .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-big-bucket.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-big-bucket.yaml b/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-big-bucket.yaml
+--- a/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-big-bucket.yaml	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ b/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-big-bucket.yaml	(date 1784720185658)
+@@ -6,7 +6,7 @@
+     source: story-flow synthetic-big-bucket (koszyk+etykiety verbatim); symbol_hits
+       puste — recall niesie kanał metadanych
+     frozen: 2026-07-15
+-    regenerate: node .github/agents/forge-kit/experiments/freeze-scout-fixtures.mjs
++    regenerate: node .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs
+   story_text: >-
+     Zrealizować logikę logowania: wysyłkę żądania do API logowania, obsługę
+     odpowiedzi i błędów domenowych (401/429), zarządzanie stanem ładowania oraz
+Index: .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-distractors.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-distractors.yaml b/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-distractors.yaml
+--- a/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-distractors.yaml	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ b/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-distractors.yaml	(date 1784720185653)
+@@ -8,7 +8,7 @@
+     source: story-flow synthetic-distractors (koszyk+etykiety) + przechwyt hits dla
+       bibliotek realnych + pułapki symbolowe skonstruowane
+     frozen: 2026-07-15
+-    regenerate: node .github/agents/forge-kit/experiments/freeze-scout-fixtures.mjs
++    regenerate: node .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs
+   story_text: >-
+     Zrealizować logikę logowania: wysyłkę żądania do API logowania, obsługę
+     odpowiedzi i błędów domenowych (401/429), zarządzanie stanem ładowania oraz
+Index: .ai-agentic-workspace/workflows/forge-kit/orchestrator/waves.test.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/orchestrator/waves.test.js b/.ai-agentic-workspace/workflows/forge-kit/orchestrator/waves.test.js
+--- a/.ai-agentic-workspace/workflows/forge-kit/orchestrator/waves.test.js	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ b/.ai-agentic-workspace/workflows/forge-kit/orchestrator/waves.test.js	(date 1784721489672)
+@@ -4,8 +4,8 @@
+ import { taskWaves, scopesOverlap, taskScopesCollide, describeWaves } from './waves.js';
+ 
+ /* ─────────────────────────────────────────────────────────────────────────── *
+- * Fikstura PRZEPISANA z planu wydanego przez planera na story 008
+- * (experiments/m3/plan.md): T1 stan, T3 ui, T4 feature konsumujące oba.
++ * Fikstura PRZEPISANA z planu planera na story 008:
++ * T1 stan, T3 ui, T4 feature konsumujące oba.
+  * Sedno: T1 i T3 nie zależą od siebie i mają rozłączne zakresy → jedna fala.
+  * ─────────────────────────────────────────────────────────────────────────── */
+ 
+Index: .ai-agentic-workspace/workflows/forge-kit/README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/README.md b/.ai-agentic-workspace/workflows/forge-kit/README.md
+--- a/.ai-agentic-workspace/workflows/forge-kit/README.md	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ b/.ai-agentic-workspace/workflows/forge-kit/README.md	(date 1784721494063)
+@@ -322,8 +322,7 @@
+ ├── reviewer/       # adwersaryjny recenzent diffu
+ ├── gates/          # G1–G6 (plan) + G7–G9 (diff) + bramki narzędzi
+ ├── knowledge/      # mapa bibliotek, katalog standardów, kwerendy grafu
+-├── templates/      # szablony wspólne: plan, brif zadania, raport odstępstw
+-└── experiments/    # skrypty przebiegów kontrolnych
++└── templates/      # szablony wspólne: plan, brif zadania, raport odstępstw
+ ```
+ 
+ Każdy agent ma tę samą strukturę modułu:
+Index: .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-max-bucket.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-max-bucket.yaml b/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-max-bucket.yaml
+--- a/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-max-bucket.yaml	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ b/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/synthetic-max-bucket.yaml	(date 1784720185664)
+@@ -6,7 +6,7 @@
+     source: story-flow synthetic-max-bucket (koszyk+etykiety verbatim); symbol_hits
+       puste — recall niesie kanał metadanych
+     frozen: 2026-07-15
+-    regenerate: node .github/agents/forge-kit/experiments/freeze-scout-fixtures.mjs
++    regenerate: node .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs
+   story_text: >-
+     Zrealizować logikę logowania: wysyłkę żądania do API logowania, obsługę
+     odpowiedzi i błędów domenowych (401/429), zarządzanie stanem ładowania oraz
+Index: .ai-agentic-workspace/workflows/forge-kit/scout/golden-eval.test.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/scout/golden-eval.test.js b/.ai-agentic-workspace/workflows/forge-kit/scout/golden-eval.test.js
+--- a/.ai-agentic-workspace/workflows/forge-kit/scout/golden-eval.test.js	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ b/.ai-agentic-workspace/workflows/forge-kit/scout/golden-eval.test.js	(date 1784720185637)
+@@ -21,7 +21,7 @@
+  * kandydatów. must_exclude NIE bramkuje (kandydaci są recall-first; precyzję
+  * ocenia adnotacja LLM, mierzona osobno na żywo).
+  *
+- * Regeneracja fikstur: node .ai-agentic-workspace/workflows/forge-kit/experiments/freeze-scout-fixtures.mjs
++ * Regeneracja fikstur: node .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs
+  * ─────────────────────────────────────────────────────────────────────────── */
+ 
+ const FIXTURES_DIR = fileURLToPath(new URL('./fixtures/', import.meta.url));
+Index: .ai-agentic-workspace/workflows/forge-kit/experiments/freeze-scout-fixtures.mjs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/experiments/freeze-scout-fixtures.mjs b/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs
+rename from .ai-agentic-workspace/workflows/forge-kit/experiments/freeze-scout-fixtures.mjs
+rename to .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs
+--- a/.ai-agentic-workspace/workflows/forge-kit/experiments/freeze-scout-fixtures.mjs	(revision 59a57c576e49fc4802fd2866d0cd291297cf4bc0)
++++ b/.ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs	(date 1784720185632)
+@@ -11,7 +11,7 @@
+  *     dla dystraktorów (pułapki leksykalne na poziomie symboli) i przechwycone
+  *     z żywego indeksu dla bibliotek realnych.
+  *
+- * Uruchomienie z roota repo: node .ai-agentic-workspace/workflows/forge-kit/experiments/freeze-scout-fixtures.mjs
++ * Uruchomienie z roota repo: node .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs
+  * ─────────────────────────────────────────────────────────────────────────── */
+ 
+ import fs from 'node:fs';
+@@ -19,9 +19,9 @@
+ 
+ import yaml from 'yaml';
+ 
+-import { getIndex, librariesAll, findSymbol } from '../../../scripts/code-index/index.js';
+-import { deriveKeywords } from '../scout/selection.js';
+-import * as config from '../config/global-config.js';
++import { getIndex, librariesAll, findSymbol } from '../../../../scripts/code-index/index.js';
++import { deriveKeywords } from '../selection.js';
++import * as config from '../../config/global-config.js';
+ 
+ const STORY_FLOW_FIXTURES = '.ai-agentic-workspace/workflows/story-flow/system-architect/evals/fixtures/scout';
+ const OUTPUT_DIR = '.ai-agentic-workspace/workflows/forge-kit/scout/fixtures';
+@@ -87,7 +87,7 @@
+   meta: {
+     source: 'story-flow real-008-type-{state,ui} (etykiety) + żywy code-index (workspace, symbol_hits)',
+     frozen: FROZEN_DATE,
+-    regenerate: 'node .ai-agentic-workspace/workflows/forge-kit/experiments/freeze-scout-fixtures.mjs',
++    regenerate: 'node .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs',
+   },
+   story_text: realStoryText,
+   labels: {
+@@ -143,7 +143,7 @@
+   meta: {
+     source: 'story-flow synthetic-distractors (koszyk+etykiety) + przechwyt hits dla bibliotek realnych + pułapki symbolowe skonstruowane',
+     frozen: FROZEN_DATE,
+-    regenerate: 'node .ai-agentic-workspace/workflows/forge-kit/experiments/freeze-scout-fixtures.mjs',
++    regenerate: 'node .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs',
+   },
+   story_text: distractorsStoryText,
+   labels: distractorsCase.labels,
+@@ -166,7 +166,7 @@
+     meta: {
+       source: `story-flow ${sourceCase.id} (koszyk+etykiety verbatim); symbol_hits puste — recall niesie kanał metadanych`,
+       frozen: FROZEN_DATE,
+-      regenerate: 'node .ai-agentic-workspace/workflows/forge-kit/experiments/freeze-scout-fixtures.mjs',
++      regenerate: 'node .ai-agentic-workspace/workflows/forge-kit/scout/fixtures/freeze-scout-fixtures.mjs',
+     },
+     story_text: layerText(sourceCase.layer),
+     labels: sourceCase.labels,
