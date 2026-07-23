@@ -1,0 +1,975 @@
+Subject: [PATCH] feat: rename ADR files for consistent structure and add new ADR documents for application and workspace versions
+---
+Index: docs/standards/frontend-app/security.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/frontend-app/security.md b/docs/standards/frontend-app/security.md
+--- a/docs/standards/frontend-app/security.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/frontend-app/security.md	(date 1784801373838)
+@@ -1,6 +1,6 @@
+ # Bezpieczeństwo — rozstrzygnięcie `frontend-app`
+ 
+-> Rozszerzenie punktu decyzyjnego „pozyskanie, przechowywanie i cykl życia tokenu" (rdzeń `security.md#token-invariants`). Decyzja i uzasadnienie: ADR-006 (`docs/adrs/006-session-token-lifecycle.md` — do spisania).
++> Rozszerzenie punktu decyzyjnego „pozyskanie, przechowywanie i cykl życia tokenu" (rdzeń `security.md#token-invariants`). Decyzja i uzasadnienie: ADR-006 (`docs/adrs/frontend-app/006-session-token-lifecycle.md` — do spisania).
+ 
+ ## Token sesji
+ 
+Index: docs/standards/frontend-app/i18n.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/frontend-app/i18n.md b/docs/standards/frontend-app/i18n.md
+--- a/docs/standards/frontend-app/i18n.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/frontend-app/i18n.md	(date 1784801373836)
+@@ -1,6 +1,6 @@
+ # Internacjonalizacja — rozstrzygnięcie `frontend-app`
+ 
+-> Rozszerzenie punktu decyzyjnego „źródło plików tłumaczeń w czasie działania" (rdzeń `i18n.md`). Decyzja i uzasadnienie: ADR-005 (`docs/adrs/005-translation-files-runtime-source.md` — do spisania).
++> Rozszerzenie punktu decyzyjnego „źródło plików tłumaczeń w czasie działania" (rdzeń `i18n.md`). Decyzja i uzasadnienie: ADR-005 (`docs/adrs/frontend-app/005-translation-files-runtime-source.md` — do spisania).
+ 
+ ## Źródło tłumaczeń
+ 
+Index: docs/standards/00-meta.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/00-meta.md b/docs/standards/00-meta.md
+--- a/docs/standards/00-meta.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/00-meta.md	(date 1784835998232)
+@@ -2,13 +2,13 @@
+ 
+ > **Status normatywny.** Wszystkie dokumenty w tym katalogu są obowiązujące i egzekwowane. Słowa kluczowe **MUSI**, **NIE WOLNO**, **NIGDY**, **ZAWSZE** oraz **MOŻE** są używane zgodnie z RFC 2119. **MOŻE** oznacza jedyne faktycznie opcjonalne wybory; wszystko inne jest wiążące. Nie istnieją wytyczne doradcze, „preferowane" ani „domyślne" — tylko reguły.
+ 
+-Ten plik definiuje, **jak czytać i stosować** pozostałe standardy. Adresat jest podwójny: człowiek (analityk, reviewer) oraz agent AI generujący kod. Format jest zoptymalizowany pod agenta — dopasowuje on wzorce zamiast interpretować intencje.
++Ten plik definiuje, **jak czytać i stosować** pozostałe standardy. Obowiązują każdego, kto pisze kod w tym repozytorium. Format jest deterministyczny — reguły są do dopasowania wzorca, nie do interpretowania intencji.
+ 
+ <!-- SECTION: how-to-read -->
+ ## Jak czytać te standardy
+ 
+ - **Język normatywny.** Brak słowa kluczowego **MUSI/NIE WOLNO** w zdaniu nie czyni go opcjonalnym, jeśli sąsiaduje z regułą.
+-- **Przykłady parami.** Większość reguł ma przykład **✅ poprawny** i **❌ błędny** z jednozdaniowym „dlaczego". ❌ pokazuje typowy błąd, który agent wygeneruje, jeśli nie zostanie powstrzymany — traktuj go jako wzorzec do unikania, nie do kopiowania.
++- **Przykłady parami.** Większość reguł ma przykład **✅ poprawny** i **❌ błędny** z jednozdaniowym „dlaczego". ❌ pokazuje typowy błąd, który powstaje bez tej reguły — traktuj go jako wzorzec do unikania, nie do kopiowania.
+ - **Reguły decyzyjne.** Tam, gdzie istnieje wybór (gdzie umieścić plik, jaki mechanizm DI, smart czy dumb), reguła ma postać uporządkowanej listy warunków „**pierwszy pasujący wygrywa**". Oceniaj po kolei; nie pomijaj kroków.
+ - **Anty-wzorce.** Każdy dokument o nietrywialnej powierzchni ma sekcję „Anty-wzorce" — jawną listę „NIE rób tego".
+ - **„Dlaczego".** Uzasadnienie pozwala uogólnić regułę na przypadek, którego dokument nie przewidział (patrz `00-meta.md#generalization`).
+@@ -26,7 +26,7 @@
+ 5. **Dedykowany dokument** jest nadrzędny wobec skrótowej wzmianki gdzie indziej. `design-system.md`, `a11y.md` i `responsive.md` rozszerzają i są nadrzędne wobec sekcji `angular.md` od `angular.md#html-templates` do `angular.md#dedicated-docs` (który pozostaje źródłem dla mechaniki SCSS i szablonów).
+ 6. Przy tym samym poziomie wygrywa reguła **bardziej szczegółowa**.
+ 
+-Jeśli konflikt jest realny i nierozstrzygalny powyższymi punktami — NIE rozstrzygaj go po cichu. Zgłoś jako `open_question` (agent) lub bug standardu (człowiek).
++Jeśli konflikt jest realny i nierozstrzygalny powyższymi punktami — NIE rozstrzygaj go po cichu. Zgłoś go jawnie jako bug standardu.
+ 
+ <!-- SECTION: generalization -->
+ ## Klauzula generalizacji (ten ostatni ~1%)
+@@ -34,54 +34,54 @@
+ Standardy pokrywają ~99% przypadków. Gdy napotkasz sytuację bez wprost pasującej reguły:
+ 
+ 1. Zastosuj **najbliższą analogię** z istniejącej reguły i jej uzasadnienia.
+-2. **Zadeklaruj założenie jawnie** (`[ZAŁOŻENIE] …`) — w kodzie jako komentarz lub w wyniku analizy jako `assumption`.
+-3. **NIGDY nie rozstrzygaj nieudokumentowanej decyzji architektonicznej po cichu.** Jeśli wybór ma konsekwencje cross-layer, eskaluj jako `open_question`.
++2. **Zadeklaruj założenie jawnie** — w kodzie komentarzem `[ZAŁOŻENIE] …`.
++3. **NIGDY nie rozstrzygaj nieudokumentowanej decyzji architektonicznej po cichu.** Jeśli wybór ma konsekwencje cross-layer, eskaluj go zamiast rozstrzygać samodzielnie.
+ 
+ <!-- STANDARDS_INDEX:START -->
+ <!-- SECTION: document-index -->
+ ## Indeks dokumentów
+ 
+ ### Fundament
+-| Dokument | Zakres |
++| Dokument | Do czego służy — kiedy po niego sięgasz |
+ |---|---|
+-| `00-meta.md` | Ten plik — jak czytać, precedencja, indeks. |
+-| `context.md` | Domena aplikacji: rejestr kontekstów, ubiquitous language, niezmienniki biznesowe. **Najwyższa precedencja.** Jedyny dokument specyficzny dla aplikacji. |
+-| `architecture.md` | Monorepo, tagi, granice zależności, smart/dumb, mechanizm dostawy (DI), taksonomia modeli. |
+-| `nx.md` | Konwencja nazewnictwa bibliotek, generatory, wyjątek barrelowy, walidacja. |
++| `00-meta.md` | Reguły czytania wszystkich standardów: język normatywny (RFC 2119), precedencja przy konflikcie dwóch dokumentów, klauzula generalizacji dla przypadków bez wprost pasującej reguły, model kompozycji per aplikacja oraz ten indeks. Sięgasz, gdy dwa standardy się przecinają albo brak reguły na dany przypadek. |
++| `context.md` | Rdzeń domeny biznesowej: kontekst przekrojowy `common` oraz zasady dla rejestru kontekstów, glosariusza i niezmienników (ich treść rozstrzyga `<app>/context.md`). Sięgasz, ustalając do którego kontekstu należy kod i jakim słownictwem domeny go nazwać. **Najwyższa precedencja.** |
++| `architecture.md` | Naczelny dokument struktury: podział apps/libs, trzy osie tagów (scope/context/type), macierz dozwolonych zależności, klasyfikacja Smart/Dummy, wybór mechanizmu dostawy DI, taksonomia modeli i kierunek zależności w kompozycji. Sięgasz, decydując gdzie kod ma żyć i co wolno mu importować. |
++| `nx.md` | Nazewnictwo bibliotek: wzorzec katalogu, aliasu importu i selektora, dwa generatory tworzące bibliotekę, wyjątek barrelowy. Sięgasz, zakładając nową bibliotekę albo sprawdzając poprawność jej nazwy i umiejscowienia. |
+ 
+ ### Framework
+-| Dokument | Zakres |
++| Dokument | Do czego służy — kiedy po niego sięgasz |
+ |---|---|
+-| `angular.md` | Angular 21: OnPush, `inject()`, układ klasy, model reaktywności (sygnały), szablony HTML, SCSS/BEM, kolejność deklaracji CSS. |
+-| `routing.md` | Routing: lazy loading, guardy funkcyjne, resolvery, providery trasy. |
+-| `forms.md` | Typed Reactive Forms: walidacja, komunikaty błędów, submit przez fasadę. |
+-| `state.md` | NGXS v21: fasady, trójka async, selektory, efekty, generatory; warstwa API wewnątrz state (service, modele request/response). |
++| `angular.md` | Jak napisać komponent Angulara 21: OnPush i `inject()`, układ i modyfikatory dostępu klasy, reaktywność na sygnałach, składnia szablonów HTML, architektura SCSS/BEM, kolejność deklaracji CSS. Sięgasz przy tworzeniu lub zmianie dowolnego komponentu. |
++| `routing.md` | Jak zbudować routing: leniwe ładowanie widoków, cienki app shell, rejestracja stanu w providerach trasy, guardy funkcyjne i oszczędne resolvery, parametry przez sygnałowe `input()`. Sięgasz, definiując trasę albo kontrolę dostępu do widoku. |
++| `forms.md` | Jak zbudować formularz: typowane Reactive Forms, kiedy i jak pokazać błąd walidacji, przepływ submitu Dummy→`output()`→Smart→fasada, zachowanie w stanie `pending`, brak reakcji na błędy 5xx. Sięgasz przy każdym formularzu i polu wejściowym. |
++| `state.md` | Jak zarządzać stanem w NGXS: wzorzec fasady jako jedynej bramy, trójka Request/Success/Failure, struktura plików slice'u, dumb handlery i operatory, dobór operatora w efektach, zasięg stanu (komponent/trasa/rdzeń) i warstwa API wewnątrz state. Sięgasz, tworząc lub konsumując stan i wywołania API. |
+ 
+ ### Prezentacja
+-| Dokument | Zakres |
++| Dokument | Do czego służy — kiedy po niego sięgasz |
+ |---|---|
+-| `design-system.md` | Tokeny, theming, inwentarz i kontrakt API komponentów `libs/**/ui`. |
+-| `responsive.md` | Breakpointy, mobile-first, wzorce transformacji layoutu, touch targets. |
+-| `a11y.md` | WCAG 2.1 AA: semantyka, ARIA APG, klawiatura, focus, `aria-live`, kontrast. |
+-| `i18n.md` | `@ngx-translate`, format kluczy, i18n + WCAG. |
+-| `design-handoff.md` | Figma → kod: eksport tokenów, parity komponentów, referencje makiet w story. |
++| `design-system.md` | Jak działa system projektowy: trzy warstwy tokenów (component→semantic→primitive), theming, inwentarz i czarnoskrzynkowa konsumpcja komponentów, kontrakt API własnego komponentu `type:ui`, wymóg sceny Storybooka. Sięgasz, budując własny komponent UI lub stylując cokolwiek tokenami. |
++| `responsive.md` | Jak zrobić układ responsywny: mobile-first, kanoniczny zestaw breakpointów i mixin `respond-to`, wzorce transformacji układu między szerokościami, cele dotykowe. Sięgasz, gdy widok ma więcej niż jeden wariant szerokości. |
++| `a11y.md` | Jak spełnić WCAG 2.1 AA: semantyczny HTML przed ARIA, wzorce APG, obsługa klawiatury, zarządzanie focusem w SPA, `aria-live`, kontrast i ruch, dostępność formularzy. Sięgasz przy każdym interaktywnym elemencie i po nawigacji. |
++| `i18n.md` | Jak internacjonalizować UI: biblioteka `@ngx-translate`, wzorzec kluczy `componentName.elementName.type`, użycie w szablonach i TypeScript, własność kluczy, rozdział treści tekstu od nazwy klucza, wymogi WCAG. Sięgasz, gdy w UI pojawia się jakikolwiek widoczny tekst. |
++| `design-handoff.md` | Jak przełożyć makietę Figmy na kod: co jest źródłem prawdy (układ i copy z makiety), mierzenie i mapowanie na tokeny, parity nazw komponentów, referencja frame'u jako kotwica układu, stany i warianty responsywne z dostarczonych makiet. Sięgasz na styku designu i implementacji widoku. |
+ 
+ ### Jakość poprzeczna
+-| Dokument | Zakres |
++| Dokument | Do czego służy — kiedy po niego sięgasz |
+ |---|---|
+-| `testing.md` | Co testować per typ liba, unit/component/e2e, testy a11y, zasada maksymalnego pokrycia (próg w ustawieniach systemu). |
+-| `performance.md` | Bundle budgets, lazy/`@defer`, obrazy, Core Web Vitals, higiena change-detection. |
+-| `security.md` | JWT, przechowywanie tokenu, interceptor, reguły dostępu, globalny interceptor błędów (5xx). |
+-| `conventions.md` | Nazewnictwo, obsługa błędów, logowanie, analityka, struktura plików w libie. |
++| `testing.md` | Co i jak testować: stack (Vitest / sceny Storybooka `play` / Playwright), zakres testu per typ biblioteki, poziom weryfikacji per kryterium akceptacji (static/unit/component), testowanie NGXS i komponentów z axe, budowanie danych testowych. Sięgasz, wybierając poziom i zakres testu dla kryterium. |
++| `performance.md` | Jak nie zepsuć wydajności: budżety Core Web Vitals i rozmiaru paczki, leniwe ładowanie i `@defer`, higiena change-detection i `@for track`, dyscyplina stanu i sieci, wymóg pomiaru zamiast założeń. Sięgasz przy ciężkich widokach, długich listach i nowych zależnościach. |
++| `security.md` | Gdzie żyje token sesji i kto go dołącza do żądań (inwarianty; wartości rozstrzyga `<app>/security.md`) oraz jak globalny interceptor obsługuje błędy techniczne 5xx. Sięgasz przy uwierzytelnianiu, dostępie do tokenu i obsłudze błędów transportu. |
++| `conventions.md` | Higiena kodu ponad warstwami: nazewnictwo, widoczność biblioteki przez barrel, dyscyplina TypeScript (`strict`, zakaz `any`), właściciel taksonomii klas błędów, logowanie i analityka pod RODO, JSDoc, zakaz martwego kodu. Sięgasz, gdy żaden dokument warstwowy nie rozstrzyga danej kwestii. |
+ <!-- STANDARDS_INDEX:END -->
+ 
+ <!-- SECTION: sources-of-truth -->
+ ## Relacja: standardy vs story vs system vs ADR
+ 
+-- **Standardy (ten katalog)** mówią **JAK** pisać kod. Są stałe i wstrzykiwane do agenta jako kontekst (podzbiór właściwy dla warstwy zadania).
+-- **Story** mówi **CO** zbudować. Dane per-story dostarcza analityk; kompletność weryfikuje checklista gotowości.
++- **Standardy (ten katalog)** mówią **JAK** pisać kod. Są stałe i stanowią kontekst pracy nad każdym zadaniem (podzbiór właściwy dla jego warstwy).
++- **Story** mówi **CO** zbudować. Opisuje zachowanie biznesowe — nie wygląd, nie strukturę kodu, nie sposób implementacji.
+ - **System (kod)** mówi **CO JUŻ ISTNIEJE**. Jest wyprowadzany z repo (graf nx, publiczne API, trasy) na żądanie — NIGDY nie dokumentowany ręcznie, bo zmienia się z każdą story.
+-- **ADR-y (`docs/adrs/`)** mówią **DLACZEGO** tak zdecydowano. Rejestrują decyzje architektoniczne na poziomie aplikacji (kontekst, odrzucone alternatywy, konsekwencje, status: accepted/superseded). Standardy są ich **normatywną projekcją** — reguła będąca skutkiem decyzji cytuje swój ADR; zmiana decyzji przechodzi przez nowy ADR (superseding) i aktualizację projekcji, nigdy przez cichą edycję standardu. ADR-y NIE są wstrzykiwane do agentów — agenci czytają wyłącznie standardy.
++- **ADR-y (`docs/adrs/`)** mówią **DLACZEGO** tak zdecydowano. Rejestrują decyzje architektoniczne na poziomie aplikacji (kontekst, odrzucone alternatywy, konsekwencje, status: accepted/superseded). Standardy są ich **normatywną projekcją** — reguła będąca skutkiem decyzji cytuje swój ADR; zmiana decyzji przechodzi przez nowy ADR (superseding) i aktualizację projekcji, nigdy przez cichą edycję standardu. ADR-y NIE są kontekstem pisania kodu — źródłem reguł przy implementacji są wyłącznie standardy.
+ 
+ <!-- SECTION: per-app-composition -->
+ ## Standardy per aplikacja — kompozycja rdzeń + rozszerzenia
+@@ -148,10 +148,10 @@
+ | Konwencja identyfikacji błędów domenowych | `conventions.md#error-handling` | ADR aplikacji (ADR-003) — do uzgodnienia z backendem |
+ | Maszynowe czytanie makiet Figmy | `design-handoff.md` | ADR workspace (ADR-004) |
+ | Serwer mockowy — narzędzie i zakres użycia | `state.md#api-layer` | ADR workspace (ADR-007) |
+-| Poziom dostępności | `a11y.md` | `replace` sekcji z poziomem (ADR aplikacji) |
+-| Budżety wydajności | `performance.md` | `replace` sekcji budżetów (ADR aplikacji) |
+-| Obowiązujące warianty responsywne | `responsive.md` | `replace` sekcji wariantów (ADR aplikacji) |
+-| Krytyczne ścieżki e2e | `testing.md` | `replace` sekcji piramidy (ADR aplikacji) |
++| Poziom dostępności | `a11y.md` | `replace` sekcji `target-level` (ADR aplikacji) |
++| Budżety wydajności | `performance.md` | `replace` sekcji `budgets` (ADR aplikacji) |
++| Obowiązujące warianty responsywne | `responsive.md` | `replace` sekcji `breakpoints` (ADR aplikacji) |
++| Krytyczne ścieżki e2e | `testing.md` | `replace` sekcji `what-to-test` (ADR aplikacji) |
+ | Właściciel ADR-ów i tryb ich zatwierdzania | `00-meta.md#sources-of-truth` | decyzja projektu — imiennie wskazany właściciel |
+ 
+ Ten rejestr jest **właścicielem operacyjnym** listy punktów decyzyjnych (konsumują go resolver i przeglądy). Numeracja ADR-001…008 — rejestr ADR (`docs/adrs/000-meta.md`).
+Index: docs/standards/a11y.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/a11y.md b/docs/standards/a11y.md
+--- a/docs/standards/a11y.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/a11y.md	(date 1784804411935)
+@@ -32,7 +32,7 @@
+ 
+ - Gdy region/landmark niesie komunikat (np. baner `role="region"` / `<section>`), jego **dostępna nazwa** (`aria-label` / `aria-labelledby`) **MUSI** być **semantycznie równoważna widocznej treści**. **NIE WOLNO** jej wymyślać niezależnie od treści ani upraszczać do pustej, generycznej etykiety (np. samo „Informacja", gdy treść jest konkretna). Gdy regionów tego samego typu jest więcej, ich nazwy — oparte o treść — **MUSZĄ** być rozróżnialne.
+ - Realizacja, **pierwszy pasujący**: (1) jest widoczny nagłówek → `aria-labelledby` wskazuje ten nagłówek; (2) brak nagłówka → `aria-label` jako zwięzłe streszczenie komunikatu.
+-- Treść (z makiety lub story — `design-handoff.md#name-parity`) **WYZNACZA** tę nazwę; agent nadaje ją deterministycznie, **nie dopytując analityka** (jak nazwy kluczy i18n — `i18n.md`).
++- Treść (z makiety lub story — `design-handoff.md#name-parity`) **WYZNACZA** tę nazwę — jest ona wyprowadzana z treści deterministycznie, tak jak nazwy kluczy i18n (`i18n.md`).
+ 
+ <!-- SECTION: aria-patterns -->
+ ## Wzorce ARIA (APG) — nie wymyślaj
+Index: docs/standards/angular.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/angular.md b/docs/standards/angular.md
+--- a/docs/standards/angular.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/angular.md	(date 1784801409123)
+@@ -1,5 +1,7 @@
+ # Standardy kodowania w Angularze 21
+ 
++> **Status normatywny** (RFC 2119, patrz `00-meta.md`). Dokumenty dedykowane (`design-system.md`, `responsive.md`, `a11y.md`, `forms.md`) są nadrzędne w swoich obszarach — patrz `angular.md#dedicated-docs`.
++
+ <!-- SECTION: component-strategy -->
+ ## Strategia generowania komponentów
+ Komponenty powstają **wyłącznie** przez generator `npx nx g @nx/angular:component <ścieżka>`; ręczne tworzenie plików komponentu jest **zabronione**.
+Index: .ai-agentic-workspace/scripts/standards-refs.test.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/scripts/standards-refs.test.js b/.ai-agentic-workspace/scripts/standards-refs.test.js
+--- a/.ai-agentic-workspace/scripts/standards-refs.test.js	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/.ai-agentic-workspace/scripts/standards-refs.test.js	(date 1784811707729)
+@@ -50,6 +50,57 @@
+   }
+ });
+ 
++test('rejestr ADR: numer unikalny w całym repo, położenie zgodne z zadeklarowanym zakresem', () => {
++  /* 000-meta.md to sam rejestr, nie decyzja — numeracja decyzji zaczyna się od 001. */
++  const files = mdFilesRecursive(ADRS).filter((file) => /^(?!000-)\d{3}-/.test(path.basename(file)));
++  const byNumber = new Map();
++  for (const file of files) {
++    const number = path.basename(file).slice(0, 3);
++    assert.ok(!byNumber.has(number), `ADR-${number} w dwóch plikach: ${byNumber.get(number)} i ${file}`);
++    byNumber.set(number, file);
++
++    const scope = fs.readFileSync(file, 'utf8').match(/^\*\*Zakres:\*\*\s*(\S+)/m)?.[1];
++    assert.ok(scope, `${file}: brak pola Zakres w nagłówku`);
++    const inAppDir = path.dirname(file).replaceAll('\\', '/') !== ADRS.replace('./', '');
++    if (scope === 'workspace') {
++      assert.ok(!inAppDir, `${file}: zakres workspace, a plik leży w podkatalogu aplikacji`);
++    } else {
++      assert.ok(inAppDir, `${file}: zakres "${scope}", a plik leży w korzeniu rejestru`);
++    }
++  }
++});
++
++test('powiązanie ADR↔standard jest dwustronne: każda projekcja cytuje swój ADR', () => {
++  const missing = [];
++  for (const adr of mdFilesRecursive(ADRS)) {
++    if (path.basename(adr).startsWith('000-')) continue;
++    const id = `ADR-${path.basename(adr).slice(0, 3)}`;
++    const projections = fs.readFileSync(adr, 'utf8').match(/^\*\*Projekcje normatywne:\*\*\s*(.+)$/m)?.[1] ?? '';
++    /* z listy projekcji bierzemy wyłącznie pliki standardów (przewodnik ma własny rejestr) */
++    for (const [, file] of projections.matchAll(/`([a-z0-9/-]+\.md)(?:#[a-z0-9-]+)?`/g)) {
++      const target = path.join(STANDARDS, file);
++      if (!fs.existsSync(target)) { missing.push(`${id}: projekcja ${file} nie istnieje`); continue; }
++      if (!fs.readFileSync(target, 'utf8').includes(id)) missing.push(`${id}: ${file} nie cytuje go zwrotnie`);
++    }
++  }
++  assert.deepEqual(missing, [], 'ADR-y bez dwustronnego powiązania (docs/adrs/000-meta.md)');
++});
++
++test('odsyłacze ścieżkowe do plików .md w docs/ rozwiązują się (żadnej martwej ścieżki)', () => {
++  const DOCS = './docs';
++  const dead = [];
++  for (const file of mdFilesRecursive(DOCS)) {
++    const dir = path.dirname(file);
++    for (const [, link] of fs.readFileSync(file, 'utf8').matchAll(/\]\(([^)\s]+\.md)\)|`(docs\/[^`\s)]+\.md)`/g)) {
++      if (!link || link.startsWith('http')) continue;
++      /* ścieżka od korzenia repo (w backtickach) albo względna do pliku */
++      const target = link.startsWith('docs/') ? path.resolve(link) : path.resolve(dir, link);
++      if (!fs.existsSync(target)) dead.push(`${file} -> ${link}`);
++    }
++  }
++  assert.deepEqual(dead, [], 'martwe odsyłacze do plików dokumentacji');
++});
++
+ test('odsyłacze `plik.md#id` w standardach i ADR-ach rozwiązują się do znaczników', () => {
+   const idsByFile = new Map(coreFiles.map((file) => [
+     path.basename(file),
+Index: docs/standards/design-system.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/design-system.md b/docs/standards/design-system.md
+--- a/docs/standards/design-system.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/design-system.md	(date 1784810619643)
+@@ -78,7 +78,7 @@
+ - Nowy komponent współdzielony tworzony jest generatorem komponentu (patrz `angular.md`), w `libs/shared/<kontekst>/ui/<name>` lub `libs/apps/<app>/<kontekst>/ui/<name>` zależnie od reguły lokalizacji z `architecture.md` (kontekst z rejestru `context.md`; prymitywy przekrojowe = `common`). **`<name>` = nazwa komponentu z makiety 1:1** (bez kwalifikatorów typu `Shell` — `design-handoff.md#name-parity`).
+ - **Kompozycja zamiast pisania od zera.** Własny komponent, jeżeli to możliwe, **MUSI** być złożony z komponentów zewnętrznej biblioteki UI — własny wkład to kompozycja, układ, kontrakt `input()`/`output()` i tokeny component; prymitywy pod spodem pochodzą z biblioteki bazowej.
+ - Jeśli story wymaga komponentu, którego nie ma w `libs/**/ui` — to **osobne zadanie** (najpierw prymityw do design systemu, potem feature, który go konsumuje), nie inline w feature'cie.
+-- **Wykrycie istnienia/braku komponentu należy do etapu architektury systemu, NIE do klaryfikacji story.** Czy dany element makiety istnieje w `libs/**/ui`, czy wymaga nowego prymitywu, rozstrzyga architekt na podstawie makiety i inwentarza bibliotek `ui` — nie analityk przy doprecyzowaniu. Clarifier **NIE WOLNO** pytać analityka, czy makieta wymaga nowego komponentu.
++- **Istnienie lub brak komponentu rozstrzyga inwentarz, nie opis wymagania.** To, czy element makiety istnieje w `libs/**/ui`, czy wymaga nowego prymitywu, wynika z porównania makiety z inwentarzem bibliotek `ui` — jest to ustalenie techniczne, nie biznesowe.
+ 
+ <!-- SECTION: component-api-contract -->
+ ## Kontrakt API komponentu
+@@ -118,7 +118,14 @@
+ - **NIE WOLNO** nadpisywać wewnętrznych stylów ani DOM komponentu (`::ng-deep`, selektory na klasy wewnętrzne, manipulacja DOM). Konfiguracja wyłącznie przez API i Component CSS Custom Properties (`design-system.md#component-api-contract`).
+ - **Zachowanie wbudowane jest dziedziczone, nie redefiniowane.** Stany (`hover`/`focus`/`active`/`disabled`/`loading`), a11y (focus, role ARIA, klawiatura) i tokeny wariant/rozmiar należą do komponentu. Konsument ich NIE opisuje ani nie odtwarza.
+ - **Brakująca funkcja = brakujący komponent.** Jeśli potrzeba czegoś, czego publiczne API nie udostępnia, to nowy/rozszerzony komponent biblioteki (osobna story design systemu, `design-system.md#component-inventory`), NIE obejście w konsumencie.
+-- **Skąd co pochodzi** — komponent i treść z makiety, sposób użycia ze story, klucze i18n od agenta: pełna reguła w `design-handoff.md#name-parity`. Story NIE wskazuje implementacji, wyglądu ani treści tekstów.
++- **Skąd co pochodzi** — komponent i treść z makiety, sposób użycia ze story, klucze i18n z implementacji: pełna reguła w `design-handoff.md#name-parity`. Story NIE wskazuje implementacji, wyglądu ani treści tekstów.
++
++<!-- SECTION: storybook -->
++## Storybook — katalog komponentów
++
++- Każdy komponent `type:ui` **MUSI** mieć scenę w Storybooku (`*.stories.ts`): to żywy katalog systemu projektowego i środowisko rozwoju komponentu Dummy w izolacji.
++- Scena **MUSI** pokrywać warianty i stany z kontraktu komponentu (`design-system.md#component-api-contract`) — scena bez stanów `disabled`/`loading`/błędu nie dowodzi kontraktu.
++- Scen **NIE** testujemy jednostkowo (`testing.md#stack`). Scena z funkcją `play` jest poziomem weryfikacji `component` (`testing.md#verification-levels`).
+ 
+ <!-- SECTION: anti-patterns -->
+ ## Anty-wzorce
+Index: docs/standards/forms.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/forms.md b/docs/standards/forms.md
+--- a/docs/standards/forms.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/forms.md	(date 1784810606483)
+@@ -19,7 +19,7 @@
+ <!-- SECTION: validation-messages -->
+ ## Walidacja i komunikaty
+ - Walidatory to czyste funkcje. Każdy klucz błędu (`required`, `maxlength`, custom) **MUSI** mieć klucz i18n (patrz `i18n.md`).
+-- **Źródła — trzy różne** (patrz `design-handoff.md#name-parity`, `i18n.md`): KTÓRE reguły walidacji (wymagane, formaty, limity) → ze **story**; **TREŚĆ** komunikatów błędów → z **makiety**, chyba że story cytuje ją **jawnie** (wtedy wygrywa story — precedencja w `design-handoff.md#name-parity`); **NAZWY kluczy** i18n → nadaje **agent** (wzorzec `componentName.elementName.type`, dokładny string nieistotny). Treści komunikatów ani nazw kluczy **NIE WOLNO** dopytywać u analityka — gdy brak ich w story i w makiecie, to `open_question` do designera, nie pytanie biznesowe.
++- **Źródła — trzy różne** (patrz `design-handoff.md#name-parity`, `i18n.md`): KTÓRE reguły walidacji (wymagane, formaty, limity) → ze **story**; **TREŚĆ** komunikatów błędów → z **makiety**, chyba że story cytuje ją **jawnie** (wtedy wygrywa story — precedencja w `design-handoff.md#name-parity`); **NAZWY kluczy** i18n → nadaje **implementacja** (wzorzec `componentName.elementName.type`, dokładny string nieistotny). Treści komunikatów ani nazw kluczy **NIE WOLNO** wymyślać — gdy brak ich w story i w makiecie, treść dostarcza designer.
+ - Walidacja asynchroniczna (np. unikalność) idzie przez warstwę API; pole jest w stanie `pending` do rozstrzygnięcia.
+ 
+ <!-- SECTION: error-display -->
+@@ -31,7 +31,7 @@
+ ## Submit i przepływ do state
+ - **Przepływ: Dummy → `output()` → Smart → fasada.** Formularz jest Dummy (`type:ui`, `architecture.md#data-flow`): waliduje i na submit **emituje `output()`** do rodzica — **NIE WOLNO** mu wstrzykiwać fasady ani wołać API. Smart rodzic (`type:feature`) obsługuje `output()` i **dispatchuje przez fasadę** (nigdy API bezpośrednio — reguła dostępu do Store w `architecture.md`, `state.md`).
+ - Podwójnemu submitowi zapobiega `exhaustMap` w efekcie (`state.md#effects`) **oraz** `disabled` przycisku w stanie `pending` — nie polegaj wyłącznie na `disabled`.
+-- **Blokada formularza w `pending` (domyślnie cały formularz).** W trakcie requestu (`pending`) **cały** formularz jest zablokowany: pola wejściowe stają się nieedytowalne **oraz** CTA jest `disabled` — użytkownik nie zmienia danych w locie. To zachowanie jest **dziedziczone ze standardu** (mechanika, nie biznes): „formularz zablokowany podczas ładowania" w story oznacza domyślnie pola **i** przycisk — **NIE WOLNO** dopytywać analityka, czy chodzi o sam przycisk, czy też pola. Po rozstrzygnięciu requestu formularz wraca do stanu aktywnego (`forms.md#server-errors`). Odstępstwo (np. część pól ma pozostać edytowalna w `pending`) wymaga **jawnego** zapisu w story.
++- **Blokada formularza w `pending` (domyślnie cały formularz).** W trakcie requestu (`pending`) **cały** formularz jest zablokowany: pola wejściowe stają się nieedytowalne **oraz** CTA jest `disabled` — użytkownik nie zmienia danych w locie. To zachowanie jest **dziedziczone ze standardu** (mechanika, nie biznes): „formularz zablokowany podczas ładowania" w story oznacza domyślnie pola **i** przycisk. Po rozstrzygnięciu requestu formularz wraca do stanu aktywnego (`forms.md#server-errors`). Odstępstwo (np. część pól ma pozostać edytowalna w `pending`) wymaga **jawnego** zapisu w story.
+ - **CTA/submit NIE jest blokowany walidacją (domyślnie).** Przycisk akcji jest **zawsze aktywny** — **NIE WOLNO** wyłączać go na podstawie `form.invalid`. Klik przy niepoprawnym formularzu wyzwala walidację: `markAllAsTouched()`, pokazanie komunikatów i **brak przejścia dalej** (jak w przykładzie poniżej). Jedyny przypadek `disabled` to stan `pending` (request w locie), **nie** niepoprawna walidacja. To zachowanie jest dziedziczone — story go nie opisuje ani nie zmienia bez jawnego odstępstwa.
+ 
+ ```typescript
+@@ -55,7 +55,7 @@
+ <!-- SECTION: server-errors -->
+ ## Błędy serwera / generyczne (5xx, network) — brak reakcji formularza
+ 
+-> Decyzja i uzasadnienie: ADR-001 (`docs/adrs/001-application-error-handling.md`). Taksonomia klas błędów — `conventions.md#error-handling` (właściciel); ta sekcja niesie wyłącznie zachowanie formularza.
++> Decyzja i uzasadnienie: ADR-001 (`docs/adrs/frontend-app/001-application-error-handling.md`). Taksonomia klas błędów — `conventions.md#error-handling` (właściciel); ta sekcja niesie wyłącznie zachowanie formularza.
+ 
+ - **Domyślnie formularz NIE reaguje na błędy generyczne.** Błędy techniczne (5xx, network, timeout, nieoczekiwane) są obsługiwane **globalnie i jednolicie przez interceptor HTTP** (`type:core`, `security.md#error-interceptor`, `conventions.md#error-handling`). Reakcja jest **aplikacyjna** (modal aplikacyjny z gotowego serwisu), nie widokowa.
+ - Po błędzie generycznym formularz **NIE WOLNO**: ustawiać błędu na polu, zmieniać stanu walidacji, blokować/odblokowywać CTA, ani w jakikolwiek inny sposób korelować błędu z konkretnym kontrolką, przyciskiem czy elementem UI. Jedyny efekt na CTA to zejście ze stanu `pending` po rozstrzygnięciu requestu (`forms.md#submit-flow`) — niezależnie od tego, czy zakończył się sukcesem, czy błędem 5xx.
+Index: docs/standards/i18n.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/i18n.md b/docs/standards/i18n.md
+--- a/docs/standards/i18n.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/i18n.md	(date 1784810666953)
+@@ -1,9 +1,11 @@
+ # Standardy internacjonalizacji (i18n)
+ 
++> **Status normatywny** (RFC 2119, patrz `00-meta.md`). Precedencja źródeł treści tekstów — `design-handoff.md#name-parity` (właściciel).
++
+ <!-- SECTION: architecture -->
+ ## Architektura
+ - **Biblioteka**: `@ngx-translate/core` (REST loader: `ngx-translate-multi-http-loader`; ICU: `ngx-translate-messageformat-compiler`; `translateCut`: `ngx-translate-cut`).
+-- **Źródło**: tłumaczenia są ładowane **w czasie działania** (loader HTTP) — poprawka treści nie wymaga przebudowy aplikacji. **Skąd konkretnie** pochodzą pliki (repozytorium treści, serwis, scalanie źródeł) — punkt decyzyjny aplikacji: `<app>/i18n.md` (opcjonalne, `00-meta.md#per-app-composition`) + ADR.
++- **Źródło**: tłumaczenia są ładowane **w czasie działania** (loader HTTP) — poprawka treści nie wymaga przebudowy aplikacji. **Skąd konkretnie** pochodzą pliki (repozytorium treści, serwis, scalanie źródeł) — punkt decyzyjny aplikacji: rozstrzygnięcie w `<app>/i18n.md` (opcjonalne, `00-meta.md#per-app-composition`), decyzja i uzasadnienie w ADR-005 (`docs/adrs/frontend-app/005-translation-files-runtime-source.md` — do spisania).
+ - **Reguła twarda**: zero hardkodowanych stringów w szablonach lub plikach TS. Jeśli coś jest widoczne dla użytkownika, MUSI być kluczem tłumaczenia.
+ 
+ <!-- SECTION: key-format -->
+@@ -45,14 +47,14 @@
+ <!-- SECTION: key-ownership -->
+ ## Własność kluczy
+ - Klucze i18n dla widoku są **odpowiedzialnością tego widoku**. **NIE WOLNO** ich dostarczać z zewnątrz — są produkowane jako efekt implementacji widoku. Każdy widok **MUSI** zdefiniować klucze, których potrzebuje, jako część jego budowy.
+-- **Klucz nie ma charakteru biznesowego — jest wyłącznie techniczny.** Niesie jedynie możliwość internacjonalizacji aplikacji (mapowanie tekst↔tłumaczenie), nie żadną decyzję biznesową. Klucze są **generowane przez agenta na etapie implementacji** i **NIGDY** nie są przedmiotem doprecyzowania **przed** implementacją — nie pojawiają się w story, w pytaniach do analityka ani jako warunek gotowości. Dopytywanie o klucze (ich istnienie, nazwy, liczbę) jest błędem klaryfikacji.
++- **Klucz nie ma charakteru biznesowego — jest wyłącznie techniczny.** Niesie jedynie możliwość internacjonalizacji aplikacji (mapowanie tekst↔tłumaczenie), nie żadną decyzję biznesową. Klucze są nadawane **na etapie implementacji** i **NIGDY** nie są przedmiotem ustaleń **przed** implementacją — nie pojawiają się w story.
+ 
+ <!-- SECTION: text-vs-keys -->
+ ## Treść tekstów vs nazwy kluczy — dwa różne źródła
+ Rozdziel **treść** (wartość tłumaczenia) od **klucza** (identyfikator):
+ - **TREŚĆ tekstu** (etykiety, placeholdery, komunikaty błędów, tytuły) pochodzi **z makiety, chyba że story cytuje ją jawnie** — pełna precedencja „pierwszy pasujący" w `design-handoff.md#name-parity` (SSOT).
+-- **Brak copy NIE jest pytaniem do analityka i NIE blokuje gotowości story.** To, że story podaje *reguły* walidacji (wymagany, min/max długość) bez *treści* komunikatów, jest **stanem normalnym** — treść dostarcza makieta, a klucze nadaje agent. **NIGDY** nie dopytuj analityka o dosłowny tekst komunikatu, placeholdera ani etykiety; gdy brak go w story i w makiecie → `open_question` do designera (nie clarification do analityka, nie `not-ready`).
+-- **NAZWA klucza** jest **wymyślana przez agenta** podczas implementacji. NIE pochodzi z makiety ani ze story. Dokładny string klucza jest **nieistotny** — wiążące są tylko: (1) zgodność z wzorcem `componentName.elementName.type`, (2) spójność w obrębie widoku i całego systemu (ten sam koncept = ta sama konwencja). Agent NIE pyta o nazwy kluczy — to decyzja implementacyjna, nie biznesowa.
++- **Brak treści komunikatu nie jest luką wymagania.** To, że story podaje *reguły* walidacji (wymagany, min/max długość) bez *treści* komunikatów, jest **stanem normalnym** — treść dostarcza makieta, a klucze nadaje implementacja. Gdy treści brak w story i w makiecie → dostarcza ją **designer**.
++- **NAZWA klucza** jest **nadawana podczas implementacji**. NIE pochodzi z makiety ani ze story. Dokładny string klucza jest **nieistotny** — wiążące są tylko: (1) zgodność z wzorcem `componentName.elementName.type`, (2) spójność w obrębie widoku i całego systemu (ten sam koncept = ta sama konwencja). Nazwa klucza jest decyzją implementacyjną, nie biznesową.
+ 
+ <!-- SECTION: wcag -->
+ ## WCAG AA & i18n
+Index: docs/standards/architecture.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/architecture.md b/docs/standards/architecture.md
+--- a/docs/standards/architecture.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/architecture.md	(date 1784804398244)
+@@ -19,7 +19,7 @@
+ 1. **JEŚLI** element konsumuje **jedna aplikacja** → biblioteka **MUSI** powstać w **`libs/apps/<app-name>/`** (tag `scope:<app-name>`), niezależnie od liczby miejsc użycia w tej aplikacji, i **NIE WOLNO** jej importować w innych aplikacjach. **NIE WOLNO** projektować współdzielenia „na zapas" — przewidywanie drugiego konsumenta nie jest przesłanką.
+ 2. **JEŚLI** element konsumuje **druga lub kolejna aplikacja** → do **`libs/shared/`** **MUSI** zostać wyniesiony **odpowiedni poziom abstrakcji** (kontrakt / część wspólna), a implementacje pozostają na poziomie konsumentów. Gdy implementacje konsumentów są identyczne, abstrakcją jest sama implementacja — do `libs/shared/` trafia całość. Gdy kod współdzielony musi wywołać część aplikacyjną → kontrakt DI (interfejs + `InjectionToken` w `libs/shared/`, implementacja u konsumenta — mechanizm `di_token`, `architecture.md#data-flow`).
+ 
+-**Wybór scope/apki to robota architekta, nie analityka.** Gdy zmiana dotyczy aplikacji, TO, w której aplikacji/scope wyląduje, jest rozstrzygane **DETERMINISTYCZNIE przez architekta** na podstawie workspace (patrz `nx.md`): jeden kandydat → ta aplikacja; wielu kandydatów → `open_question` **do architekta**. **NIE** jest to dana dostarczana przez analityka w story ani brama gotowości story (clarifier nie czyta workspace) — story opisuje zachowanie biznesowe niezależne od fizycznego umiejscowienia. Warstwę (`type:*`) nadaje **dekompozytor** (`architecture.md#data-flow`), również nie analityk.
++**Scope wynika z workspace, nie z opisu wymagania.** To, w której aplikacji/scope wyląduje zmiana, jest rozstrzygane **DETERMINISTYCZNIE na podstawie workspace** (patrz `nx.md`): jeden kandydat → ta aplikacja; wielu kandydatów → rozstrzygnięcie wymaga jawnej decyzji architektonicznej, **NIE WOLNO** go zgadywać. Wymaganie opisuje zachowanie biznesowe niezależne od fizycznego umiejscowienia. Warstwę (`type:*`) wyznacza klasyfikacja komponentu (`architecture.md#data-flow`).
+ 
+ ### Tagi
+ Reguły zależności kierują się tagami, NIGDY nazwami folderów.
+@@ -200,10 +200,10 @@
+ 
+ ### Przepływ błędów — własność warstwowa
+ 
+-> Decyzja i uzasadnienie: ADR-001 (`docs/adrs/001-application-error-handling.md`). Taksonomia klas błędów i kanały prezentacji — `conventions.md#error-handling` (właściciel); ta sekcja niesie wycinek warstwowy: **która warstwa obsługuje którą klasę**.
++> Decyzja i uzasadnienie: ADR-001 (`docs/adrs/frontend-app/001-application-error-handling.md`). Taksonomia klas błędów i kanały prezentacji — `conventions.md#error-handling` (właściciel); ta sekcja niesie wycinek warstwowy: **która warstwa obsługuje którą klasę**.
+ 
+ - **Inwariant transportu**: każde żądanie do backendu **MUSI** przechodzić przez akcje NGXS (`type:state`) — nie istnieje ścieżka wywołania API z pominięciem warstwy state (API żyje w `<state-name>/api/`, `architecture.md#monorepo-structure`). Bezpośrednie użycie klienta HTTP poza warstwą API state jest **zabronione**.
+-- **Błędy generyczne / techniczne (5xx, brak sieci, timeout, nieoczekiwane)** obsługuje **istniejąca globalna infrastruktura aplikacji** (`type:core`) z prezentacją na poziomie aplikacji. Jest to **gotowa zdolność systemu dostarczana poza zakresem story**: warstwy wyznaczane dla story ani jej nie implementują, ani nie deklarują jako zależności, a story nie specyfikuje zachowania ani treści komunikatów tej klasy błędów.
++- **Błędy generyczne / techniczne (5xx, brak sieci, timeout, nieoczekiwane)** obsługuje **istniejąca globalna infrastruktura aplikacji** (`type:core`) z prezentacją na poziomie aplikacji. Jest to **gotowa zdolność systemu**: funkcjonalności ani jej nie implementują, ani nie deklarują jako zależności — zachowanie i treść komunikatów tej klasy błędów nie należą do zakresu pojedynczej funkcjonalności.
+ - **Błędy domenowe (4xx z treścią istotną dla użytkownika)** obsługuje warstwa **`type:state`** w handlerach akcji; prezentacja odbywa się przez aplikacyjne serwisy powiadomień lub przez jawny feedback widoku opisany w story.
+ - **Kontrakt widoku/formularza**: widok otrzymuje wyłącznie stan `pending` oraz jawnie opisany w story feedback domenowy. Widok i formularz pozostają **nieświadome** błędów generycznych — jedynym lokalnym efektem błędu generycznego jest zejście ze stanu `pending` po rozstrzygnięciu żądania.
+ 
+@@ -222,7 +222,7 @@
+ 4. **JEŚLI** kontrakt to akcja NGXS → `delivery` = **action_dispatch**. Konsument importuje klasę akcji i wywołuje `Store.dispatch(new ...)`. **NIE WOLNO** wystawiać dispatchu jako serwisu.
+ 5. **JEŚLI** kontrakt to providery routingu (np. providery feature route'u) → `delivery` = **route_registration**. Provider rejestrowany w konfiguracji trasy / app-shellu.
+ 
+-**Egzekwowanie.** Architekt **MUSI** zadeklarować `delivery` dla każdego elementu `provides_intentions[]`. Planer warstwy konsumującej i coder **MUSZĄ** użyć dokładnie wskazanego mechanizmu — nie wolno im wybierać innego ani pytać użytkownika o wybór. Wybór `di_token` **ZAWSZE** wymaga uzasadnienia w polu `rationale_di_token` (który dep-constraint by się złamał — cytat z `system_constraints`).
++**Egzekwowanie.** Mechanizm dostawy **MUSI** być rozstrzygnięty i zapisany przy kontrakcie **przed** implementacją; implementacja stosuje dokładnie wskazany mechanizm i **NIE WOLNO** jej wybrać innego. Wybór `di_token` **ZAWSZE** wymaga wskazania reguły granic, która wymusiła odwrócenie zależności (który dep-constraint zostałby złamany przy `direct_import`).
+ 
+ **Uzasadnienie.** Domyślne DI eliminuje ukryte zależności (statyczne, globalne) i daje testowalność out-of-the-box. Dwupoziomowy wybór `direct_import` vs `di_token` zapewnia, że architektura nigdy nie wymusza odwrócenia kontroli „na wszelki wypadek" — token pojawia się tylko tam, gdzie graf zależności faktycznie tego wymaga.
+ 
+Index: docs/standards/conventions.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/conventions.md b/docs/standards/conventions.md
+--- a/docs/standards/conventions.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/conventions.md	(date 1784804413565)
+@@ -25,7 +25,7 @@
+ <!-- SECTION: error-handling -->
+ ## Obsługa błędów
+ 
+-> Decyzja i uzasadnienie: ADR-001 (`docs/adrs/001-application-error-handling.md`). **Ten paragraf jest właścicielem (SSOT) taksonomii klas błędów** — `architecture.md#data-flow`, `security.md#error-interceptor` i `forms.md#server-errors` niosą wycinki dla swoich warstw i nie redefiniują podziału klas.
++> Decyzja i uzasadnienie: ADR-001 (`docs/adrs/frontend-app/001-application-error-handling.md`). **Ten paragraf jest właścicielem (SSOT) taksonomii klas błędów** — `architecture.md#data-flow`, `security.md#error-interceptor` i `forms.md#server-errors` niosą wycinki dla swoich warstw i nie redefiniują podziału klas.
+ 
+ - **Inwariant transportu:** każde żądanie do backendu przechodzi przez akcje NGXS (`type:state`, `architecture.md#data-flow`) — bezpośrednie użycie `HttpClient` poza warstwą API state jest **zabronione**.
+ - **Dwie rozłączne klasy błędów:**
+@@ -34,6 +34,7 @@
+ - Interceptor błędów, serwis modali i serwis snackbarów to **gotowa infrastruktura** — konsumowana, nie implementowana per-feature (`security.md#error-interceptor`).
+ - Akcja `Failure` slice'a (`state.md#async-triple`) służy **stanowi widoku** (np. zejście z `pending`), nie zastępuje globalnej obsługi błędu generycznego — interceptor reaguje niezależnie od tego, czy efekt mapuje błąd na `Failure`.
+ - **NIGDY** nie połykaj błędu po cichu (pusty `catch`). **NIGDY** nie rzucaj surowego `string` — rzucaj `Error`/typowany błąd.
++- **Po czym handler rozpoznaje błąd domenowy** (kod HTTP, kształt odpowiedzi backendu) jest **punktem decyzyjnym aplikacji** wymagającym uzgodnienia z backendem: ADR-003 (`docs/adrs/frontend-app/003-domain-error-identification.md` — do spisania). Do czasu rozstrzygnięcia obowiązuje podział klas powyżej.
+ 
+ <!-- SECTION: logging-analytics -->
+ ## Logowanie i analityka — RODO
+@@ -41,7 +42,7 @@
+ > Aplikacja przetwarza dane osobowe (patrz `context.md`). Ta sekcja jest egzekwowana ze szczególną surowością.
+ 
+ - **Zero `console.log`** w kodzie produkcyjnym. Logowanie wyłącznie przez dedykowany logger (`type:core`) z poziomami.
+-- **Analityka jest domyślnie wyłączona.** Widok NIE zawiera zdarzeń analitycznych/tracking, CHYBA że story **jawnie** tego wymaga. Gdy wymaga — zdarzenia są częścią DoD widoku, o **nazwanych** typach. Brak wzmianki o analityce w story = brak analityki (nie dopytuj analityka).
++- **Analityka jest domyślnie wyłączona.** Widok NIE zawiera zdarzeń analitycznych/tracking, CHYBA że story **jawnie** tego wymaga. Gdy wymaga — zdarzenia są częścią DoD widoku, o **nazwanych** typach. Brak wzmianki o analityce w story = brak analityki.
+ - **NIGDY nie loguj ani nie wysyłaj do analityki danych osobowych** (PII) — treści procesów, danych osób z upoważnień, zawartości słowników. Identyfikuj po nieosobowych `id`, nie po danych.
+ 
+ ```typescript
+Index: docs/standards/design-handoff.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/design-handoff.md b/docs/standards/design-handoff.md
+--- a/docs/standards/design-handoff.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/design-handoff.md	(date 1784810602716)
+@@ -1,15 +1,17 @@
+ # Standardy handoffu projektowego (Figma → kod)
+ 
+ > **Status normatywny** (RFC 2119, patrz `00-meta.md`). Łączy makiety w Figmie z implementacją w `design-system.md` / `angular.md` (szablony i SCSS: od `angular.md#html-templates` do `angular.md#css-declaration-order`) / `responsive.md`.
++>
++> **Sposób maszynowego czytania makiet** (API Figmy, format pośredni, zakres ekstrakcji, mapowanie na komponenty i tokeny) jest punktem decyzyjnym workspace: ADR-004 (`docs/adrs/004-figma-mockup-machine-reading.md` — do spisania). Reguły poniżej obowiązują niezależnie od wybranego mechanizmu ekstrakcji.
+ 
+ <!-- SECTION: source-of-truth -->
+ ## Źródło prawdy i rozstrzyganie konfliktów
+ 
+ - **Figma** jest źródłem prawdy dla tego, co **ma powstać** (wygląd, układ, stany).
+ - **Kod design systemu** jest źródłem prawdy dla tego, co **już istnieje**: komponenty (`libs/**/ui`) i tokeny (`libs/shared/common/asset`, `type:asset` — patrz `design-system.md#token-naming`).
+-- **Układ ekranu — ZAWSZE z Figmy.** Układ, rozmiary, odstępy, proporcje, rozmieszczenie elementów i ich zachowanie responsywne (per breakpoint) są określane **wyłącznie** przez makietę. To **NIE jest pytanie biznesowe** — agentowi/analitykowi **NIE WOLNO** dopytywać analityka „jak ma wyglądać układ / jaka szerokość / jak na mobile". Zestaw obowiązujących wariantów (`mobile`/`tablet`/`desktop`) wynika z **dostarczonych** frame'ów wg `responsive.md#breakpoints` (jedna makieta = `desktop` domyślnie; brak wariantu = wariant **nie obowiązuje** — **NIE** ekstrapoluj brakującego układu); domyślne przypisanie samotnej makiety do `desktop` agent **oznacza założeniem** (`design-handoff.md#states-and-responsive`). Gdy układ jest niejednoznaczny lub sprzeczny → `open_question` **do designera**, nie do analityka. Story **NIE WOLNO** nadpisywać układu — opisuje wyłącznie zachowanie biznesowe (`design-handoff.md#name-parity`).
++- **Układ ekranu — ZAWSZE z Figmy.** Układ, rozmiary, odstępy, proporcje, rozmieszczenie elementów i ich zachowanie responsywne (per breakpoint) są określane **wyłącznie** przez makietę. Układ **NIE jest zagadnieniem biznesowym** — „jak ma wyglądać / jaka szerokość / jak na mobile" rozstrzyga wyłącznie makieta. Zestaw obowiązujących wariantów (`mobile`/`tablet`/`desktop`) wynika z **dostarczonych** frame'ów wg `responsive.md#breakpoints` (jedna makieta = `desktop` domyślnie; brak wariantu = wariant **nie obowiązuje** — **NIE** ekstrapoluj brakującego układu); domyślne przypisanie samotnej makiety do `desktop` **MUSI** być oznaczone jako założenie (`design-handoff.md#states-and-responsive`). Gdy układ jest niejednoznaczny lub sprzeczny → rozstrzyga **designer**, nie implementacja. Story **NIE WOLNO** nadpisywać układu — opisuje wyłącznie zachowanie biznesowe (`design-handoff.md#name-parity`).
+ - Gdy makieta pokazuje wariant/komponent **nieistniejący** w design systemie → to **osobne zadanie** rozbudowy `libs/**/ui` (patrz `design-system.md#component-inventory`), nie inline w feature'cie.
+-- Gdy makieta jest **sprzeczna** z istniejącym tokenem/komponentem (inny odstęp, kolor spoza palety) → **NIE rozstrzygaj po cichu**. Zgłoś jako `open_question` do designera (klauzula generalizacji, `00-meta.md#generalization`).
++- Gdy makieta jest **sprzeczna** z istniejącym tokenem/komponentem (inny odstęp, kolor spoza palety) → **NIE rozstrzygaj po cichu**. Zgłoś rozbieżność designerowi (klauzula generalizacji, `00-meta.md#generalization`).
+ 
+ <!-- SECTION: tokens-from-library -->
+ ## Tokeny pochodzą z zewnętrznej biblioteki UI, nie z color-pickera
+@@ -34,32 +36,32 @@
+ <!-- SECTION: name-parity -->
+ ## Parity nazw (Figma ↔ kod) — komponent z makiety, sposób użycia ze story
+ 
+-> Ten paragraf jest **właścicielem (SSOT)** precedencji źródeł copy i podziału ról makieta/story/agent — pozostałe standardy (`forms.md#validation-messages`, `i18n.md`, `a11y.md#semantic-html-first` (dostępna nazwa landmarku), `responsive.md#breakpoints`) odsyłają tu i nie redefiniują reguły.
++> Ten paragraf jest **właścicielem (SSOT)** precedencji źródeł copy i podziału ról makieta/story/implementacja — pozostałe standardy (`forms.md#validation-messages`, `i18n.md`, `a11y.md#semantic-html-first` (dostępna nazwa landmarku), `responsive.md#breakpoints`) odsyłają tu i nie redefiniują reguły.
+ 
+ Wszystkie komponenty pochodzą z biblioteki i są blackbox (patrz `design-system.md#component-consumption`). Stąd podział źródeł informacji:
+ 
+ - **KTÓRY komponent — z makiety.** Nazwa komponentu i jego wariantów w Figmie **MUSI** odpowiadać 1:1 nazwie w `libs/**/ui` (`Button/primary/md` ↔ `<prefix>-button [variant=primary][size=md]`). Wybór komponentu, wariant i rozmiar czytane są z makiety, NIE wymyślane. Rozbieżność nazewnictwa jest **bugiem parity** do usunięcia, nie lokalną interpretacją.
+-- **TREŚĆ tekstów — z makiety, chyba że story podaje ją jawnie.** Wszystkie teksty user-facing (etykiety, placeholdery, treść komunikatów błędów, tytuły, teksty przycisków) pochodzą **domyślnie z makiety** — to ona jest źródłem prawdy dla copy. **Wyjątek:** gdy story **jawnie** cytuje konkretną treść (np. dosłowny komunikat błędu w AC), ta treść **wygrywa** i jest copy docelowym. Precedencja przy ustalaniu copy — **pierwszy pasujący**: (1) treść **jawnie** podana w story → użyj jej; (2) w przeciwnym razie treść z **makiety**; (3) gdy brak w obu → `open_question` **do designera**. Treści ani etykiet **NIE WOLNO** wymyślać ani **dopytywać u analityka** — brak copy to luka makiety/designu, nie pytanie biznesowe (spójnie z `forms.md#validation-messages`).
+-- **Treść z makiety jest FINALNA i zatwierdzona.** Copy obecne w makiecie przeszło **PRZED handoffem** pełną redakcję — **akceptację działu prawnego, kontrolę prostego języka (plain language) oraz compliance**. Agent/analityk traktuje je jako **docelowe, wiążące copy**, **NIGDY** jako placeholder, próbkę ani draft do potwierdzenia. **NIE WOLNO** dopytywać (analityka ani designera) o: finalność treści, jej **kategorię biznesową / governance**, akceptację prawną, redakcję ani „czy to już ostateczny tekst" — wszystko to jest **założone z mocy tego standardu**. Gdy treść odczytywana jest z makiety narzędziowo (Figma MCP / Dev Mode), wyekstrahowany tekst jest copy docelowym i wstawiany jako **fakt**, NIE jako `[ZAŁOŻENIE]`.
+-- **NAZWY kluczy i18n — robota agenta.** Klucze tłumaczeń NIE pochodzą z makiety ani ze story. Agent nadaje je sam, dbając o spójność w całym systemie i zgodność z wzorcem `i18n.md` (`componentName.elementName.type`). Dokładna nazwa klucza jest nieistotna — liczy się wzorzec i spójność, nie konkretny string.
++- **TREŚĆ tekstów — z makiety, chyba że story podaje ją jawnie.** Wszystkie teksty user-facing (etykiety, placeholdery, treść komunikatów błędów, tytuły, teksty przycisków) pochodzą **domyślnie z makiety** — to ona jest źródłem prawdy dla copy. **Wyjątek:** gdy story **jawnie** cytuje konkretną treść (np. dosłowny komunikat błędu w AC), ta treść **wygrywa** i jest copy docelowym. Precedencja przy ustalaniu copy — **pierwszy pasujący**: (1) treść **jawnie** podana w story → użyj jej; (2) w przeciwnym razie treść z **makiety**; (3) gdy brak w obu → treść dostarcza **designer**. Treści ani etykiet **NIE WOLNO** wymyślać — brak copy to luka makiety/designu (spójnie z `forms.md#validation-messages`).
++- **Treść z makiety jest FINALNA i zatwierdzona.** Copy obecne w makiecie przeszło **PRZED handoffem** pełną redakcję — **akceptację działu prawnego, kontrolę prostego języka (plain language) oraz compliance**. Traktuje się je jako **docelowe, wiążące copy**, **NIGDY** jako placeholder, próbkę ani draft do potwierdzenia. Finalność treści, jej kategoria biznesowa/governance, akceptacja prawna i redakcja są **założone z mocy tego standardu** i nie podlegają potwierdzaniu. Gdy treść odczytywana jest z makiety narzędziowo (Figma MCP / Dev Mode), wyekstrahowany tekst jest copy docelowym i wstawiany jako **fakt**, NIE jako `[ZAŁOŻENIE]`.
++- **NAZWY kluczy i18n — robota implementacji.** Klucze tłumaczeń NIE pochodzą z makiety ani ze story. Nadaje je implementacja, dbając o spójność w całym systemie i zgodność z wzorcem `i18n.md` (`componentName.elementName.type`). Dokładna nazwa klucza jest nieistotna — liczy się wzorzec i spójność, nie konkretny string.
+ - **JAK go użyć — ze story.** Story dostarcza zachowanie biznesowe podawane do komponentu przez jego publiczne API: które pola, jakie reguły walidacji, jakie zdarzenia są obsługiwane, kiedy co się dzieje. Story NIE opisuje wyglądu, treści tekstów ani wewnętrznej mechaniki — te są odpowiednio z makiety lub dziedziczone z biblioteki.
+ - **Nazwa bez odpowiednika** w `libs/ui` → nowy komponent (osobna story design systemu, `design-system.md#component-inventory`) albo błędne użycie — NIGDY budowa inline w feature'cie. **Nowy komponent dziedziczy nazwę z makiety 1:1** — bez doklejanych kwalifikatorów (`Shell`/`Wrapper`/`Container`…). Afiksy konwencji (prefiks `<prefix>-`, sufiks `Component`) to nie drift; dodany rdzeń semantyczny — tak. Figma `Header` → `<prefix>-header` / `HeaderComponent`, **NIGDY** `HeaderShellComponent` (rejestr dopasowuje po nazwie — `Header` ≠ `HeaderShell`, drift gubi parity i dedup).
+-- **Makieta pokazuje coś, czego API nie udostępnia** → bug projektu lub brakujący komponent, NIE nadpisywanie wnętrza komponentu (`design-handoff.md#source-of-truth`: nie rozstrzygaj po cichu — `open_question` do designera).
++- **Makieta pokazuje coś, czego API nie udostępnia** → bug projektu lub brakujący komponent, NIE nadpisywanie wnętrza komponentu (`design-handoff.md#source-of-truth`: nie rozstrzygaj po cichu — rozstrzyga designer).
+ 
+ <!-- SECTION: mockup-reference -->
+-## Referencja makiety w story (warunek gotowości)
++## Referencja makiety jako źródło układu
+ 
+-- Każdy widok i każdy istotny stan opisany w story **MUSI** wskazywać konkretny frame Figmy (link Dev Mode / `node-id`). Brak referencji → story **niegotowe** (patrz checklista gotowości, sekcja Design).
++- Każdy widok i każdy istotny stan **MUSI** wskazywać konkretny frame Figmy (link Dev Mode / `node-id`). Bez referencji układ nie ma źródła prawdy, a jego implementacja byłaby zgadywaniem.
+ - Jeden frame = jeden stan. „Zobacz Figma" bez wskazania konkretnego ekranu nie spełnia tej reguły.
+-- **Testowalność układu kotwiczy FRAME, nie proza.** Kryterium akceptacji dotyczące pozycji/układu jest spełnione przez **referencję frame'u** („renderuje się zgodnie z frame `<node-id>`"), weryfikowaną testem komponentowym/wizualnym względem makiety — **NIGDY** przez prozaiczny opis layoutu w AC. Opisanie pozycji słowami tworzy **drugie źródło prawdy** o układzie, które może rozjechać się z makietą (łamie `design-handoff.md#source-of-truth`: story nie nadpisuje układu). Dlatego pozycji/układu **NIE WOLNO** dopytywać u analityka — także „dla testowalności AC". Gdy makieta nie pokazuje jednoznacznie pozycji → `open_question` **do designera** (`design-handoff.md#source-of-truth`), nigdy proza wymyślona przez analityka. W AC opisywać wolno **wyłącznie niezmienniki biznesowe** okołoukładowe (np. „baner nie zasłania pól formularza", „widoczny przed zalogowaniem") — to KTÓRE/DLACZEGO, nie GDZIE/JAK.
++- **Testowalność układu kotwiczy FRAME, nie proza.** Kryterium akceptacji dotyczące pozycji/układu jest spełnione przez **referencję frame'u** („renderuje się zgodnie z frame `<node-id>`"), weryfikowaną testem komponentowym/wizualnym względem makiety — **NIGDY** przez prozaiczny opis layoutu w AC. Opisanie pozycji słowami tworzy **drugie źródło prawdy** o układzie, które może rozjechać się z makietą (łamie `design-handoff.md#source-of-truth`: story nie nadpisuje układu). Gdy makieta nie pokazuje jednoznacznie pozycji → rozstrzyga **designer** (`design-handoff.md#source-of-truth`), nigdy proza opisująca układ. W AC opisywać wolno **wyłącznie niezmienniki biznesowe** okołoukładowe (np. „baner nie zasłania pól formularza", „widoczny przed zalogowaniem") — to KTÓRE/DLACZEGO, nie GDZIE/JAK.
+ 
+ <!-- SECTION: states-and-responsive -->
+ ## Stany i responsywność w makiecie
+ 
+ - Makieta **domyślnie zawiera wszystkie stany** (`empty`, `loading`, `error` oprócz happy path). Pominięcie stanu oznacza „stan nieistotny dla tego widoku" **tylko** wtedy, gdy story to **jawnie** stwierdza; w przeciwnym razie brak stanu traktuj jako lukę makiety, nie jako brak wymagania.
+-- **Wyjątek — slot / projekcja treści (komponent reużywalny).** Reguła wyżej („pominięty stan = luka") dotyczy **WŁASNYCH stanów widoku** komponentu (data-driven `empty`/`loading`/`error`). Dla komponentu prezentacyjnego udostępniającego **slot** (`<ng-content>` / projekcja treści) stany **ZAWARTOŚCI slotu** (pusty / wypełniony / wiele elementów / overflow) wynikają z **UŻYCIA** przez komponent nadrzędny i pojawiają się dopiero **u konsumenta** — **NIE** są pominiętym stanem tego komponentu. Jego kontrakt jest **strukturalny** (slot istnieje, projektuje treść **agnostycznie**, nie zaburza przekazanych elementów); wygląd i zachowanie przekazanej treści to zakres konsumenta. **NIE** traktuj braku osobnego kryterium dla pustego/wypełnionego slotu jako luki i **NIE** dopytuj o nie analityka.
+-- Gdy stan **nie jest** narysowany (a story go nie wyklucza) → agent stosuje wzorce ze standardów (skeleton z `design-system.md`, komunikat z `aria-live` z `a11y.md#screen-reader-announcements`) i **oznacza założenie**.
+-- Responsywność: zestaw obowiązujących wariantów (`mobile`/`tablet`/`desktop`) wynika z **dostarczonych** frame'ów — reguły interpretacji w `responsive.md#breakpoints`: jedna makieta = `desktop` (domyślnie; story może nadpisać **wariant**, np. „mobile-only" — to zakres biznesowy, NIE opis układu z `design-handoff.md#source-of-truth`); brak wariantu = wariant **nie obowiązuje** (NIE dorysowuj/ekstrapoluj brakującego układu); pełny zestaw = trzy układy. Domyślne przypisanie samotnej makiety do `desktop` agent **oznacza założeniem** (nie zgaduje po cichu, nie dopytuje analityka).
++- **Wyjątek — slot / projekcja treści (komponent reużywalny).** Reguła wyżej („pominięty stan = luka") dotyczy **WŁASNYCH stanów widoku** komponentu (data-driven `empty`/`loading`/`error`). Dla komponentu prezentacyjnego udostępniającego **slot** (`<ng-content>` / projekcja treści) stany **ZAWARTOŚCI slotu** (pusty / wypełniony / wiele elementów / overflow) wynikają z **UŻYCIA** przez komponent nadrzędny i pojawiają się dopiero **u konsumenta** — **NIE** są pominiętym stanem tego komponentu. Jego kontrakt jest **strukturalny** (slot istnieje, projektuje treść **agnostycznie**, nie zaburza przekazanych elementów); wygląd i zachowanie przekazanej treści to zakres konsumenta. Brak osobnego kryterium dla pustego/wypełnionego slotu **NIE** jest luką.
++- Gdy stan **nie jest** narysowany (a story go nie wyklucza) → stosuje się wzorce ze standardów (skeleton z `design-system.md`, komunikat z `aria-live` z `a11y.md#screen-reader-announcements`) i **oznacza założenie**.
++- Responsywność: zestaw obowiązujących wariantów (`mobile`/`tablet`/`desktop`) wynika z **dostarczonych** frame'ów — reguły interpretacji w `responsive.md#breakpoints`: jedna makieta = `desktop` (domyślnie; story może nadpisać **wariant**, np. „mobile-only" — to zakres biznesowy, NIE opis układu z `design-handoff.md#source-of-truth`); brak wariantu = wariant **nie obowiązuje** (NIE dorysowuj/ekstrapoluj brakującego układu); pełny zestaw = trzy układy. Domyślne przypisanie samotnej makiety do `desktop` **MUSI** być oznaczone jako założenie — nie rozstrzygaj tego po cichu.
+ 
+ <!-- SECTION: icons-assets -->
+ ## Ikony i zasoby
+@@ -75,6 +77,6 @@
+ - ❌ Story bez wskazania konkretnego frame'u.
+ - ❌ Ciche rozstrzyganie rozbieżności makieta↔design system.
+ - ❌ Pomijanie stanów empty/loading/error bez oznaczenia założenia.
+-- ❌ Dopytywanie **analityka** o układ, rozmiary, responsywność, copy lub etykiety — to domena makiety (ew. story dla copy), nie pytanie biznesowe.
++- ❌ Traktowanie układu, rozmiarów, responsywności lub copy jako niedomówienia wymagania — to domena makiety (ew. story dla copy).
+ - ❌ Nadpisywanie układu/rozmiarów z makiety wartościami „ze story" — story nie opisuje wyglądu.
+-- ❌ Wymyślanie etykiety/komunikatu, gdy nie ma go ani w story, ani w makiecie (zamiast `open_question` do designera).
++- ❌ Wymyślanie etykiety/komunikatu, gdy nie ma go ani w story, ani w makiecie (zamiast zgłoszenia luki designerowi).
+Index: docs/standards/security.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/security.md b/docs/standards/security.md
+--- a/docs/standards/security.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/security.md	(date 1784801443884)
+@@ -1,16 +1,18 @@
+ # Standardy bezpieczeństwa
+ 
++> **Status normatywny** (RFC 2119, patrz `00-meta.md`). Bezpieczeństwo jest **podłogą, nie sufitem** — NIGDY nie wolno go poświęcać dla wydajności ani szybkości dostarczenia (`00-meta.md#precedence`).
++
+ <!-- SECTION: token-invariants -->
+ ## Zarządzanie tokenami — inwarianty
+ 
+ - Token sesji **żyje w state NGXS** (slice rdzeniowy auth — `state.md#core-slices`). Komponentom **NIE WOLNO** czytać tokenu bezpośrednio — dostęp wyłącznie przez fasadę auth state (`type:state`), zgodnie z regułą dostępu do Store (`architecture.md#data-flow`).
+ - **Interceptor HTTP** w `type:core` jest **jedynym** miejscem upoważnionym do dołączania tokenu do wychodzących requestów; serwisy API i komponenty nie wiedzą o tokenie.
+-- **Format tokenu, mechanizm trwałości, synchronizacja między zakładkami i cykl życia** (login, wygaśnięcie, odświeżanie) są **punktem decyzyjnym aplikacji** — rozstrzygnięcie żyje w `<app>/security.md` (**WYMAGANE**, `00-meta.md#per-app-composition`) i cytuje swój ADR.
++- **Format tokenu, mechanizm trwałości, synchronizacja między zakładkami i cykl życia** (login, wygaśnięcie, odświeżanie) są **punktem decyzyjnym aplikacji** — rozstrzygnięcie żyje w `<app>/security.md` (**WYMAGANE**, `00-meta.md#per-app-composition`), a decyzja i uzasadnienie w ADR-006 (`docs/adrs/frontend-app/006-session-token-lifecycle.md` — do spisania).
+ 
+ <!-- SECTION: error-interceptor -->
+ ## Globalny interceptor błędów
+ 
+-> Decyzja i uzasadnienie: ADR-001 (`docs/adrs/001-application-error-handling.md`). Taksonomia klas błędów — `conventions.md#error-handling` (właściciel); ta sekcja niesie mechanikę interceptora.
++> Decyzja i uzasadnienie: ADR-001 (`docs/adrs/frontend-app/001-application-error-handling.md`). Taksonomia klas błędów — `conventions.md#error-handling` (właściciel); ta sekcja niesie mechanikę interceptora.
+ 
+ - Błędy generyczne / techniczne (**5xx**, network, timeout, nieoczekiwane) są obsługiwane **wyłącznie** przez globalny interceptor HTTP w `type:core` — jedno miejsce dla całej aplikacji. Interceptor obsługuje **tylko tę klasę błędów**; błędy domenowe należą do handlerów akcji `type:state` (`conventions.md#error-handling`).
+ - Reakcja interceptora jest **aplikacyjna i generyczna**: prezentacja przez **modal aplikacyjny** (gotowy serwis modali) — a11y wg `a11y.md#aria-patterns` i `a11y.md#focus-management` (dialog, focus trap, powrót focusu), ogłoszenie błędu wg `a11y.md#screen-reader-announcements`. **NIE WOLNO** jej wiązać z formularzem, konkretną kontrolką, przyciskiem ani innym elementem UI widoku — widok i formularz pozostają nieświadome błędu 5xx (`forms.md#server-errors`).
+Index: docs/standards/state.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/state.md b/docs/standards/state.md
+--- a/docs/standards/state.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/state.md	(date 1784810617836)
+@@ -1,5 +1,7 @@
+ # Standardy NGXS v21 i zarządzania stanem
+ 
++> **Status normatywny** (RFC 2119, patrz `00-meta.md`). Granice warstw i reguła dostępu do Store — `architecture.md#data-flow`.
++
+ <!-- SECTION: state-strategy -->
+ ## Strategia zarządzania stanem
+ State scaffolduje **wyłącznie** CLI generatorów (`node scripts/generators/ngxs/index.js`); ręczne tworzenie plików state jest **zabronione**. Cztery polecenia: `init-state` (szkielet nowego slice'u — pliki w `state.md#file-structure`), `add-state-action`, `add-async-state-action` (trójka Request/Success/Failure) oraz `add-api`.
+@@ -68,6 +70,17 @@
+ - **Lokalizacja**: definiuj selektory wewnątrz klasy State lub jako osobny `*-selectors.ts`, jeśli są złożone.
+ - **Czystość**: selektory muszą być czystymi funkcjami. Używaj memoizacji (domyślne w NGXS `@Selector`).
+ 
++<!-- SECTION: state-scope -->
++## Zasięg stanu: komponent, trasa, rdzeń
++
++Miejsce stanu rozstrzyga reguła **„pierwszy pasujący"**, oceniana od najwęższego zasięgu:
++
++1. **Stan komponentu** — `signal()` w komponencie: wartość potrzebna jednemu komponentowi na czas jego życia (rozwinięcie panelu, krok kreatora przed zapisem). **NIE WOLNO** jej trzymać w NGXS.
++2. **Slice funkcjonalności** — domyślne miejsce stanu funkcjonalności; rejestrowany w `providers` trasy (`routing.md#route-providers`), żyje tak długo, jak aktywna gałąź nawigacji.
++3. **Slice rdzeniowy** — **WYŁĄCZNIE** funkcjonalność globalna aplikacji (`state.md#core-slices`).
++
++W razie wątpliwości obowiązuje **węższy** zasięg: awans stanu do rdzeniowego jest tani, degradacja stanu globalnego kosztowna.
++
+ <!-- SECTION: core-slices -->
+ ## Slice'y rdzeniowe
+ 
+@@ -88,9 +101,9 @@
+ 
+ ### Brak kontraktu → praca na mocku
+ 
+-- **Domyślnie:** jeśli endpoint **nie jest podany** w story, a ze story **jawnie** wynika, że jest potrzebny → agent pracuje na **mocku** (wymyślony endpoint + modele request/response), oznaczając `[ZAŁOŻENIE]` (`00-meta.md#generalization`). Brak kontraktu **NIE blokuje** implementacji ani gotowości story.
++- **Domyślnie:** jeśli endpoint **nie jest podany** w story, a ze story **jawnie** wynika, że jest potrzebny → implementacja opiera się na **mocku** (wymyślony endpoint + modele request/response) z komentarzem `[ZAŁOŻENIE]` (`00-meta.md#generalization`). Brak kontraktu **NIE blokuje** implementacji.
+ - Mock **MUSI** stosować te same reguły struktury i nazewnictwa co realny endpoint (`/<state-name>/api/`, `<endpoint>.request.ts` / `<endpoint>.response.ts`) — podmiana na realny kontrakt ma być wyłącznie zmianą wartości pól, nie struktury.
+-- Wymyślony kontrakt jest `open_question` do backendu/analityka (do potwierdzenia), nie cichym założeniem. Clarifier **NIE WOLNO** blokować story z powodu braku endpointu.
++- Wymyślony kontrakt wymaga potwierdzenia przez zespół backendu — nie jest cichym założeniem.
+ 
+ ### Struktura
+ 
+Index: docs/standards/testing.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/testing.md b/docs/standards/testing.md
+--- a/docs/standards/testing.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/testing.md	(date 1784801373831)
+@@ -6,7 +6,8 @@
+ ## Stack
+ 
+ - **Unit / component**: Vitest (`vitest.config.ts`, `vitest.workspace.ts`) + Angular `TestBed`.
+-- **E2E**: dedykowana aplikacja `<app-name>-e2e` (zachowanie runtime: trasy, UI, kontrakty API).
++- **Component w przeglądarce**: sceny Storybooka z funkcją `play`, uruchamiane przez test-runner — dowodzą interakcji wizualnych i kompozycji komponentu. To osobne narzędzie od Vitest, nie zastępuje go.
++- **E2E**: dedykowana aplikacja `<app-name>-e2e` na Playwright (zachowanie runtime: trasy, UI, kontrakty API).
+ - **Dostępność**: `axe-core` w testach komponentów i w e2e dla kluczowych przepływów — brak naruszeń `serious`/`critical` jest **bramką CI**. Automat nie wykrywa wszystkiego: DoD widoku obejmuje też ręczne przejście przepływu klawiaturą + sweep czytnikiem ekranu (reguły — `a11y.md`).
+ - Pliki testów: `*.spec.ts`, kolokowane z testowanym plikiem.
+ - **Storybook poza zakresem testów**: plików `*.stories.ts` **NIE** testujemy jednostkowo — nie powstaje `*.stories.spec.ts`. Poprawność story dowodzi build/typecheck Storybooka (patrz `docs/_temp/storybook-setup-runbook.md`), nie test jednostkowy. Komponent (`*.component.ts`) testujemy normalnie wg `testing.md#what-to-test`.
+@@ -29,6 +30,19 @@
+ 
+ Piramida: dużo unit, mniej component, **niewiele** e2e — krytyczne ścieżki biznesowe aplikacji: logowanie, wybór aktywnego kontekstu, główny przepływ tworzenia danych.
+ 
++<!-- SECTION: verification-levels -->
++## Poziom weryfikacji per kryterium akceptacji
++
++Każde kryterium akceptacji **MUSI** mieć przypisany **najtańszy poziom, który je dowodzi**. Poziom dobiera się do kryterium, **NIGDY** odwrotnie:
++
++| Kryterium | Poziom | Czym dowodzony |
++|---|---|---|
++| Zgodność typów, istnienie kontraktu (sygnatura, eksport w barrelu) | `static` | kompilacja TS + lint |
++| Logika, transformacje, stany slice'u | `unit` | Vitest (`testing.md#what-to-test`) |
++| Interakcja wizualna, kompozycja komponentu | `component` | scena Storybooka z `play` (test-runner) |
++
++Zbiór poziomów przypisywanych kryterium jest **zamknięty**: `static`, `unit`, `component`. E2E **NIE** jest poziomem przypisywanym pojedynczemu kryterium — pokrywa krytyczne ścieżki aplikacji jako całość (`testing.md#what-to-test`), więc kryterium nie wolno „dowodzić" testem e2e zamiast tańszym poziomem.
++
+ <!-- SECTION: ngxs-testing -->
+ ## Testowanie NGXS
+ 
+Index: docs/standards/nx.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/nx.md b/docs/standards/nx.md
+--- a/docs/standards/nx.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/nx.md	(date 1784801416157)
+@@ -1,5 +1,7 @@
+ # Standardy monorepo Nx
+ 
++> **Status normatywny** (RFC 2119, patrz `00-meta.md`). Reguła lokalizacji biblioteki i macierz zależności — `architecture.md#monorepo-structure`.
++
+ <!-- SECTION: library-strategy -->
+ ## Strategia zarządzania bibliotekami
+ Biblioteki powstają **wyłącznie** przez dwa generatory uruchamiane po kolei; ręczne tworzenie plików biblioteki jest **zabronione**:
+Index: docs/standards/responsive.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/responsive.md b/docs/standards/responsive.md
+--- a/docs/standards/responsive.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/responsive.md	(date 1784810612607)
+@@ -33,15 +33,15 @@
+ 
+ Ponieważ `@media` nie przyjmuje `var()`, breakpointy żyją jako mapa SCSS (logika wewnętrzna — `$variables` dozwolone, patrz `angular.md#scss-architecture`) i są konsumowane **wyłącznie** przez mixin `respond-to`. **NIE WOLNO** wpisywać surowych wartości px w `@media` w komponentach.
+ 
+-> **Zestaw vs wybór.** Ten dokument definiuje **zestaw** breakpointów (nazwy i wartości) — jest on standardem i jest stały. **KTÓRE** warianty obowiązują w konkretnym widoku oraz jak na nich wygląda układ **wynika z makiety**, NIE jest decyzją analityka ani agenta (`design-handoff.md#source-of-truth`).
++> **Zestaw vs wybór.** Ten dokument definiuje **zestaw** breakpointów (nazwy i wartości) — jest on standardem i jest stały. **KTÓRE** warianty obowiązują w konkretnym widoku oraz jak na nich wygląda układ **wynika z makiety**, NIE jest decyzją implementacji (`design-handoff.md#source-of-truth`).
+ >
+ > **Warianty makiet obowiązujące aplikację: mobile, tablet, desktop** (mapowanie na tokeny: mobile → baza, ew. `sm`; tablet → `md`; desktop → `lg`, a `xl` to szeroki desktop). Które z nich **faktycznie obowiązują** dla danego UI, wyznacza zestaw **dostarczonych** makiet — wg reguł „pierwszy pasujący":
+ >
+-> 1. **Jedna makieta ⇒ `desktop`** (domyślnie), chyba że story **jawnie** stanowi inaczej (np. widok mobile-only). Agent przypisuje samotną makietę do `desktop`, **oznacza założenie** i **NIE** dopytuje analityka.
++> 1. **Jedna makieta ⇒ `desktop`** (domyślnie), chyba że story **jawnie** stanowi inaczej (np. widok mobile-only). Samotna makieta jest przypisywana do `desktop` z jawnym **oznaczeniem założenia**.
+ > 2. **Brak wariantu ⇒ wariant nie obowiązuje.** Gdy dostarczono np. tylko `mobile` i `desktop` (bez `tablet`), to dany UI ma **wyłącznie** te dwa układy; pominięty wariant (`tablet` → `md`) **nie jest osobnym celem**, a jego viewport dziedziczy układ wg kaskady mobile-first (`responsive.md#mobile-first`). Brakującego wariantu **NIE WOLNO** dorysowywać ani „ekstrapolować" jako osobnego układu.
+ > 3. **Pełny zestaw (`mobile` + `tablet` + `desktop`) ⇒ trzy osobne układy**, implementowane mobile-first (`responsive.md#mobile-first`), z przejściami wg `responsive.md#layout-transformation`.
+ >
+-> Brak frame'u danego wariantu to **świadomy zakres makiety**, nie luka i nie pytanie do analityka. Niejednoznaczność lub sprzeczność układu w obrębie dostarczonych wariantów → `open_question` **do designera** (`design-handoff.md#source-of-truth`).
++> Brak frame'u danego wariantu to **świadomy zakres makiety**, nie luka. Niejednoznaczność lub sprzeczność układu w obrębie dostarczonych wariantów → rozstrzyga **designer** (`design-handoff.md#source-of-truth`).
+ 
+ ```scss
+ // libs/shared/common/asset/src/styles/_breakpoints.scss (jedyne miejsce z wartościami)
+@@ -91,4 +91,4 @@
+ - ❌ Stałe wysokości powodujące obcięcie treści przy długich stringach/zoomie.
+ - ❌ Tabela z poziomym scrollem jako jedyny wariant mobilny tam, gdzie pasują karty.
+ - ❌ Dorysowywanie/„ekstrapolowanie" wariantu, którego makieta nie dostarcza (np. wymyślony układ `tablet`) — brak wariantu = nie obowiązuje (`responsive.md#breakpoints`).
+-- ❌ Traktowanie samotnej makiety jako `mobile` (albo dopytywanie analityka, który to wariant) zamiast domyślnego `desktop` (`responsive.md#breakpoints`).
++- ❌ Traktowanie samotnej makiety jako `mobile` zamiast domyślnego `desktop` (`responsive.md#breakpoints`).
+Index: docs/standards/routing.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/routing.md b/docs/standards/routing.md
+--- a/docs/standards/routing.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/routing.md	(date 1784801430998)
+@@ -29,6 +29,7 @@
+ ## Guardy i resolvery
+ - Guardy **MUSZĄ** być funkcyjne (`CanActivateFn`) z `inject()`. Guardy klasowe są **zabronione**. Auth guard żyje w `type:core` (patrz `security.md`).
+ - Resolverów używaj **oszczędnie** — tylko gdy dane są twardo wymagane przed aktywacją. Domyślnie ładuj w komponencie/fasadzie ze stanem `loading` (lepszy UX, prostszy błąd).
++- **Stan aplikacji przy ładowaniu danych przed przejściem na ekran** (resolver przed aktywacją trasy vs stan `loading` w widoku) jest **punktem decyzyjnym aplikacji**: ADR-002 (`docs/adrs/frontend-app/002-data-loading-before-screen-entry.md` — do spisania). Powyższa reguła obowiązuje do czasu jego rozstrzygnięcia.
+ 
+ ```typescript
+ export const groupAccessGuard: CanActivateFn = (route) => {
+Index: .ai-agentic-workspace/scripts/__fixtures__/standards-resolver/adrs-duplicate/frontend-app/001-app-copy.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/scripts/__fixtures__/standards-resolver/adrs-duplicate/frontend-app/001-app-copy.md b/.ai-agentic-workspace/scripts/__fixtures__/standards-resolver/adrs-duplicate/frontend-app/001-app-copy.md
+new file mode 100644
+--- /dev/null	(date 1784797981431)
++++ b/.ai-agentic-workspace/scripts/__fixtures__/standards-resolver/adrs-duplicate/frontend-app/001-app-copy.md	(date 1784797981431)
+@@ -0,0 +1,3 @@
++# ADR-001: Wersja aplikacji (fixture)
++
++**Status:** accepted (2026-07-01)
+Index: .ai-agentic-workspace/scripts/__fixtures__/standards-resolver/adrs-duplicate/001-workspace-copy.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/scripts/__fixtures__/standards-resolver/adrs-duplicate/001-workspace-copy.md b/.ai-agentic-workspace/scripts/__fixtures__/standards-resolver/adrs-duplicate/001-workspace-copy.md
+new file mode 100644
+--- /dev/null	(date 1784797981430)
++++ b/.ai-agentic-workspace/scripts/__fixtures__/standards-resolver/adrs-duplicate/001-workspace-copy.md	(date 1784797981430)
+@@ -0,0 +1,3 @@
++# ADR-001: Wersja workspace (fixture)
++
++**Status:** accepted (2026-07-01)
+Index: docs/standards/context.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/standards/context.md b/docs/standards/context.md
+--- a/docs/standards/context.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/standards/context.md	(date 1784801411425)
+@@ -1,5 +1,7 @@
+ # Konteksty aplikacji
+ 
++> **Status normatywny** (RFC 2119, patrz `00-meta.md`). Niezmienniki z tego dokumentu mają **najwyższą precedencję** (`00-meta.md#precedence`).
++
+ <!-- SECTION: contexts -->
+ ## Konteksty
+ Domena biznesowa aplikacji jest jedna — **konteksty** to jej obszary. Każdy feature MUSI jawnie deklarować, do którego kontekstu należy — bez ukrytych założeń.
+Index: docs/architecture/06-internationalization.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/architecture/06-internationalization.md b/docs/architecture/06-internationalization.md
+--- a/docs/architecture/06-internationalization.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/architecture/06-internationalization.md	(date 1784797937294)
+@@ -20,7 +20,7 @@
+ 
+ ## 6.4 Ładowanie w czasie działania
+ 
+-Tłumaczenia są ładowane **w czasie działania** (loader HTTP — §6.5) — poprawka treści nie wymaga przebudowy ani wydania aplikacji, a treść jest zarządzana poza kodem. **Skąd konkretnie pochodzą pliki tłumaczeń** (repozytorium treści, serwis, scalanie wielu źródeł) — opisuje ADR: [ADR-005](../adrs/005-translation-files-runtime-source.md).
++Tłumaczenia są ładowane **w czasie działania** (loader HTTP — §6.5) — poprawka treści nie wymaga przebudowy ani wydania aplikacji, a treść jest zarządzana poza kodem. **Skąd konkretnie pochodzą pliki tłumaczeń** (repozytorium treści, serwis, scalanie wielu źródeł) — opisuje ADR: [ADR-005](../adrs/frontend-app/005-translation-files-runtime-source.md).
+ 
+ ## 6.5 Biblioteka: @ngx-translate + rozszerzenia
+ 
+Index: docs/architecture/07-cross-cutting.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/architecture/07-cross-cutting.md b/docs/architecture/07-cross-cutting.md
+--- a/docs/architecture/07-cross-cutting.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/architecture/07-cross-cutting.md	(date 1784797937299)
+@@ -13,14 +13,14 @@
+ 
+ ## 7.2 Dostępność
+ 
+-- Cel referencyjny: **WCAG 2.1 AA** (poziom per aplikacja to punkt decyzyjny — slot `WCAG_LEVEL`). Dostępność jest podłogą — żadna reguła wydajności ani estetyki jej nie uchyla.
++- Cel referencyjny: **WCAG 2.1 AA** (poziom per aplikacja to punkt decyzyjny — `replace` sekcji `target-level` w `standards/<app>/a11y.md` pod ADR aplikacji). Dostępność jest podłogą — żadna reguła wydajności ani estetyki jej nie uchyla.
+ - Automatyczna weryfikacja: `axe-core` w testach komponentów i e2e; naruszenia `serious`/`critical` blokują CI.
+ - Automat nie wykrywa wszystkiego: definicja ukończenia widoku obejmuje ręczne przejście klawiaturą i przegląd czytnikiem ekranu.
+ - Dostępność jest **wbudowana w prymitywy** systemu projektowego (role, focus, ARIA) — konsument dostaje ją w pakiecie, nie dorabia.
+ 
+ ## 7.3 Bezpieczeństwo
+ 
+-- Token sesji żyje w store; do żądań dołącza go wyłącznie interceptor. **W jaki sposób i skąd bierze się token, gdzie się zapisuje i jaki ma cykl życia** — opisuje ADR: [ADR-006](../adrs/006-session-token-lifecycle.md).
++- Token sesji żyje w store; do żądań dołącza go wyłącznie interceptor. **W jaki sposób i skąd bierze się token, gdzie się zapisuje i jaki ma cykl życia** — opisuje ADR: [ADR-006](../adrs/frontend-app/006-session-token-lifecycle.md).
+ - Frontend **nie jest granicą bezpieczeństwa** — ukrywanie UI i strażnicy tras to wygoda użytkownika; egzekwuje backend.
+ 
+ ## 7.4 Wydajność
+Index: docs/architecture/README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/architecture/README.md b/docs/architecture/README.md
+--- a/docs/architecture/README.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/architecture/README.md	(date 1784798249183)
+@@ -1,6 +1,6 @@
+ # Architektura frontendu (Angular + Nx + NGXS)
+ 
+-> **Status: w trakcie wypracowywania** — rdzeń architektury jest spisany; przepracowujemy przypadki brzegowe i uzupełniamy brakujące elementy. Ten dokument jest na ten czas **samodzielnym źródłem** — celowo nie linkuje do istniejących standardów; po ustabilizowaniu treści standardy (`docs/standards/`) zostaną wyrównane do przewodnika.
++> **Status: zsynchronizowany ze standardami** — treść przewodnika i `docs/standards/` zostały wyrównane (2026-07-22): standardy niosą normatywną projekcję każdej reguły stąd, przewodnik niesie jej uzasadnienie. Przy rozbieżności obowiązuje standard, a rozbieżność jest błędem do naprawienia w jednym pull requeście — kolejność zmiany opisuje [rozdział 11](11-documentation-change-process.md). Otwarte uzupełnienia treści (§3) pozostają.
+ 
+ Przewodnik podejść i rozwiązań dla aplikacji frontendowych budowanych na **monorepo Nx** i **NGXS**.
+ 
+@@ -38,16 +38,17 @@
+ | # | Punkt decyzyjny | Gdzie zapisać | Rozdział |
+ |---|---|---|---|
+ | 1 | Konteksty aplikacji (rejestr kontekstów), glosariusz, niezmienniki | `standards/<app>/context.md` — **wymagane** | [1 §1.4](01-monorepo-nx.md), [11 §11.4](11-documentation-change-process.md) |
+-| 2 | Model obsługi błędów (podział globalne/lokalne, kanały prezentacji) | [ADR-001](../adrs/001-application-error-handling.md) | [2 §2.6](02-application-layers.md) |
+-| 3 | Stan aplikacji przy ładowaniu danych przed przejściem na ekran | [ADR-002](../adrs/002-data-loading-before-screen-entry.md) | [2 §2.3](02-application-layers.md) |
+-| 4 | Konwencja identyfikacji błędów domenowych | [ADR-003](../adrs/003-domain-error-identification.md) | [4 §4.4](04-api-communication.md) |
++| 2 | Model obsługi błędów (podział globalne/lokalne, kanały prezentacji) | [ADR-001](../adrs/frontend-app/001-application-error-handling.md) | [2 §2.6](02-application-layers.md) |
++| 3 | Stan aplikacji przy ładowaniu danych przed przejściem na ekran | [ADR-002](../adrs/frontend-app/002-data-loading-before-screen-entry.md) | [2 §2.3](02-application-layers.md) |
++| 4 | Konwencja identyfikacji błędów domenowych | [ADR-003](../adrs/frontend-app/003-domain-error-identification.md) | [4 §4.4](04-api-communication.md) |
+ | 5 | Maszynowe czytanie makiet Figmy | [ADR-004](../adrs/004-figma-mockup-machine-reading.md) | [5 §5.4](05-design-system-and-ui.md) |
+-| 6 | Źródło plików tłumaczeń w czasie działania | [ADR-005](../adrs/005-translation-files-runtime-source.md) | [6 §6.4](06-internationalization.md) |
+-| 7 | Pozyskanie, przechowywanie i cykl życia tokenu sesji | [ADR-006](../adrs/006-session-token-lifecycle.md) | [7 §7.3](07-cross-cutting.md) |
++| 6 | Źródło plików tłumaczeń w czasie działania | [ADR-005](../adrs/frontend-app/005-translation-files-runtime-source.md) | [6 §6.4](06-internationalization.md) |
++| 7 | Pozyskanie, przechowywanie i cykl życia tokenu sesji | [ADR-006](../adrs/frontend-app/006-session-token-lifecycle.md) | [7 §7.3](07-cross-cutting.md) |
+ | 8 | Serwer mockowy — narzędzie i zakres użycia | [ADR-007](../adrs/007-mock-server-tool-and-scope.md) | [4 §4.5](04-api-communication.md) |
+-| 9 | Poziom dostępności (WCAG) | slot `WCAG_LEVEL` | [7 §7.2](07-cross-cutting.md) |
+-| 10 | Obowiązujące warianty responsywne | slot `BREAKPOINT_VARIANTS` | [5 §5.5](05-design-system-and-ui.md) |
+-| 11 | Ścieżki krytyczne e2e | slot `E2E_CRITICAL_PATHS` | [9 §9.2](09-testing.md) |
++| 9 | Poziom dostępności (WCAG) | `standards/<app>/a11y.md` — `replace` sekcji `target-level` + ADR aplikacji | [7 §7.2](07-cross-cutting.md) |
++| 10 | Obowiązujące warianty responsywne | `standards/<app>/responsive.md` — `replace` sekcji `breakpoints` + ADR aplikacji | [5 §5.5](05-design-system-and-ui.md) |
++| 11 | Ścieżki krytyczne e2e | `standards/<app>/testing.md` — `replace` sekcji `what-to-test` + ADR aplikacji | [9 §9.2](09-testing.md) |
++| 11a | Budżety wydajności | `standards/<app>/performance.md` — `replace` sekcji `budgets` + ADR aplikacji | [7 §7.4](07-cross-cutting.md) |
+ | 12 | Właściciel ADR-ów i tryb ich zatwierdzania | [rejestr ADR](../adrs/000-meta.md) | [11 §11.2](11-documentation-change-process.md) |
+ 
+ ## 3. Otwarte uzupełnienia `[[TODO]]`
+Index: .ai-agentic-workspace/scripts/standards-resolver.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/scripts/standards-resolver.js b/.ai-agentic-workspace/scripts/standards-resolver.js
+--- a/.ai-agentic-workspace/scripts/standards-resolver.js	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/.ai-agentic-workspace/scripts/standards-resolver.js	(date 1784797963540)
+@@ -130,8 +130,10 @@
+ }
+ 
+ /**
+- * Waliduje, że wskazany ADR istnieje (rejestr płaski albo podkatalog aplikacji)
+- * i ma status accepted — decyzja proposed nie uprawnia do zmiany rdzenia.
++ * Waliduje, że wskazany ADR istnieje (zasięg workspace w korzeniu rejestru albo
++ * zasięg aplikacji w podkatalogu `<app>/`) i ma status accepted — decyzja proposed
++ * nie uprawnia do zmiany rdzenia. Numeracja ADR jest jedna dla całego repozytorium,
++ * więc ten sam numer w dwóch miejscach = twardy błąd, nie wybór pierwszego trafienia.
+  *
+  * @param {string} adrsBase - katalog rejestru ADR (np. docs/adrs)
+  * @param {string} adrId - np. 'ADR-007'
+@@ -151,6 +153,9 @@
+   if (candidates.length === 0) {
+     throw new Error(`${label}: ${adrId} nie istnieje w ${adrsBase}`);
+   }
++  if (candidates.length > 1) {
++    throw new Error(`${label}: ${adrId} ma ${candidates.length} plików (${candidates.join(', ')}) — numeracja ADR jest jedna dla całego repozytorium`);
++  }
+   const content = loadOptional(candidates[0]) ?? '';
+   const status = content.match(/^\*\*Status:\*\*\s*(\S+)/m)?.[1];
+   if (status !== 'accepted') {
+Index: .ai-agentic-workspace/scripts/standards-resolver.test.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.ai-agentic-workspace/scripts/standards-resolver.test.js b/.ai-agentic-workspace/scripts/standards-resolver.test.js
+--- a/.ai-agentic-workspace/scripts/standards-resolver.test.js	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/.ai-agentic-workspace/scripts/standards-resolver.test.js	(date 1784797989657)
+@@ -70,6 +70,13 @@
+   assert.throws(() => validateAdrReference(ADRS, 'ADR-999', 'x'), /nie istnieje/);
+ });
+ 
++test('validateAdrReference: ten sam numer w korzeniu i w podkatalogu -> throw (numeracja jedna dla repo)', () => {
++  assert.throws(
++    () => validateAdrReference(`${FIXTURES}/adrs-duplicate`, 'ADR-001', 'x'),
++    /ma 2 plików.*numeracja ADR jest jedna/s,
++  );
++});
++
+ test('resolveStandardFile: scope=shared i null = surowy rdzeń ze znacznikami', () => {
+   const out = resolveStandardFile(BASE, 'security.md', 'shared');
+   assert.match(out, /INWARIANT: fasada auth/);
+Index: docs/architecture/09-testing.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/architecture/09-testing.md b/docs/architecture/09-testing.md
+--- a/docs/architecture/09-testing.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/architecture/09-testing.md	(date 1784797937303)
+@@ -29,7 +29,7 @@
+ 
+ **Pokrycie:** przewodnik nie definiuje sztywnego progu — **dążymy do maksymalnego pokrycia**, a miarą jest kompletność ochrony kontraktu warstwy, nie liczba. Dokładny próg jest zdefiniowany w ustawieniach systemu (konfiguracji narzędzi testowych workspace) i stamtąd egzekwuje go bramka CI — próg bez egzekucji byłby deklaracją, nie polityką ([rozdział 8 §8.3](08-delivery-cycle.md)).
+ 
+-Piramida: dużo testów jednostkowych, mniej komponentowych, **niewiele** e2e — e2e wyłącznie dla ścieżek krytycznych biznesowo (zestaw ścieżek to punkt decyzyjny aplikacji, slot `E2E_CRITICAL_PATHS`). E2E dla logiki pokrywalnej tańszym testem jest anty-wzorcem. Stabilne, deterministyczne odpowiedzi w e2e może zapewniać serwer mockowy ([rozdział 4 §4.5](04-api-communication.md)); czy e2e chodzi na mockach, czy na żywym backendzie — rozstrzyga ADR-007.
++Piramida: dużo testów jednostkowych, mniej komponentowych, **niewiele** e2e — e2e wyłącznie dla ścieżek krytycznych biznesowo (zestaw ścieżek to punkt decyzyjny aplikacji — `replace` sekcji `what-to-test` w `standards/<app>/testing.md` pod ADR aplikacji). E2E dla logiki pokrywalnej tańszym testem jest anty-wzorcem. Stabilne, deterministyczne odpowiedzi w e2e może zapewniać serwer mockowy ([rozdział 4 §4.5](04-api-communication.md)); czy e2e chodzi na mockach, czy na żywym backendzie — rozstrzyga ADR-007.
+ 
+ ## 9.3 Zasady, które utrzymują testy tanimi
+ 
+Index: docs/architecture/11-documentation-change-process.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/architecture/11-documentation-change-process.md b/docs/architecture/11-documentation-change-process.md
+--- a/docs/architecture/11-documentation-change-process.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/architecture/11-documentation-change-process.md	(date 1784797937308)
+@@ -39,9 +39,9 @@
+ Katalog standardów jest dwupoziomowy:
+ 
+ - **Rdzeń** (`docs/standards/`) niesie **inwarianty** (wspólne dla wszystkich aplikacji i kodu współdzielonego) oraz **nazwane punkty decyzyjne**.
+-- **Rozszerzenia aplikacji** (`docs/standards/<app>/`) rozstrzygają punkty decyzyjne tej aplikacji: cykl życia tokenu, rejestr kontekstów, poziomy wymagań (sloty: WCAG, budżety, warianty responsywne, ścieżki e2e). Lista punktów decyzyjnych — [indeks §2](README.md).
++- **Rozszerzenia aplikacji** (`docs/standards/<app>/`) rozstrzygają punkty decyzyjne tej aplikacji: cykl życia tokenu, rejestr kontekstów, poziomy wymagań (WCAG, budżety, warianty responsywne, ścieżki e2e). Lista punktów decyzyjnych — [indeks §2](README.md).
+ - Rozszerzenie **nie może zaprzeczyć inwariantowi rdzenia** — to wymaga ADR na poziomie całego workspace. Kod współdzielony zależy wyłącznie od inwariantów; gdy potrzebuje rozstrzygnięcia, dostaje je przez odwrócenie zależności (kontrakt DI).
+-- Kompozycję rdzeń+rozszerzenie wykonuje deterministyczny resolver — nie ręczne scalanie.
++- Kompozycję rdzeń+rozszerzenie wykonuje deterministyczny resolver — nie ręczne scalanie. Jednostką kompozycji jest **sekcja** (znacznik `<!-- SECTION: id -->` w pliku rdzenia), a operacje deklaruje `standards/<app>/sections.yaml`: `extend` (doklejenie rozstrzygnięcia), `replace` (zastąpienie sekcji) i `disable` (wyłączenie sekcji). Dwie ostatnie sięgają potencjalnie inwariantu, więc wymagają wskazania ADR-a o statusie `accepted` — resolver to egzekwuje.
+ 
+ Ten mechanizm jest odpowiedzią na napięcie „wspólne standardy vs różne aplikacje": różnice są **nazwane i zarejestrowane**, zamiast rozlewać się po dokumentach.
+ 
+Index: docs/adrs/000-meta.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/adrs/000-meta.md b/docs/adrs/000-meta.md
+--- a/docs/adrs/000-meta.md	(revision f42fa90683a772f87e36b87027002888441dd0aa)
++++ b/docs/adrs/000-meta.md	(date 1784797953101)
+@@ -6,10 +6,14 @@
+ 
+ ## 1. Czym jest ADR w tym repozytorium
+ 
+-- **Jeden plik = jedna decyzja.** Nazwa: `<numer>-<slug-kebab-case>.md`, numeracja ciągła od `001`, nigdy nie używana powtórnie.
++- **Jeden plik = jedna decyzja.** Nazwa: `<numer>-<slug-kebab-case>.md`. Numeracja jest **jedna dla całego repozytorium** — ciągła od `001`, nigdy nie używana powtórnie, niezależnie od zasięgu i położenia pliku. Ten sam numer w dwóch miejscach jest twardym błędem: standardy cytują ADR-y po numerze, a resolver kompozycji szuka ich rekurencyjnie i odrzuca dwuznaczność.
+ - **ADR jest niezmienny po przyjęciu.** Zmiana decyzji = **nowy ADR** ze statusem `accepted`, który zastępuje poprzedni (`superseded by ADR-XXX`). NIE WOLNO edytować merytorycznie przyjętego ADR-u ani rozstrzygać zmiany cichą edycją standardu.
+ - **Każdy ADR wskazuje swoje projekcje normatywne** — sekcje standardów, które go realizują. Każda taka sekcja standardu cytuje z powrotem swój ADR. To powiązanie jest dwustronne i obowiązkowe.
+-- **Zakres** rozróżnia, kogo decyzja obowiązuje: `workspace` (całe monorepo i kod współdzielony) albo `aplikacja` (rozstrzygnięcie punktu decyzyjnego jednej aplikacji). ADR-y decyzji aplikacyjnych żyją w podkatalogu `docs/adrs/<app>/`.
++- **Zakres** rozróżnia, kogo decyzja obowiązuje, i **wyznacza położenie pliku**:
++  - `workspace` — całe monorepo i kod współdzielony; plik leży w `docs/adrs/`,
++  - `aplikacja` — rozstrzygnięcie punktu decyzyjnego jednej aplikacji; plik leży w `docs/adrs/<app>/`.
++
++  Zakres deklaruje pole **Zakres** w nagłówku ADR-u i jest ono rozstrzygające — położenie ma za nim podążać. Decyzja aplikacyjna **NIE WOLNO**, by zmieniała inwariant rdzenia standardów; taka zmiana wymaga ADR-u o zasięgu `workspace`.
+ 
+ ## 2. Statusy
+ 
+@@ -34,12 +38,12 @@
+ 
+ | # | Decyzja | Czego dotyczy | Zakres | Status |
+ |---|---|---|---|---|
+-| [ADR-001](001-application-error-handling.md) | Obsługa błędów aplikacji | Podział klas błędów między obsługę globalną (5xx → interceptor HTTP + modal aplikacyjny) i lokalną (handlery akcji stanu → feedback domenowy), kanały prezentacji i kontrakt widoku. | aplikacja | accepted |
+-| [ADR-002](002-data-loading-before-screen-entry.md) | Stan aplikacji przy ładowaniu danych przed przejściem na ekran | Czy dane ładuje resolver przed aktywacją trasy, czy komponent po wejściu (stan `loading` w widoku). | aplikacja | proposed |
+-| [ADR-003](003-domain-error-identification.md) | Konwencja identyfikacji błędów domenowych | Po czym handler odróżnia błąd z treścią dla użytkownika od błędu technicznego (kod HTTP, kształt odpowiedzi). Wymaga uzgodnienia z zespołem backendu. | aplikacja | proposed |
++| [ADR-001](frontend-app/001-application-error-handling.md) | Obsługa błędów aplikacji | Podział klas błędów między obsługę globalną (5xx → interceptor HTTP + modal aplikacyjny) i lokalną (handlery akcji stanu → feedback domenowy), kanały prezentacji i kontrakt widoku. | aplikacja | accepted |
++| [ADR-002](frontend-app/002-data-loading-before-screen-entry.md) | Stan aplikacji przy ładowaniu danych przed przejściem na ekran | Czy dane ładuje resolver przed aktywacją trasy, czy komponent po wejściu (stan `loading` w widoku). | aplikacja | proposed |
++| [ADR-003](frontend-app/003-domain-error-identification.md) | Konwencja identyfikacji błędów domenowych | Po czym handler odróżnia błąd z treścią dla użytkownika od błędu technicznego (kod HTTP, kształt odpowiedzi). Wymaga uzgodnienia z zespołem backendu. | aplikacja | proposed |
+ | [ADR-004](004-figma-mockup-machine-reading.md) | Maszynowe czytanie makiet Figmy | Sposób ekstrakcji układu, treści i tokenów z makiet do postaci przetwarzalnej: API Figmy, format pośredni, zakres ekstrakcji, mapowanie na komponenty i tokeny systemu projektowego. | workspace | proposed |
+-| [ADR-005](005-translation-files-runtime-source.md) | Źródło plików tłumaczeń w czasie działania | Skąd loader pobiera pliki tłumaczeń, jak to zależy od środowiska i jak scalane są wielokrotne źródła. | aplikacja | proposed |
+-| [ADR-006](006-session-token-lifecycle.md) | Pozyskanie, przechowywanie i cykl życia tokenu sesji | Skąd bierze się token (przepływ logowania), gdzie się zapisuje (mechanizm trwałości), jak działa odświeżanie i wygaśnięcie. | aplikacja | proposed |
++| [ADR-005](frontend-app/005-translation-files-runtime-source.md) | Źródło plików tłumaczeń w czasie działania | Skąd loader pobiera pliki tłumaczeń, jak to zależy od środowiska i jak scalane są wielokrotne źródła. | aplikacja | proposed |
++| [ADR-006](frontend-app/006-session-token-lifecycle.md) | Pozyskanie, przechowywanie i cykl życia tokenu sesji | Skąd bierze się token (przepływ logowania), gdzie się zapisuje (mechanizm trwałości), jak działa odświeżanie i wygaśnięcie. | aplikacja | proposed |
+ | [ADR-007](007-mock-server-tool-and-scope.md) | Serwer mockowy — narzędzie i zakres użycia | Wybór narzędzia, miejsce życia definicji mocków i ich właściciel, oraz czy testy e2e chodzą na mockach, czy na żywym backendzie. | workspace | proposed |
+ | [ADR-008](008-dependency-direction-in-composition.md) | Kierunek zależności w kompozycji | Rodzic zna dziecko, dziecko nie zna rodzica: dane w dół przez wejścia, sygnały w górę przez zdarzenia, zapytania przez port dziecka, stan rodzica zamknięty. | workspace | accepted |
+ <!-- ADR_INDEX:END -->
+diff --git a/docs/adrs/003-domain-error-identification.md b/docs/adrs/frontend-app/003-domain-error-identification.md
+rename from docs/adrs/003-domain-error-identification.md
+rename to docs/adrs/frontend-app/003-domain-error-identification.md
+diff --git a/docs/adrs/005-translation-files-runtime-source.md b/docs/adrs/frontend-app/005-translation-files-runtime-source.md
+rename from docs/adrs/005-translation-files-runtime-source.md
+rename to docs/adrs/frontend-app/005-translation-files-runtime-source.md
+diff --git a/docs/adrs/006-session-token-lifecycle.md b/docs/adrs/frontend-app/006-session-token-lifecycle.md
+rename from docs/adrs/006-session-token-lifecycle.md
+rename to docs/adrs/frontend-app/006-session-token-lifecycle.md
+diff --git a/docs/adrs/001-application-error-handling.md b/docs/adrs/frontend-app/001-application-error-handling.md
+rename from docs/adrs/001-application-error-handling.md
+rename to docs/adrs/frontend-app/001-application-error-handling.md
+diff --git a/docs/adrs/002-data-loading-before-screen-entry.md b/docs/adrs/frontend-app/002-data-loading-before-screen-entry.md
+rename from docs/adrs/002-data-loading-before-screen-entry.md
+rename to docs/adrs/frontend-app/002-data-loading-before-screen-entry.md

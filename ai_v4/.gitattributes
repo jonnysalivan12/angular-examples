@@ -1,6 +1,0 @@
-# Wszystkie pliki tekstowe trzymane w repozytorium mają zakończenia linii LF.
-* text=auto eol=lf
-
-# Skrypty wsadowe Windows wymagają CRLF, inaczej cmd.exe potrafi je źle zinterpretować.
-*.bat text eol=crlf
-*.cmd text eol=crlf
