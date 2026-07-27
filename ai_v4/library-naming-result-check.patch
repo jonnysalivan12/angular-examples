@@ -1,0 +1,422 @@
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/gates/plan-gates.js b/.ai-agentic-workspace/workflows/forge-kit/gates/plan-gates.js
+index c714249..5f5a584 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/gates/plan-gates.js
++++ b/.ai-agentic-workspace/workflows/forge-kit/gates/plan-gates.js
+@@ -32,7 +32,7 @@
+  * Zero I/O — rozwiązywanie odnośników i dane workspace wstrzykuje fasada (./index.js).
+  * ─────────────────────────────────────────────────────────────────────────── */
+ 
+-import { deriveLibraryNaming, diffLibraryNaming } from '../../../../scripts/generators/utils/library-naming.js';
++import { deriveLibraryNaming, diffLibraryNaming, libraryNamingViolations } from '../../../../scripts/generators/utils/library-naming.js';
+ import { tagStrings, isDependencyAllowed } from '../knowledge/graph-queries.js';
+ 
+ /** Tworzy ustalenie bramki w jednolitym kształcie. */
+@@ -73,6 +73,18 @@ export function gateNaming({ plan, existingLibraryNames, naming = {} }) {
+       findings.push(finding('G1', 'error', `nowa biblioteka '${library.name}': brak structure.scope/tag — nie można wyderywować kanonicznej nazwy`));
+       continue;
+     }
++
++    // Kształt kanonu PRZED porównaniem z planem. Porównanie niżej sprawdza zgodność
++    // dwóch wartości, a obie wychodzą z tych samych pól — złe pole daje je równo złe
++    // i porównanie milczy. Dopiero kształt mówi, że wynik w ogóle nie jest nazwą,
++    // jakiej ta konwencja dopuszcza.
++    const shapeViolations = libraryNamingViolations(canonical);
++    if (shapeViolations.length > 0) {
++      for (const violation of shapeViolations) {
++        findings.push(finding('G1', 'error', `nowa biblioteka '${library.name}': z structure wychodzi ${violation.field} '${violation.value}' — ${violation.note}`));
++      }
++      continue;
++    }
+     const deviations = diffLibraryNaming(
+       { name: library.name, path: library.declared?.path, importPath: library.declared?.importPath },
+       canonical,
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/gates/plan-gates.test.js b/.ai-agentic-workspace/workflows/forge-kit/gates/plan-gates.test.js
+index 9ca2615..fa99e03 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/gates/plan-gates.test.js
++++ b/.ai-agentic-workspace/workflows/forge-kit/gates/plan-gates.test.js
+@@ -346,3 +346,26 @@ test('planGates: warny nie psuja ok, errory psuja', () => {
+   const errorResult = planGates(planWithError, CONTEXT);
+   assert.equal(errorResult.ok, false);
+ });
++
++test('G1: zla wartosc w structure -> error o ksztalcie wyniku, zanim porownanie z planem cokolwiek powie', () => {
++  // Porownanie nazwy z kanonem nie pomoze: obie strony wychodza z tych samych pol,
++  // wiec zle pole daje je rowno zle i roznicy nie ma.
++  const plan = makeValidPlan();
++  plan.binding.libraries[0].structure.tag = 'type:feature';
++  plan.binding.libraries[0].name = 'shared-export-type:feature';
++
++  const findings = gateNaming({ plan, existingLibraryNames: existingNames, naming: {} });
++
++  assert.ok(findings.length > 0);
++  assert.ok(findings.every((entry) => /nie jest poprawnym członem nazwy/.test(entry.message)));
++  assert.ok(findings.some((entry) => /podaj samą wartość \('feature'\)/.test(entry.message)));
++});
++
++test('G1: zla wartosc kontekstu tez zatrzymuje plan, choc kontekst nie ma listy dozwolonych wartosci', () => {
++  const plan = makeValidPlan();
++  plan.binding.libraries[0].structure.context = 'context:export';
++
++  const findings = gateNaming({ plan, existingLibraryNames: existingNames, naming: {} });
++
++  assert.ok(findings.some((entry) => /nie jest poprawnym członem nazwy/.test(entry.message)));
++});
+diff --git a/.ai-agentic-workspace/workflows/forge-kit/planner/templates/planner.template.md b/.ai-agentic-workspace/workflows/forge-kit/planner/templates/planner.template.md
+index 0759b6a..d08c6d2 100644
+--- a/.ai-agentic-workspace/workflows/forge-kit/planner/templates/planner.template.md
++++ b/.ai-agentic-workspace/workflows/forge-kit/planner/templates/planner.template.md
+@@ -45,7 +45,9 @@ planner_plan:
+     libraries:
+       - name: <nazwa projektu nx>
+         status: new | existing
+-        structure: { scope: <scope>, tag: <type>, context: <context> }   # wyłącznie dla `new`
++        structure: { scope: <scope>, tag: <typ>, context: <kontekst> }   # wyłącznie dla `new`
++        # Same wartości, BEZ przedrostków: tag: ui (nie `type:ui`), context: auth (nie `context:auth`).
++        # Dozwolone wartości `tag`: feature | ui | state | core | model | util | asset.
+         dependsOn: [<nazwy>]                                           # planowane krawędzie
+     contracts:
+       - key: <Fasada.metoda | NAZWA_STAŁEJ | Typ>
+diff --git a/.gitattributes b/.gitattributes
+index ad925b8..96f925f 100644
+--- a/.gitattributes
++++ b/.gitattributes
+@@ -4,3 +4,9 @@
+ # Skrypty wsadowe Windows wymagają CRLF, inaczej cmd.exe potrafi je źle zinterpretować.
+ *.bat text eol=crlf
+ *.cmd text eol=crlf
++
++# Źródła JS zawsze jako tekst w diffie. Pojedynczy bajt NUL w literale (na przykład
++# separator klucza pamięci podręcznej) wystarcza, by `text=auto` uznało CAŁY plik za
++# binarny — i jego diff znika z przeglądu kodu, po cichu.
++*.js diff
++*.mjs diff
+diff --git a/scripts/config/library.js b/scripts/config/library.js
+index 9740180..74cde62 100644
+--- a/scripts/config/library.js
++++ b/scripts/config/library.js
+@@ -45,6 +45,22 @@ export const TAG_AXES = Object.freeze({
+   context: 'context:',
+ });
+ 
++/**
++ * Człon nazwy: małe litery, cyfry i myślnik rozdzielający, bez myślnika na brzegu.
++ * Ten kształt mają WSZYSTKIE człony, które derywacja skleja — nazwa projektu, każdy
++ * segment katalogu, każdy segment aliasu i wartość każdego tagu.
++ *
++ * Wzorzec opisuje WYNIK, nie wejście, i to jest w nim istotne. Sposobów na podanie
++ * złej wartości jest nieskończenie wiele (gotowy tag zamiast wartości, spacja,
++ * wielka litera, kropka, pusty człon), więc wyliczanie ich po kolei jest grą bez
++ * końca. Kształt poprawnego wyniku znamy dokładnie i jest jeden — sprawdzenie
++ * wyniku zamyka całą klasę naraz, nie wiedząc nawet, co było na wejściu.
++ */
++export const NAME_SEGMENT_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
++
++/** Tag projektu: przedrostek osi + jeden człon nazwy (`type:ui`, nie `type:type:ui`). */
++export const PROJECT_TAG_PATTERN = /^[a-z]+:[a-z0-9]+(?:-[a-z0-9]+)*$/;
++
+ /** Sufiks katalogu projektu testów przeglądarkowych — rządzi się własnym typem. */
+ export const E2E_PROJECT_SUFFIX = '-e2e';
+ 
+diff --git a/scripts/generators/library/index.js b/scripts/generators/library/index.js
+index 616a898..6e63879 100644
+--- a/scripts/generators/library/index.js
++++ b/scripts/generators/library/index.js
+@@ -27,7 +27,7 @@ import { pathToFileURL } from 'node:url';
+ 
+ import { BARREL_ONLY_TYPES, JS_LIBRARY_TYPES, LIBRARY_TYPES } from '../../config/library.js';
+ import { WORKSPACE_FILES } from '../../config/workspace.js';
+-import { deriveLibraryNaming, isKnownScope, listAppScopes } from '../utils/library-naming.js';
++import { deriveLibraryNaming, isKnownScope, libraryNamingViolations, listAppScopes } from '../utils/library-naming.js';
+ import { tagStrings } from '../utils/nx-tags.js';
+ import { parseCommandLine } from '../ngxs/utils/arg-parser.js';
+ 
+@@ -85,15 +85,31 @@ export function validateLibraryInput(input = {}) {
+  * standalone jako entry point, a komponenty w tym repo dodaje osobny generator.
+  * Kolekcja JS tych flag nie zna i pustą bibliotekę tworzy sama.
+  *
++ * Sprawdzany jest WYNIK derywacji, a nie wejście, i to TUTAJ, a nie w powłoce CLI.
++ *
++ * Wynik — bo wejście da się popsuć na dowolnie wiele sposobów, a każdy wymagałby
++ * osobnego przewidzenia; poprawny wynik ma jeden znany kształt, więc jedno zdanie
++ * o nim zamyka całą klasę. Tutaj — bo powłoka CLI jest jednym z dwóch wywołujących
++ * (drugim jest scaffold potoku), a sprawdzenie postawione tylko w niej zostawia
++ * drugą drogę bez żadnej bramki. Wcześniej zatrzymywał to dopiero generator nx,
++ * komunikatem o regule dla nazwy projektu — bez śladu, które pole zawiniło.
++ *
+  * @param {{scope?: string, type?: string, context?: string, name?: string}} input
+  * @param {object} [naming] — override konwencji (testy bez I/O workspace)
+  * @returns {{name: string, directory: string, importPath: string, prefix: string, tags: string[], collection: string, command: string, args: string[], produces: string} | null}
+  *          null gdy brak scope/type — nie ma z czego wyderywować kanonu.
++ * @throws {Error} gdy z wejścia wychodzi nazwa, katalog, alias albo tag o złym kształcie.
+  */
+ export function librarySpec(input = {}, naming = {}) {
+   const canonical = deriveLibraryNaming(input, naming);
+   if (!canonical) return null;
+ 
++  const violations = libraryNamingViolations(canonical);
++  if (violations.length > 0) {
++    const details = violations.map((violation) => `${violation.field} '${violation.value}': ${violation.note}`);
++    throw new Error(`librarySpec: derywacja dała nazwy niezgodne z konwencją — ${details.join('; ')}`);
++  }
++
+   const tags = tagStrings({ scope: input.scope, type: input.type, context: input.context });
+   const collection = collectionFor(input.type);
+   const isAngular = collection === ANGULAR_COLLECTION;
+diff --git a/scripts/generators/library/index.test.js b/scripts/generators/library/index.test.js
+index c695f65..96a2c47 100644
+--- a/scripts/generators/library/index.test.js
++++ b/scripts/generators/library/index.test.js
+@@ -245,3 +245,33 @@ test('runLibraryGenerator: bez writeJson plik nie jest ruszany', async () => {
+ 
+   assert.deepEqual(Object.keys(dysk[spec.produces].targets), ['lint']);
+ });
++
++/* ─────────────────────────────────────────────────────────────────────────── *
++ * Bramka na WYNIKU derywacji, w funkcji budującej komendę — bo powłoka CLI jest
++ * tylko jedną z dwóch dróg, a druga (scaffold potoku) jej nie przechodzi.
++ * ─────────────────────────────────────────────────────────────────────────── */
++
++test('librarySpec: wynik o złym kształcie zatrzymuje budowę komendy', () => {
++  // Nie sprawdzamy, CO było na wejściu — tylko czy to, co wyszło, jest nazwą,
++  // katalogiem i aliasem, jakich ta konwencja dopuszcza.
++  const bledne = [
++    { scope: 'shared', type: 'type:ui', context: 'common' },
++    { scope: 'shared', type: 'ui', context: 'context:common' },
++    { scope: 'shared', type: 'ui', context: 'Common' },
++    { scope: 'shared', type: 'ui', context: 'common', name: 'moj przycisk' },
++  ];
++  for (const input of bledne) {
++    assert.throws(() => librarySpec(input, NAMING), /niezgodne z konwencją/, JSON.stringify(input));
++  }
++});
++
++test('librarySpec: komunikat wskazuje pole wyniku i podpowiada przyczynę, gdy da się ją rozpoznać', () => {
++  assert.throws(
++    () => librarySpec({ scope: 'shared', type: 'type:ui', context: 'common' }, NAMING),
++    /to gotowy tag; podaj samą wartość \('ui'\)/,
++  );
++});
++
++test('librarySpec: brak danych strukturalnych nadal daje null, nie wyjątek', () => {
++  assert.equal(librarySpec({ context: 'auth' }, NAMING), null);
++});
+diff --git a/scripts/generators/utils/library-naming.js b/scripts/generators/utils/library-naming.js
+index 121332c..9998fc8 100644
+--- a/scripts/generators/utils/library-naming.js
++++ b/scripts/generators/utils/library-naming.js
+@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'fs';
+ // sposobie ładowania domyślny import wbudowanego modułu wychodzi jako undefined.
+ import { join, resolve } from 'path';
+ 
+-import { LIBRARY_NAMING } from '../../config/library.js';
++import { LIBRARY_NAMING, NAME_SEGMENT_PATTERN, PROJECT_TAG_PATTERN } from '../../config/library.js';
+ 
+ /* ─────────────────────────────────────────────────────────────────────────── *
+  * Library naming — deterministyczna derywacja kanonicznej nazwy projektu nx,
+@@ -46,7 +46,11 @@ export function resolveScopePrefix(scope, naming = {}) {
+   if (cfg.prefixByScope && cfg.prefixByScope[s] != null) return cfg.prefixByScope[s];
+ 
+   const root = cfg.root || '.';
+-  const key = `${root} ${s}`;
++  // Separator NUL, a nie spacja czy myślnik: nie wystąpi w żadnej ścieżce ani nazwie
++  // zakresu, więc dwie różne pary nie skleją się w ten sam klucz. Zapisany ESCAPE'EM,
++  // bo goły bajt NUL każe gitowi uznać cały plik za binarny — diff tego pliku znika
++  // wtedy z przeglądu kodu, po cichu i bez ostrzeżenia.
++  const key = `${root}\u0000${s}`;
+   if (_prefixCache.has(key)) return _prefixCache.get(key);
+ 
+   let prefix = cfg.sharedPrefix; // fallback — gdy apka nie zadeklarowała prefiksu
+@@ -152,6 +156,69 @@ export function deriveLibraryNaming(lib, naming = {}) {
+   };
+ }
+ 
++/**
++ * Podpowiedź do komunikatu: rozpoznaje pomyłkę, która stoi za złym członem, o ile
++ * da się ją rozpoznać. Nie jest to sprawdzenie — sprawdza `libraryNamingViolations`,
++ * a to tylko dokłada wskazówkę, gdy kształt członu na nią wskazuje.
++ */
++function segmentHint(segment) {
++  // Konkretną wartość podpowiadamy WYŁĄCZNIE dla członu, który jest dokładnie tagiem.
++  // Nazwa projektu to sklejka wszystkich członów, więc tekst po dwukropku byłby w niej
++  // urwanym kawałkiem sklejki — podpowiedzią gorszą niż żadna.
++  if (PROJECT_TAG_PATTERN.test(segment)) {
++    return ` — to gotowy tag; podaj samą wartość ('${segment.slice(segment.indexOf(':') + 1)}')`;
++  }
++  if (segment.includes(':')) {
++    return ' — dwukropek należy do zapisu tagu, nie do nazwy; któreś pole strukturalne dostało gotowy tag';
++  }
++  if (segment === '') return ' — pusty człon, czyli któreś pole strukturalne jest puste';
++  if (/[A-Z]/.test(segment)) return ' — wielkie litery; nazwy w tym repozytorium są małymi literami';
++  return '';
++}
++
++/** Zbiera naruszenia kształtu dla jednego pola wyniku. */
++function checkSegments(field, value, segments) {
++  return segments
++    .filter((segment) => !NAME_SEGMENT_PATTERN.test(segment))
++    .map((segment) => ({
++      field,
++      value,
++      note: `człon '${segment}' nie jest poprawnym członem nazwy${segmentHint(segment)}`,
++    }));
++}
++
++/**
++ * Sprawdza, czy WYNIK derywacji ma kształt, jaki musi mieć — nazwa projektu, każdy
++ * segment katalogu i każdy segment aliasu jako poprawny człon nazwy.
++ *
++ * Sprawdzamy wynik, a nie wejście, i to jest tu sedno. Wejście da się popsuć na
++ * nieskończenie wiele sposobów i każdy trzeba by przewidzieć osobno; poprawny wynik
++ * ma jeden kształt, który znamy. Cokolwiek weszło — jeśli po sklejeniu wychodzi coś,
++ * czego ta konwencja nie dopuszcza, jest zatrzymane.
++ *
++ * @param {{name: string, directory: string, importPath: string}} canonical — wynik deriveLibraryNaming
++ * @returns {Array<{field: string, value: string, note: string}>} puste = wynik poprawny
++ */
++export function libraryNamingViolations(canonical) {
++  if (!canonical) return [];
++
++  const name = String(canonical.name ?? '');
++  const directory = String(canonical.directory ?? '');
++  const importPath = String(canonical.importPath ?? '');
++
++  // Alias zaczyna się od `@` i jego pierwszy segment niesie ten znak; poza nim
++  // segmenty aliasu podlegają tej samej regule co segmenty katalogu.
++  const aliasSegments = importPath.startsWith('@')
++    ? importPath.slice(1).split('/')
++    : [importPath];
++
++  return [
++    ...checkSegments('name', name, [name]),
++    ...checkSegments('directory', directory, directory.split('/')),
++    ...checkSegments('importPath', importPath, aliasSegments),
++  ];
++}
++
+ /**
+  * Porównuje wartości obserwowane (z LLM) z kanonicznymi i zwraca listę odchyleń.
+  * Używane przez gate widoczności (planner aggregator) — drift jest LOGOWANY,
+diff --git a/scripts/generators/utils/library-naming.test.js b/scripts/generators/utils/library-naming.test.js
+index e8a84e7..e109121 100644
+--- a/scripts/generators/utils/library-naming.test.js
++++ b/scripts/generators/utils/library-naming.test.js
+@@ -1,7 +1,7 @@
+ import assert from 'node:assert/strict';
+ import { test } from 'node:test';
+ 
+-import { deriveLibraryNaming } from './library-naming.js';
++import { deriveLibraryNaming, libraryNamingViolations } from './library-naming.js';
+ 
+ /**
+  * Prefiksy podstawione wprost, żeby derywacja nie schodziła po nie na dysk.
+@@ -47,3 +47,32 @@ test('biblioteka-barrel: bez nazwy po typie, w obu dialektach', () => {
+   assert.equal(zRepo.name, 'shared-common-util');
+   assert.deepEqual(zPlanu, zRepo);
+ });
++
++/* ─────────────────────────────────────────────────────────────────────────── *
++ * Kształt wyniku derywacji. Sprawdzamy, co WYSZŁO — nie wyliczamy sposobów,
++ * na jakie dało się popsuć wejście, bo tych jest dowolnie wiele.
++ * ─────────────────────────────────────────────────────────────────────────── */
++
++test('libraryNamingViolations: poprawny kanon nie ma zastrzeżeń', () => {
++  const canonical = deriveLibraryNaming({ scope: 'shared', type: 'ui', context: 'common', name: 'button' }, NAMING);
++  assert.deepEqual(libraryNamingViolations(canonical), []);
++});
++
++test('libraryNamingViolations: zły człon widoczny we wszystkich trzech polach naraz', () => {
++  const canonical = deriveLibraryNaming({ scope: 'shared', type: 'type:ui', context: 'common' }, NAMING);
++  const violations = libraryNamingViolations(canonical);
++
++  assert.deepEqual(violations.map((entry) => entry.field).sort(), ['directory', 'importPath', 'name']);
++});
++
++test('libraryNamingViolations: podpowiedź tylko wtedy, gdy przyczynę da się rozpoznać', () => {
++  const zTagiem = libraryNamingViolations(deriveLibraryNaming({ scope: 'shared', type: 'type:ui', context: 'common' }, NAMING));
++  const zWielkaLitera = libraryNamingViolations(deriveLibraryNaming({ scope: 'shared', type: 'UI', context: 'common' }, NAMING));
++
++  assert.match(zTagiem[0].note, /gotowy tag/);
++  assert.match(zWielkaLitera[0].note, /wielkie litery/);
++});
++
++test('libraryNamingViolations: brak kanonu to brak zastrzeżeń — nie ma czego oceniać', () => {
++  assert.deepEqual(libraryNamingViolations(null), []);
++});
+diff --git a/scripts/generators/utils/nx-tags.js b/scripts/generators/utils/nx-tags.js
+index f7e6241..fcc7df6 100644
+--- a/scripts/generators/utils/nx-tags.js
++++ b/scripts/generators/utils/nx-tags.js
+@@ -1,4 +1,4 @@
+-import { TAG_AXES } from '../../config/library.js';
++import { PROJECT_TAG_PATTERN, TAG_AXES } from '../../config/library.js';
+ 
+ /* ─────────────────────────────────────────────────────────────────────────── *
+  * Tagi nx — wspólna normalizacja zapisu listy tagów.
+@@ -39,7 +39,20 @@ export function tagStrings(tags) {
+   if (!tags || typeof tags !== 'object') return [];
+ 
+   const values = { scope: tags.scope, type: tags.type, context: tags.context ?? tags.domain };
+-  return Object.entries(TAG_AXES)
++  const produced = Object.entries(TAG_AXES)
+     .filter(([axis]) => values[axis])
+     .map(([axis, prefix]) => `${prefix}${values[axis]}`);
++
++  // Sprawdzany jest WYNIK, nie wartości na wejściu: tag ma jeden dozwolony kształt
++  // (przedrostek osi + jeden człon nazwy), a sposobów na wyprodukowanie innego jest
++  // dowolnie wiele. Najczęstszy to wartość, która sama niesie już przedrostek —
++  // wychodzi wtedy `type:type:ui`, tag niepasujący do ŻADNEJ reguły granic, więc
++  // projekt powstaje bez jakichkolwiek ograniczeń zależności i nikt tego nie widzi.
++  for (const tag of produced) {
++    if (!PROJECT_TAG_PATTERN.test(tag)) {
++      throw new Error(`tagStrings: '${tag}' nie jest poprawnym tagiem projektu — oczekiwany kształt to '<oś>:<wartość>'`);
++    }
++  }
++
++  return produced;
+ }
+diff --git a/scripts/generators/utils/nx-tags.test.js b/scripts/generators/utils/nx-tags.test.js
+index 9114918..c76b4ef 100644
+--- a/scripts/generators/utils/nx-tags.test.js
++++ b/scripts/generators/utils/nx-tags.test.js
+@@ -49,3 +49,21 @@ test('oś kontekstu: pole `context` oraz alias `domain` z planów agentów', ()
+ test('oś kontekstu: `context` ma pierwszeństwo przed aliasem', () => {
+   assert.deepEqual(tagStrings({ context: 'auth', domain: 'inny' }), ['context:auth']);
+ });
++
++/* ─────────────────────────────────────────────────────────────────────────── *
++ * Kształt WYNIKU: tag ma jedną dozwoloną postać, a sposobów na inną jest wiele.
++ * ─────────────────────────────────────────────────────────────────────────── */
++
++test('tagStrings: tag o złym kształcie zatrzymuje zapis, bez względu na to, co go zepsuło', () => {
++  // Podwojony przedrostek nie pasuje do ŻADNEJ reguły granic, więc projekt powstałby
++  // bez ograniczeń zależności — i nic by o tym nie powiedziało.
++  assert.throws(() => tagStrings({ scope: 'shared', type: 'type:ui', context: 'common' }), /nie jest poprawnym tagiem/);
++  assert.throws(() => tagStrings({ scope: 'shared', type: 'UI', context: 'common' }), /nie jest poprawnym tagiem/);
++  assert.throws(() => tagStrings({ scope: 'shared', type: 'ui panel', context: 'common' }), /nie jest poprawnym tagiem/);
++  assert.throws(() => tagStrings({ scope: 'shared', type: 'ui.', context: 'common' }), /nie jest poprawnym tagiem/);
++});
++
++test('tagStrings: poprawne wartości przechodzą bez zmian', () => {
++  assert.deepEqual(tagStrings({ scope: 'frontend-app', type: 'ui', context: 'simulation' }),
++    ['scope:frontend-app', 'type:ui', 'context:simulation']);
++});
+diff --git a/scripts/generators/README.md b/scripts/generators/README.md
+index 7c66cee..15ba56a 100644
+--- a/scripts/generators/README.md
++++ b/scripts/generators/README.md
+@@ -33,6 +33,15 @@ node scripts/generators/library/index.js --scope shared --type ui --context comm
+ node scripts/generators/library/index.js --scope shared --type util --context common
+ ```
+ 
++Wartości osi podaje się **gołe**: `--type ui`, nie `--type type:ui`. Przedrostek należy
++do zapisu tagu i dokłada go generator.
++
++Pilnuje tego sprawdzenie **wyniku**, nie wejścia: nazwa projektu, każdy człon katalogu,
++każdy człon aliasu i każdy tag muszą mieć kształt, jaki ta konwencja dopuszcza (małe
++litery, cyfry, myślnik rozdzielający). Kształt stoi w `config/library.js`, sprawdza go
++`librarySpec` przed zbudowaniem komendy. Zła wartość na wejściu jest przez to bez
++znaczenia — liczy się, czy to, co z niej wychodzi, jest nazwą, jakiej repozytorium używa.
++
+ Nazw, katalogów ani tagów **nie podaje się ręcznie** — wynikają z kanonu
+ (`utils/library-naming.js`), więc te same dane wejściowe zawsze dają ten sam wynik.
+ Kolekcja generatora wynika z typu, nie z pytania do człowieka: `asset` udostępnia
