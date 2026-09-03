@@ -287,8 +287,9 @@ function checkDocument(doc, docs, allDefined) {
   const mentioned = new Set();
   const prefixedSpans = [];
   for (const m of matchAll(PREFIXED_LOCAL_RE, body)) {
-    mentioned.add(m[0]);
     prefixedSpans.push([m.index, m.index + m[0].length]);
+    if (m[1] === doc.docId) continue; // własny identyfikator z prefiksem — sprawdza R3
+    mentioned.add(m[0]);
   }
   for (const m of matchAll(DOC_ID_RE, body)) {
     const did = m[0];
