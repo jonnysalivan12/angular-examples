@@ -1,0 +1,2060 @@
+# Korpus dokumentacji — 211 dokumentów, 13 procesów
+# Dane testowe dla parsera, walidatora i zapytań.
+# Każdy wpis odpowiada front matter jednego pliku Markdown.
+# Słownik relacji: standards/config/relation-matrix.yaml. Sekcje według procesu, wspólne na końcu (shared).
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-001 — Obsługa dyspozycji  (33 dokumenty)
+# ──────────────────────────────────────────────────────────────────────
+BFS-001:
+  - doc-id: BFS-001
+    title: Obsługa dyspozycji
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-001.NFRT-PERF-01
+      - type: constrained_by
+        target: NFR-001.NFRT-SEC-01
+      - type: constrained_by
+        target: NFR-001.NFRT-AVAIL-01
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: REQ-03
+      - type: contains
+        target: REQ-04
+      - type: contains
+        target: REQ-05
+      - type: contains
+        target: RB-01
+      - type: contains
+        target: RB-02
+  - doc-id: CAP-001
+    title: Przyjmowanie dyspozycji
+    status: draft
+    relations:
+      - type: consumes
+        target: QUE-002
+  - doc-id: CAP-002
+    title: Walidacja klienta
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-001.NFRT-SEC-01
+  - doc-id: CAP-003
+    title: Realizacja i rozliczenie
+    status: draft
+    relations: []
+  - doc-id: UC-001
+    title: Złożenie dyspozycji
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-001.REQ-01
+      - type: realizes
+        target: BFS-001.RB-01
+      - type: realizes
+        target: CAP-001
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-001
+      - type: consumes
+        target: QUE-001
+      - type: contains
+        target: A1
+      - type: contains
+        target: E1
+      - type: contains
+        target: SCR-001
+      - type: contains
+        target: SCR-002
+  - doc-id: UC-002
+    title: Korekta dyspozycji
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-001.REQ-02
+      - type: realizes
+        target: CAP-001
+      - type: realizes
+        target: CAP-002
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-002
+      - type: consumes
+        target: API-003
+      - type: consumes
+        target: API-005
+      - type: consumes
+        target: INT-001
+      - type: contains
+        target: A1
+      - type: contains
+        target: E1
+      - type: contains
+        target: E2
+      - type: contains
+        target: SCR-003
+  - doc-id: TUC-001
+    title: Nocne rozliczenie
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-001.REQ-04
+      - type: realizes
+        target: CAP-003
+      - type: involves
+        target: ACTOR-001.ROLE-03
+      - type: consumes
+        target: INT-002
+  - doc-id: TUC-002
+    title: Ponowienie nieudanych
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-001.REQ-05
+      - type: realizes
+        target: CAP-003
+      - type: involves
+        target: ACTOR-001.ROLE-03
+  - doc-id: API-001
+    title: POST /dispositions
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-001
+      - type: constrained_by
+        target: NFR-001.NFRT-PERF-01
+      - type: consumes
+        target: ENT-Disposition
+      - type: consumes
+        target: ENT-StatusDict
+  - doc-id: API-002
+    title: PATCH /dispositions/{id}
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-001
+      - type: consumes
+        target: ENT-Disposition
+      - type: consumes
+        target: ENT-StatusDict
+  - doc-id: API-003
+    title: POST /clients/validate
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-002
+      - type: constrained_by
+        target: NFR-001.NFRT-SEC-01
+      - type: consumes
+        target: ENT-Client
+  - doc-id: API-005
+    title: GET /dispositions
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-001
+      - type: consumes
+        target: ENT-Disposition
+      - type: consumes
+        target: ENT-StatusDict
+  - doc-id: INT-001
+    title: System scoringowy
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-002
+      - type: constrained_by
+        target: NFR-001.NFRT-AVAIL-01
+  - doc-id: INT-002
+    title: Księga główna
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-003
+  - doc-id: QUE-001
+    title: DispositionAccepted
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-001
+      - type: consumes
+        target: ENT-Disposition
+  - doc-id: QUE-002
+    title: ClientDataChanged
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-002
+      - type: consumes
+        target: ENT-Client
+  - doc-id: SCR-001
+    title: Formularz dyspozycji
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-001
+      - type: contains
+        target: SCRSEC-002
+  - doc-id: SCR-002
+    title: Podsumowanie
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-003
+  - doc-id: SCR-003
+    title: Edycja dyspozycji
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-001
+      - type: contains
+        target: SCRSEC-004
+  - doc-id: SCRSEC-001
+    title: Dane klienta
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Client
+  - doc-id: SCRSEC-002
+    title: Pozycje
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-DispositionItem
+  - doc-id: SCRSEC-003
+    title: Podsumowanie kwot
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Disposition
+  - doc-id: SCRSEC-004
+    title: Historia zmian
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-StatusDict
+  - doc-id: NAV-001
+    title: Nawigacja dyspozycji
+    status: draft
+    relations:
+      - type: groups
+        target: SCR-001
+      - type: groups
+        target: SCR-002
+      - type: groups
+        target: SCR-003
+  - doc-id: FLOW-001
+    title: Przyjęcie — happy path
+    status: draft
+    relations:
+      - type: consumes
+        target: API-001
+      - type: consumes
+        target: QUE-001
+      - type: contains
+        target: ACT-001
+      - type: contains
+        target: ACT-002
+  - doc-id: FLOW-002
+    title: Przyjęcie — błędy
+    status: draft
+    relations:
+      - type: consumes
+        target: API-001
+      - type: consumes
+        target: INT-001
+      - type: contains
+        target: ACT-003
+  - doc-id: ACT-001
+    title: Walidacja wejścia
+    status: draft
+    relations: []
+  - doc-id: ACT-002
+    title: Zapis dyspozycji
+    status: draft
+    relations: []
+  - doc-id: ACT-003
+    title: Obsługa odrzucenia
+    status: draft
+    relations: []
+  - doc-id: BPMN-001
+    title: Proces rozliczenia
+    status: draft
+    relations:
+      - type: contains
+        target: SPEC-WF-001
+      - type: contains
+        target: SPEC-WF-002
+      - type: contains
+        target: SPEC-WF-003
+  - doc-id: SPEC-WF-001
+    title: Pobranie zleceń
+    status: draft
+    relations:
+      - type: consumes
+        target: API-005
+      - type: contains
+        target: AC-01
+  - doc-id: SPEC-WF-002
+    title: Rozliczenie pozycji
+    status: draft
+    relations:
+      - type: consumes
+        target: INT-002
+      - type: consumes
+        target: SPEC-WF-001
+      - type: contains
+        target: AC-01
+      - type: contains
+        target: AC-02
+  - doc-id: SPEC-WF-003
+    title: Zamknięcie dnia
+    status: draft
+    relations:
+      - type: consumes
+        target: SPEC-WF-002
+      - type: contains
+        target: AC-01
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-002 — Reklamacje dyspozycji  (7 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-002:
+  - doc-id: BFS-002
+    title: Reklamacje dyspozycji
+    status: draft
+    relations:
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: RB-01
+  - doc-id: CAP-004
+    title: Obsługa reklamacji
+    status: draft
+    relations: []
+  - doc-id: UC-003
+    title: Zgłoszenie reklamacji
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-002.REQ-01
+      - type: realizes
+        target: CAP-004
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: involves
+        target: ACTOR-001.ROLE-02
+      - type: consumes
+        target: API-004
+      - type: contains
+        target: SCR-004
+  - doc-id: UC-004
+    title: Rozpatrzenie reklamacji
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-002.REQ-02
+      - type: realizes
+        target: CAP-004
+      - type: involves
+        target: ACTOR-001.ROLE-02
+  - doc-id: API-004
+    title: POST /complaints
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-004
+      - type: consumes
+        target: ENT-Complaint
+      - type: consumes
+        target: ENT-Client
+  - doc-id: SCR-004
+    title: Formularz reklamacji
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-005
+  - doc-id: SCRSEC-005
+    title: Opis reklamacji
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Complaint
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-003 — Otwarcie rachunku  (16 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-003:
+  - doc-id: BFS-003
+    title: Otwarcie rachunku
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-001.NFRT-PERF-01
+      - type: constrained_by
+        target: NFR-002.NFRT-SEC-02
+      - type: constrained_by
+        target: NFR-002.NFRT-AVAIL-02
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: REQ-03
+      - type: contains
+        target: REQ-04
+      - type: contains
+        target: RB-01
+      - type: contains
+        target: RB-02
+  - doc-id: CAP-010
+    title: Zakładanie rachunku
+    status: draft
+    relations: []
+  - doc-id: CAP-011
+    title: Weryfikacja tożsamości
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-002.NFRT-SEC-02
+  - doc-id: UC-010
+    title: Wniosek o rachunek
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-003.REQ-01
+      - type: realizes
+        target: BFS-003.RB-01
+      - type: realizes
+        target: CAP-010
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-010
+      - type: contains
+        target: A1
+      - type: contains
+        target: E1
+      - type: contains
+        target: E2
+      - type: contains
+        target: SCR-010
+      - type: contains
+        target: SCR-011
+  - doc-id: UC-011
+    title: Weryfikacja dokumentów
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-003.REQ-03
+      - type: realizes
+        target: CAP-011
+      - type: involves
+        target: ACTOR-001.ROLE-02
+      - type: consumes
+        target: API-011
+      - type: consumes
+        target: INT-010
+      - type: contains
+        target: E1
+  - doc-id: TUC-010
+    title: Aktywacja rachunku
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-003.REQ-04
+      - type: realizes
+        target: CAP-010
+      - type: involves
+        target: ACTOR-001.ROLE-03
+      - type: consumes
+        target: QUE-010
+  - doc-id: API-010
+    title: POST /accounts
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-010
+      - type: constrained_by
+        target: NFR-001.NFRT-PERF-01
+      - type: consumes
+        target: ENT-Account
+      - type: consumes
+        target: ENT-Client
+  - doc-id: API-011
+    title: POST /identity/verify
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-011
+      - type: consumes
+        target: ENT-Client
+  - doc-id: INT-010
+    title: Rejestr PESEL
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-011
+      - type: constrained_by
+        target: NFR-002.NFRT-AVAIL-02
+      - type: consumes
+        target: ENT-Client
+  - doc-id: QUE-010
+    title: AccountOpened
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-010
+      - type: consumes
+        target: ENT-Account
+  - doc-id: SCR-010
+    title: Wniosek krok 1
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-010
+      - type: contains
+        target: SCRSEC-011
+  - doc-id: SCR-011
+    title: Wniosek krok 2
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-012
+  - doc-id: SCRSEC-010
+    title: Dane osobowe
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Client
+  - doc-id: SCRSEC-011
+    title: Wybór produktu
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Product
+  - doc-id: SCRSEC-012
+    title: Zgody
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Consent
+  - doc-id: NAV-010
+    title: Nawigacja wniosku
+    status: draft
+    relations:
+      - type: groups
+        target: SCR-010
+      - type: groups
+        target: SCR-011
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-004 — Wydanie karty  (14 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-004:
+  - doc-id: BFS-004
+    title: Wydanie karty
+    status: draft
+    relations:
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: REQ-03
+      - type: contains
+        target: RB-01
+  - doc-id: CAP-012
+    title: Zamawianie kart
+    status: draft
+    relations:
+      - type: consumes
+        target: QUE-010
+  - doc-id: CAP-013
+    title: Personalizacja karty
+    status: draft
+    relations: []
+  - doc-id: UC-012
+    title: Zamówienie karty
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-004.REQ-01
+      - type: realizes
+        target: BFS-004.RB-01
+      - type: realizes
+        target: CAP-012
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-012
+      - type: contains
+        target: A1
+      - type: contains
+        target: E1
+      - type: contains
+        target: SCR-012
+  - doc-id: TUC-011
+    title: Wysyłka do personalizacji
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-004.REQ-02
+      - type: realizes
+        target: CAP-013
+      - type: involves
+        target: ACTOR-001.ROLE-03
+      - type: consumes
+        target: INT-011
+  - doc-id: TUC-012
+    title: Aktywacja karty
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-004.REQ-03
+      - type: realizes
+        target: CAP-012
+      - type: involves
+        target: ACTOR-001.ROLE-03
+      - type: consumes
+        target: QUE-011
+  - doc-id: API-012
+    title: POST /cards
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-012
+      - type: consumes
+        target: ENT-Card
+      - type: consumes
+        target: ENT-Account
+  - doc-id: INT-011
+    title: Personalizator kart
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-013
+      - type: consumes
+        target: ENT-Card
+  - doc-id: QUE-011
+    title: CardIssued
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-012
+      - type: consumes
+        target: ENT-Card
+  - doc-id: SCR-012
+    title: Zamówienie karty
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-013
+  - doc-id: SCRSEC-013
+    title: Parametry karty
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Card
+  - doc-id: FLOW-010
+    title: Wydanie karty
+    status: draft
+    relations:
+      - type: consumes
+        target: API-012
+      - type: consumes
+        target: INT-011
+      - type: contains
+        target: ACT-010
+      - type: contains
+        target: ACT-011
+  - doc-id: ACT-010
+    title: Sprawdzenie limitu kart
+    status: draft
+    relations: []
+  - doc-id: ACT-011
+    title: Zlecenie personalizacji
+    status: draft
+    relations: []
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-005 — Kredyt gotówkowy  (27 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-005:
+  - doc-id: BFS-005
+    title: Kredyt gotówkowy
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-001.NFRT-PERF-02
+      - type: constrained_by
+        target: NFR-002.NFRT-AVAIL-02
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: REQ-03
+      - type: contains
+        target: REQ-04
+      - type: contains
+        target: REQ-05
+      - type: contains
+        target: RB-01
+      - type: contains
+        target: RB-02
+      - type: contains
+        target: RB-03
+  - doc-id: CAP-014
+    title: Ocena zdolności
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-001.NFRT-PERF-02
+  - doc-id: CAP-015
+    title: Decyzja kredytowa
+    status: draft
+    relations: []
+  - doc-id: CAP-016
+    title: Uruchomienie środków
+    status: draft
+    relations: []
+  - doc-id: UC-013
+    title: Wniosek kredytowy
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-005.REQ-01
+      - type: realizes
+        target: BFS-005.RB-01
+      - type: realizes
+        target: CAP-014
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-013
+      - type: consumes
+        target: INT-012
+      - type: contains
+        target: A1
+      - type: contains
+        target: A2
+      - type: contains
+        target: E1
+      - type: contains
+        target: SCR-013
+  - doc-id: UC-014
+    title: Prezentacja decyzji
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-005.REQ-03
+      - type: realizes
+        target: CAP-015
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-014
+      - type: consumes
+        target: INT-013
+      - type: consumes
+        target: QUE-012
+      - type: contains
+        target: E1
+      - type: contains
+        target: SCR-014
+  - doc-id: UC-015
+    title: Podpisanie umowy
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-005.REQ-04
+      - type: realizes
+        target: BFS-005.RB-02
+      - type: realizes
+        target: CAP-016
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: involves
+        target: ACTOR-001.ROLE-02
+      - type: consumes
+        target: API-015
+      - type: contains
+        target: SCR-015
+  - doc-id: TUC-013
+    title: Nocna wypłata środków
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-005.REQ-05
+      - type: realizes
+        target: CAP-016
+      - type: involves
+        target: ACTOR-001.ROLE-03
+  - doc-id: UCMAP-010
+    title: Mapa kredytu
+    status: draft
+    relations:
+      - type: groups
+        target: UC-013
+      - type: groups
+        target: UC-014
+      - type: groups
+        target: UC-015
+      - type: groups
+        target: TUC-013
+  - doc-id: API-013
+    title: POST /loans/apply
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-014
+      - type: consumes
+        target: ENT-LoanApplication
+      - type: consumes
+        target: ENT-Client
+  - doc-id: API-014
+    title: GET /loans/{id}/decision
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-015
+      - type: consumes
+        target: ENT-LoanApplication
+      - type: consumes
+        target: ENT-StatusDict
+  - doc-id: API-015
+    title: POST /loans/{id}/sign
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-016
+      - type: consumes
+        target: ENT-Contract
+  - doc-id: INT-012
+    title: Biuro informacji kredytowej
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-014
+      - type: constrained_by
+        target: NFR-002.NFRT-AVAIL-02
+  - doc-id: INT-013
+    title: Silnik scoringowy
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-015
+      - type: consumes
+        target: ENT-LoanApplication
+  - doc-id: QUE-012
+    title: LoanDecided
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-015
+      - type: consumes
+        target: ENT-LoanApplication
+  - doc-id: SCR-013
+    title: Formularz wniosku
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-014
+      - type: contains
+        target: SCRSEC-015
+  - doc-id: SCR-014
+    title: Ekran decyzji
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-016
+  - doc-id: SCR-015
+    title: Podpis umowy
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-017
+  - doc-id: SCRSEC-014
+    title: Kwota i okres
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-LoanApplication
+  - doc-id: SCRSEC-015
+    title: Dochody
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Income
+  - doc-id: SCRSEC-016
+    title: Warunki oferty
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-LoanApplication
+  - doc-id: SCRSEC-017
+    title: Treść umowy
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Contract
+  - doc-id: NAV-011
+    title: Ścieżka kredytu
+    status: draft
+    relations:
+      - type: groups
+        target: SCR-013
+      - type: groups
+        target: SCR-014
+      - type: groups
+        target: SCR-015
+  - doc-id: BPMN-010
+    title: Proces decyzji kredytowej
+    status: draft
+    relations:
+      - type: contains
+        target: SPEC-WF-010
+      - type: contains
+        target: SPEC-WF-011
+      - type: contains
+        target: SPEC-WF-012
+  - doc-id: SPEC-WF-010
+    title: Pobranie danych klienta
+    status: draft
+    relations:
+      - type: consumes
+        target: API-013
+      - type: contains
+        target: AC-01
+  - doc-id: SPEC-WF-011
+    title: Wyliczenie scoringu
+    status: draft
+    relations:
+      - type: consumes
+        target: INT-013
+      - type: consumes
+        target: SPEC-WF-010
+      - type: contains
+        target: AC-01
+      - type: contains
+        target: AC-02
+  - doc-id: SPEC-WF-012
+    title: Publikacja decyzji
+    status: draft
+    relations:
+      - type: consumes
+        target: QUE-012
+      - type: consumes
+        target: SPEC-WF-011
+      - type: contains
+        target: AC-01
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-006 — Przelewy krajowe  (15 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-006:
+  - doc-id: BFS-006
+    title: Przelewy krajowe
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-001.NFRT-PERF-01
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: REQ-03
+      - type: contains
+        target: RB-01
+      - type: contains
+        target: RB-02
+  - doc-id: CAP-017
+    title: Zlecanie przelewów
+    status: draft
+    relations: []
+  - doc-id: CAP-018
+    title: Rozliczenie Elixir
+    status: draft
+    relations: []
+  - doc-id: UC-016
+    title: Nowy przelew
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-006.REQ-01
+      - type: realizes
+        target: BFS-006.RB-01
+      - type: realizes
+        target: CAP-017
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-016
+      - type: contains
+        target: A1
+      - type: contains
+        target: E1
+      - type: contains
+        target: E2
+      - type: contains
+        target: SCR-016
+  - doc-id: UC-017
+    title: Przelew cykliczny
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-006.REQ-02
+      - type: realizes
+        target: CAP-017
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-017
+  - doc-id: TUC-014
+    title: Sesja Elixir
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-006.REQ-03
+      - type: realizes
+        target: CAP-018
+      - type: involves
+        target: ACTOR-001.ROLE-03
+      - type: consumes
+        target: INT-014
+      - type: consumes
+        target: QUE-013
+  - doc-id: API-016
+    title: POST /transfers
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-017
+      - type: constrained_by
+        target: NFR-001.NFRT-PERF-01
+      - type: consumes
+        target: ENT-Transfer
+      - type: consumes
+        target: ENT-Account
+  - doc-id: API-017
+    title: POST /standing-orders
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-017
+      - type: consumes
+        target: ENT-StandingOrder
+  - doc-id: INT-014
+    title: System Elixir
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-018
+      - type: consumes
+        target: ENT-Transfer
+  - doc-id: QUE-013
+    title: TransferSettled
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-018
+      - type: consumes
+        target: ENT-Transfer
+  - doc-id: SCR-016
+    title: Formularz przelewu
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-018
+      - type: contains
+        target: SCRSEC-019
+  - doc-id: SCRSEC-018
+    title: Odbiorca
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Counterparty
+  - doc-id: SCRSEC-019
+    title: Kwota i tytuł
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Transfer
+  - doc-id: FLOW-011
+    title: Zlecenie przelewu
+    status: draft
+    relations:
+      - type: consumes
+        target: API-016
+      - type: contains
+        target: ACT-012
+  - doc-id: ACT-012
+    title: Kontrola salda
+    status: draft
+    relations: []
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-007 — Przelewy zagraniczne  (9 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-007:
+  - doc-id: BFS-007
+    title: Przelewy zagraniczne
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-002.NFRT-SEC-02
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: RB-01
+      - type: contains
+        target: RB-02
+  - doc-id: CAP-019
+    title: Przelewy SWIFT
+    status: draft
+    relations: []
+  - doc-id: UC-018
+    title: Przelew walutowy
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-007.REQ-01
+      - type: realizes
+        target: BFS-007.RB-01
+      - type: realizes
+        target: CAP-019
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-018
+      - type: consumes
+        target: INT-015
+      - type: contains
+        target: E1
+      - type: contains
+        target: SCR-017
+  - doc-id: TUC-015
+    title: Kontrola sankcyjna
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-007.REQ-02
+      - type: realizes
+        target: CAP-019
+      - type: involves
+        target: ACTOR-001.ROLE-03
+      - type: consumes
+        target: INT-016
+  - doc-id: API-018
+    title: POST /transfers/swift
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-019
+      - type: consumes
+        target: ENT-Transfer
+  - doc-id: INT-015
+    title: Bramka SWIFT
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-019
+      - type: consumes
+        target: ENT-Transfer
+  - doc-id: INT-016
+    title: Lista sankcyjna
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-019
+      - type: constrained_by
+        target: NFR-002.NFRT-SEC-02
+  - doc-id: SCR-017
+    title: Przelew walutowy
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-020
+  - doc-id: SCRSEC-020
+    title: Waluta i kurs
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Transfer
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-008 — Logowanie mobilne  (9 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-008:
+  - doc-id: BFS-008
+    title: Logowanie mobilne
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-002.NFRT-SEC-02
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: RB-01
+  - doc-id: CAP-020
+    title: Uwierzytelnianie
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-002.NFRT-SEC-02
+  - doc-id: UC-019
+    title: Logowanie biometryczne
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-008.REQ-01
+      - type: realizes
+        target: CAP-020
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-019
+      - type: contains
+        target: A1
+      - type: contains
+        target: E1
+      - type: contains
+        target: SCR-018
+  - doc-id: UC-020
+    title: Odzyskanie dostępu
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-008.REQ-02
+      - type: realizes
+        target: BFS-008.RB-01
+      - type: realizes
+        target: CAP-020
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: involves
+        target: ACTOR-001.ROLE-02
+      - type: consumes
+        target: API-020
+  - doc-id: API-019
+    title: POST /auth/login
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-020
+      - type: constrained_by
+        target: NFR-002.NFRT-SEC-02
+      - type: consumes
+        target: ENT-Client
+  - doc-id: API-020
+    title: POST /auth/reset
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-020
+      - type: consumes
+        target: ENT-Client
+  - doc-id: SCR-018
+    title: Ekran logowania
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-021
+  - doc-id: SCRSEC-021
+    title: Metoda logowania
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Client
+  - doc-id: STM-013
+    title: Cykl życia sesji
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-020
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-009 — Zarządzanie zgodami  (7 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-009:
+  - doc-id: BFS-009
+    title: Zarządzanie zgodami
+    status: draft
+    relations:
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: RB-01
+  - doc-id: CAP-021
+    title: Rejestr zgód
+    status: draft
+    relations: []
+  - doc-id: UC-021
+    title: Zmiana zgód
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-009.REQ-01
+      - type: realizes
+        target: CAP-021
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-021b
+      - type: contains
+        target: SCR-019
+  - doc-id: TUC-016
+    title: Wygaszanie zgód
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-009.REQ-02
+      - type: realizes
+        target: BFS-009.RB-01
+      - type: realizes
+        target: CAP-021
+      - type: involves
+        target: ACTOR-001.ROLE-03
+  - doc-id: API-021b
+    title: PUT /consents
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-021
+      - type: consumes
+        target: ENT-Consent
+  - doc-id: SCR-019
+    title: Panel zgód
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-022
+  - doc-id: SCRSEC-022
+    title: Lista zgód
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Consent
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-010 — Raporty regulacyjne  (8 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-010:
+  - doc-id: BFS-010
+    title: Raporty regulacyjne
+    status: draft
+    relations:
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: RB-01
+  - doc-id: CAP-022
+    title: Generowanie raportów
+    status: draft
+    relations: []
+  - doc-id: TUC-017
+    title: Raport miesięczny
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-010.REQ-01
+      - type: realizes
+        target: CAP-022
+      - type: involves
+        target: ACTOR-001.ROLE-03
+  - doc-id: TUC-018
+    title: Wysyłka do nadzoru
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-010.REQ-02
+      - type: realizes
+        target: BFS-010.RB-01
+      - type: realizes
+        target: CAP-022
+      - type: involves
+        target: ACTOR-001.ROLE-03
+      - type: consumes
+        target: INT-017
+  - doc-id: INT-017
+    title: Portal sprawozdawczy
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-022
+  - doc-id: BPMN-011
+    title: Proces raportowania
+    status: draft
+    relations:
+      - type: contains
+        target: SPEC-WF-013
+      - type: contains
+        target: SPEC-WF-014
+  - doc-id: SPEC-WF-013
+    title: Zebranie danych
+    status: draft
+    relations:
+      - type: contains
+        target: AC-01
+  - doc-id: SPEC-WF-014
+    title: Wysyłka pliku
+    status: draft
+    relations:
+      - type: consumes
+        target: INT-017
+      - type: consumes
+        target: SPEC-WF-013
+      - type: contains
+        target: AC-01
+      - type: contains
+        target: AC-02
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-011 — Lokaty terminowe  (9 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-011:
+  - doc-id: BFS-011
+    title: Lokaty terminowe
+    status: draft
+    relations:
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: REQ-03
+      - type: contains
+        target: RB-01
+  - doc-id: CAP-023
+    title: Zakładanie lokat
+    status: draft
+    relations: []
+  - doc-id: CAP-024
+    title: Naliczanie odsetek
+    status: draft
+    relations: []
+  - doc-id: UC-022
+    title: Założenie lokaty
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-011.REQ-01
+      - type: realizes
+        target: BFS-011.RB-01
+      - type: realizes
+        target: CAP-023
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-022b
+      - type: contains
+        target: E1
+      - type: contains
+        target: SCR-020
+  - doc-id: UC-023
+    title: Zerwanie lokaty
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-011.REQ-03
+      - type: realizes
+        target: CAP-023
+      - type: involves
+        target: ACTOR-001.ROLE-01
+  - doc-id: TUC-019
+    title: Kapitalizacja odsetek
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-011.REQ-02
+      - type: realizes
+        target: CAP-024
+      - type: involves
+        target: ACTOR-001.ROLE-03
+  - doc-id: API-022b
+    title: POST /deposits
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-023
+      - type: consumes
+        target: ENT-Deposit
+      - type: consumes
+        target: ENT-Account
+  - doc-id: SCR-020
+    title: Kalkulator lokaty
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-023
+  - doc-id: SCRSEC-023
+    title: Parametry lokaty
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Deposit
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-012 — Windykacja miękka  (9 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-012:
+  - doc-id: BFS-012
+    title: Windykacja miękka
+    status: draft
+    relations:
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: RB-01
+      - type: contains
+        target: RB-02
+  - doc-id: CAP-025
+    title: Monitoring zaległości
+    status: draft
+    relations: []
+  - doc-id: CAP-026
+    title: Kampanie przypomnień
+    status: draft
+    relations:
+      - type: consumes
+        target: QUE-014
+  - doc-id: UC-024
+    title: Ustalenie planu spłat
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-012.REQ-02
+      - type: realizes
+        target: CAP-026
+      - type: involves
+        target: ACTOR-001.ROLE-02
+  - doc-id: TUC-020
+    title: Wykrycie zaległości
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-012.REQ-01
+      - type: realizes
+        target: CAP-025
+      - type: involves
+        target: ACTOR-001.ROLE-03
+      - type: consumes
+        target: API-023b
+      - type: consumes
+        target: QUE-014
+  - doc-id: TUC-021
+    title: Wysyłka przypomnień
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-012.REQ-02
+      - type: realizes
+        target: BFS-012.RB-01
+      - type: realizes
+        target: CAP-026
+      - type: involves
+        target: ACTOR-001.ROLE-03
+      - type: consumes
+        target: INT-018
+  - doc-id: API-023b
+    title: GET /arrears
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-025
+      - type: consumes
+        target: ENT-Arrear
+      - type: consumes
+        target: ENT-Contract
+  - doc-id: INT-018
+    title: Bramka SMS
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-026
+  - doc-id: QUE-014
+    title: ArrearDetected
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-025
+      - type: consumes
+        target: ENT-Arrear
+
+# ──────────────────────────────────────────────────────────────────────
+# BFS-013 — Rachunki firmowe  (10 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+BFS-013:
+  - doc-id: BFS-013
+    title: Rachunki firmowe
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-002.NFRT-SEC-02
+      - type: contains
+        target: REQ-01
+      - type: contains
+        target: REQ-02
+      - type: contains
+        target: REQ-03
+      - type: contains
+        target: RB-01
+  - doc-id: CAP-027
+    title: Reprezentacja firmy
+    status: draft
+    relations: []
+  - doc-id: CAP-028
+    title: Wielopodpis
+    status: draft
+    relations:
+      - type: constrained_by
+        target: NFR-002.NFRT-SEC-02
+  - doc-id: UC-025
+    title: Nadanie uprawnień
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-013.REQ-01
+      - type: realizes
+        target: CAP-027
+      - type: involves
+        target: ACTOR-001.ROLE-02
+      - type: consumes
+        target: API-024
+      - type: contains
+        target: E1
+      - type: contains
+        target: SCR-021
+  - doc-id: UC-026
+    title: Akceptacja wielopodpisem
+    status: draft
+    relations:
+      - type: realizes
+        target: BFS-013.REQ-02
+      - type: realizes
+        target: BFS-013.RB-01
+      - type: realizes
+        target: CAP-028
+      - type: involves
+        target: ACTOR-001.ROLE-01
+      - type: consumes
+        target: API-025
+  - doc-id: UCMAP-011
+    title: Mapa firmowa
+    status: draft
+    relations:
+      - type: groups
+        target: UC-025
+      - type: groups
+        target: UC-026
+  - doc-id: API-024
+    title: POST /company/mandates
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-027
+      - type: consumes
+        target: ENT-Mandate
+      - type: consumes
+        target: ENT-Client
+  - doc-id: API-025
+    title: POST /approvals
+    status: draft
+    relations:
+      - type: realizes
+        target: CAP-028
+      - type: consumes
+        target: ENT-Approval
+      - type: consumes
+        target: ENT-Transfer
+  - doc-id: SCR-021
+    title: Panel uprawnień
+    status: draft
+    relations:
+      - type: contains
+        target: SCRSEC-024
+  - doc-id: SCRSEC-024
+    title: Macierz uprawnień
+    status: draft
+    relations:
+      - type: consumes
+        target: ENT-Mandate
+
+# ──────────────────────────────────────────────────────────────────────
+# WSPÓLNE — mapy kilku procesów, domeny, NFR, aktorzy  (38 dokumentów)
+# ──────────────────────────────────────────────────────────────────────
+shared:
+  - doc-id: UCMAP-001
+    title: Mapa scenariuszy
+    status: draft
+    relations:
+      - type: groups
+        target: UC-001
+      - type: groups
+        target: UC-002
+      - type: groups
+        target: UC-003
+      - type: groups
+        target: UC-004
+      - type: groups
+        target: TUC-001
+      - type: groups
+        target: TUC-002
+  - doc-id: STM-001
+    title: Cykl życia dyspozycji
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-001.DOM-Dyspozycja
+  - doc-id: STM-002
+    title: Cykl życia reklamacji
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-001.DOM-Reklamacja
+  - doc-id: STM-010
+    title: Cykl życia rachunku
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-002.DOM-Rachunek
+  - doc-id: STM-011
+    title: Cykl życia wniosku
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-003.DOM-Wniosek
+  - doc-id: STM-012
+    title: Cykl życia przelewu
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-004.DOM-Przelew
+  - doc-id: STM-014
+    title: Cykl życia lokaty
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-002.DOM-Rachunek
+  - doc-id: STM-015
+    title: Cykl życia zaległości
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-003.DOM-Zaleglosc
+  - doc-id: DDM-001
+    title: Domena dyspozycji
+    status: draft
+    relations:
+      - type: contains
+        target: DOM-Dyspozycja
+      - type: contains
+        target: DOM-Pozycja
+      - type: contains
+        target: DOM-Klient
+      - type: contains
+        target: DOM-Reklamacja
+      - type: contains
+        target: RD-001
+      - type: contains
+        target: RD-002
+  - doc-id: DDM-002
+    title: Domena rachunków
+    status: draft
+    relations:
+      - type: contains
+        target: DOM-Rachunek
+      - type: contains
+        target: DOM-Produkt
+      - type: contains
+        target: DOM-Zgoda
+      - type: contains
+        target: DOM-Pelnomocnictwo
+      - type: contains
+        target: RD-001
+  - doc-id: DDM-003
+    title: Domena kredytowa
+    status: draft
+    relations:
+      - type: contains
+        target: DOM-Wniosek
+      - type: contains
+        target: DOM-Umowa
+      - type: contains
+        target: DOM-Dochod
+      - type: contains
+        target: DOM-Zaleglosc
+      - type: contains
+        target: RD-001
+      - type: contains
+        target: RD-002
+  - doc-id: DDM-004
+    title: Domena płatności
+    status: draft
+    relations:
+      - type: contains
+        target: DOM-Przelew
+      - type: contains
+        target: DOM-Kontrahent
+      - type: contains
+        target: DOM-Akceptacja
+      - type: contains
+        target: RD-001
+  - doc-id: LDM-001
+    title: Model dyspozycji
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-001.DOM-Dyspozycja
+      - type: realizes
+        target: DDM-001.DOM-Pozycja
+      - type: realizes
+        target: DDM-001.DOM-Klient
+      - type: realizes
+        target: DDM-001.DOM-Reklamacja
+      - type: contains
+        target: ENT-Disposition
+      - type: contains
+        target: ENT-DispositionItem
+      - type: contains
+        target: ENT-Client
+      - type: contains
+        target: ENT-StatusDict
+      - type: contains
+        target: ENT-Complaint
+  - doc-id: LDM-002
+    title: Model rachunków
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-002.DOM-Rachunek
+      - type: realizes
+        target: DDM-002.DOM-Produkt
+      - type: realizes
+        target: DDM-002.DOM-Zgoda
+      - type: realizes
+        target: DDM-002.DOM-Pelnomocnictwo
+      - type: contains
+        target: ENT-Account
+      - type: contains
+        target: ENT-Product
+      - type: contains
+        target: ENT-Consent
+      - type: contains
+        target: ENT-Deposit
+      - type: contains
+        target: ENT-Card
+      - type: contains
+        target: ENT-Mandate
+  - doc-id: LDM-003
+    title: Model kredytowy
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-003.DOM-Wniosek
+      - type: realizes
+        target: DDM-003.DOM-Umowa
+      - type: realizes
+        target: DDM-003.DOM-Dochod
+      - type: realizes
+        target: DDM-003.DOM-Zaleglosc
+      - type: contains
+        target: ENT-LoanApplication
+      - type: contains
+        target: ENT-Contract
+      - type: contains
+        target: ENT-Income
+      - type: contains
+        target: ENT-Arrear
+  - doc-id: LDM-004
+    title: Model płatności
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-004.DOM-Przelew
+      - type: realizes
+        target: DDM-004.DOM-Kontrahent
+      - type: realizes
+        target: DDM-004.DOM-Akceptacja
+      - type: contains
+        target: ENT-Transfer
+      - type: contains
+        target: ENT-Counterparty
+      - type: contains
+        target: ENT-StandingOrder
+      - type: contains
+        target: ENT-Approval
+  - doc-id: ENT-Account
+    title: Rachunek
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-002.DOM-Rachunek
+      - type: contains
+        target: RW-001
+  - doc-id: ENT-Approval
+    title: Akceptacja
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-004.DOM-Akceptacja
+  - doc-id: ENT-Arrear
+    title: Zaległość
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-003.DOM-Zaleglosc
+  - doc-id: ENT-Card
+    title: Karta
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-002.DOM-Produkt
+  - doc-id: ENT-Client
+    title: Klient
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-001.DOM-Klient
+  - doc-id: ENT-Complaint
+    title: Reklamacja
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-001.DOM-Reklamacja
+  - doc-id: ENT-Consent
+    title: Zgoda
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-002.DOM-Zgoda
+  - doc-id: ENT-Contract
+    title: Umowa
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-003.DOM-Umowa
+  - doc-id: ENT-Counterparty
+    title: Kontrahent
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-004.DOM-Kontrahent
+  - doc-id: ENT-Deposit
+    title: Lokata
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-002.DOM-Rachunek
+  - doc-id: ENT-Disposition
+    title: Dyspozycja
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-001.DOM-Dyspozycja
+      - type: contains
+        target: ENT-DispositionItem
+      - type: contains
+        target: RW-001
+  - doc-id: ENT-DispositionItem
+    title: Pozycja dyspozycji
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-001.DOM-Pozycja
+  - doc-id: ENT-Income
+    title: Dochód
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-003.DOM-Dochod
+  - doc-id: ENT-LoanApplication
+    title: Wniosek kredytowy
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-003.DOM-Wniosek
+      - type: contains
+        target: ENT-Income
+      - type: contains
+        target: RW-001
+  - doc-id: ENT-Mandate
+    title: Pełnomocnictwo
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-002.DOM-Pelnomocnictwo
+  - doc-id: ENT-Product
+    title: Produkt
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-002.DOM-Produkt
+  - doc-id: ENT-StandingOrder
+    title: Zlecenie stałe
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-004.DOM-Przelew
+  - doc-id: ENT-StatusDict
+    title: Słownik statusów
+    status: draft
+    relations: []
+  - doc-id: ENT-Transfer
+    title: Przelew
+    status: draft
+    relations:
+      - type: realizes
+        target: DDM-004.DOM-Przelew
+      - type: contains
+        target: ENT-Counterparty
+  - doc-id: NFR-001
+    title: Wymagania jakościowe
+    status: draft
+    relations:
+      - type: contains
+        target: NFRT-PERF-01
+      - type: contains
+        target: NFRT-PERF-02
+      - type: contains
+        target: NFRT-SEC-01
+      - type: contains
+        target: NFRT-AVAIL-01
+  - doc-id: NFR-002
+    title: Bezpieczeństwo i dostępność
+    status: draft
+    relations:
+      - type: contains
+        target: NFRT-SEC-02
+      - type: contains
+        target: NFRT-AVAIL-02
+  - doc-id: ACTOR-001
+    title: Aktorzy procesu
+    status: draft
+    relations:
+      - type: contains
+        target: ROLE-01
+      - type: contains
+        target: ROLE-02
+      - type: contains
+        target: ROLE-03
